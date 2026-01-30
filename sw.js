@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mn90-planner-v2';
+const CACHE_NAME = 'mn90-planner-v3';
 const urlsToCache = [
     './',
     './index.html',
@@ -6,7 +6,8 @@ const urlsToCache = [
     './script.js',
     './mn90.js',
     './manifest.json',
-    './favicon.ico'
+    './favicon.png',
+    './background.png'
 ];
 
 self.addEventListener('install', event => {

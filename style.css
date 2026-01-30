@@ -12,6 +12,10 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--bg-color);
+    background-image: url('background-table.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
@@ -72,6 +76,12 @@ body {
     cursor: ns-resize;
     user-select: none;
     -webkit-user-select: none;
+    background: rgba(255, 255, 255, 0.1);
+    /* Whitening effect */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .gauge-ring {
@@ -127,9 +137,14 @@ body {
 }
 
 .results-container {
-    background-color: transparent;
-    padding: 20px 0;
+    background: rgba(255, 255, 255, 0.1);
+    /* Whitening effect */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
     min-height: 150px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .stops-display {
