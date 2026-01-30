@@ -1,6 +1,6 @@
 // State
-let currentDepth = 20; // meters
-let currentTime = 15; // minutes
+let currentDepth = 40; // meters
+let currentTime = 25; // minutes
 let currentPressure = 200; // bar
 let currentSAC = 20; // l/min
 let currentVolume = 15; // liters
@@ -292,21 +292,42 @@ function updateUI() {
     let totalStopTime = 0;
     let firstStopDepth = 0;
 
+    // Check for any stops first to set globals
     depths.forEach(d => {
         if (stops[d]) {
-            if (!hasStops) firstStopDepth = d; // Capture deepest stop
+            if (!hasStops) firstStopDepth = d;
             hasStops = true;
             totalStopTime += stops[d];
-
-            const stopEl = document.createElement('div');
-            stopEl.className = 'stop-item';
-            stopEl.innerHTML = `
-                    <div class="stop-time">${stops[d]}</div>
-                    <div class="stop-dot"></div>
-                    <div class="stop-depth">${d}m</div>
-                `;
-            stopsDisplay.appendChild(stopEl);
         }
+    });
+
+    depths.forEach(d => {
+        const stopEl = document.createElement('div');
+        stopEl.className = 'stop-item';
+
+        // Determine content
+        let visualContent = '';
+        if (stops[d]) {
+            stopEl.classList.add('active');
+            visualContent = `<div class="stop-time">${stops[d]}</div>`;
+        } else {
+            visualContent = `<div class="stop-dot"></div>`;
+        }
+
+        // Calculate visual height for depth (scale factor)
+        // 15m is deepest. 3m is shallowest.
+        // We want the line length to represent depth from the "surface" (top labels).
+        // Scale: 5px per meter + a base minimum (e.g., 5px) to ensure 3m has a line.
+        const lineHeight = (d * 5);
+
+        stopEl.innerHTML = `
+            <div class="stop-depth">${d}m</div>
+            <div class="stop-line" style="height: ${lineHeight}px"></div>
+            <div class="stop-value-container">
+                ${visualContent}
+            </div>
+        `;
+        stopsDisplay.appendChild(stopEl);
     });
 
     // Calculate DTR
