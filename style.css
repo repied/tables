@@ -12,7 +12,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--bg-color);
-    background-image: url('background-table.png');
+    background-image: url('./assets/background-table.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -132,8 +132,14 @@ body {
 .gauge-label {
     margin-top: 10px;
     font-size: 1.2rem;
-    color: #aaa;
+    color: #fff;
     text-transform: lowercase;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    padding: 4px 12px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .results-container {
@@ -145,6 +151,28 @@ body {
     padding: 20px;
     min-height: 150px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.actions-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .stops-display {

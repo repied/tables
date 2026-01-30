@@ -366,4 +366,137 @@ function updateUI() {
 // Wait for DOM
 document.addEventListener('DOMContentLoaded', () => {
     initGauges();
-});
+
+    // Export CSV handler
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportMN90ToCSV);
+    }
+
+    // Import CSV handler
+    const importBtn = document.getElementById('import-btn');
+    const fileInput = document.getElementById('csv-file-input');
+
+    if (importBtn && fileInput) {
+        importBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processCSVImport(e.target.files[0]);
+                // Reset input so same file can be selected again if needed
+                e.target.value = '';
+            }
+        });
+    }
+
+    function processCSVImport(file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const text = e.target.result;
+            const lines = text.split('\n');
+            const data = {};
+
+            // Skip header (row 0)
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const cols = line.split(',');
+                // Format: Depth, Time, 15m, 12m, 9m, 6m, 3m, Group
+                // Note: columns might be empty strings if no stop
+
+                if (cols.length < 8) continue; // Invalid row
+
+                const depth = parseInt(cols[0]);
+                const time = parseInt(cols[1]);
+
+                if (isNaN(depth) || isNaN(time)) continue;
+
+                const stops = {};
+                if (cols[2]) stops[15] = parseInt(cols[2]);
+                if (cols[3]) stops[12] = parseInt(cols[3]);
+                if (cols[4]) stops[9] = parseInt(cols[4]);
+                if (cols[5]) stops[6] = parseInt(cols[5]);
+                if (cols[6]) stops[3] = parseInt(cols[6]);
+
+                const group = cols[7] ? cols[7].trim() : undefined;
+
+                const profile = {
+                    time: time,
+                    stops: stops
+                };
+                if (group) profile.group = group;
+
+                if (!data[depth]) {
+                    data[depth] = [];
+                }
+                data[depth].push(profile);
+            }
+
+            downloadJSON(data, "mn90_imported.json");
+        };
+        reader.readAsText(file);
+    }
+
+    function downloadJSON(data, filename) {
+        const jsonContent = JSON.stringify(data, null, 4); // Pretty print
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportMN90ToCSV() {
+        // Define columns
+        const headers = ['Profondeur (m)', 'Temps (min)', '15m', '12m', '9m', '6m', '3m', 'Groupe'];
+        const rows = [];
+
+        // Add Header
+        rows.push(headers.join(','));
+
+        // Iterate over MN90 data
+        // Keys are depths
+        const depths = Object.keys(MN90).map(Number).sort((a, b) => a - b);
+
+        depths.forEach(depth => {
+            const profiles = MN90[depth];
+            profiles.forEach(p => {
+                const stops = p.stops || {};
+
+                // CSV Row: Depth, Time, Stops(15,12,9,6,3), Group
+                const row = [
+                    depth,
+                    p.time,
+                    stops[15] || '',
+                    stops[12] || '',
+                    stops[9] || '',
+                    stops[6] || '',
+                    stops[3] || '',
+                    p.group || ''
+                ];
+
+                rows.push(row.join(','));
+            });
+        });
+
+        const csvContent = rows.join('\n');
+
+        // Create download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "mn90_tables.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}); // End of DOMContentLoaded
