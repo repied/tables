@@ -1,39 +1,66 @@
 // State
 let currentDepth = 20; // meters
 let currentTime = 15; // minutes
+let currentPressure = 200; // bar
+let currentSAC = 20; // l/min
+let currentVolume = 15; // liters
 
 // Constants
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 0;
-const MAX_TIME = 240; // 4 hours max for this simple planner
+const MAX_TIME = 240;
 const MIN_TIME = 0;
+
+const MAX_PRESSURE = 300;
+const MIN_PRESSURE = 0;
+const MAX_SAC = 30;
+const MIN_SAC = 5;
+const MAX_VOLUME = 20;
+const MIN_VOLUME = 6;
 
 // MN90 Data is available via MN90 global variable
 
 // UI Elements
 const timeGauge = document.getElementById('time-gauge-container');
 const depthGauge = document.getElementById('depth-gauge-container');
+const pressureGauge = document.getElementById('pressure-gauge-container');
+const sacGauge = document.getElementById('sac-gauge-container');
+const volumeGauge = document.getElementById('volume-gauge-container');
+
 const timeDisplay = document.getElementById('time-display');
 const depthDisplay = document.getElementById('depth-display');
+const pressureDisplay = document.getElementById('pressure-display');
+const sacDisplay = document.getElementById('sac-display');
+const volumeDisplay = document.getElementById('volume-display');
+
 const timeProgress = document.getElementById('time-progress');
 const depthProgress = document.getElementById('depth-progress');
+const pressureProgress = document.getElementById('pressure-progress');
+const sacProgress = document.getElementById('sac-progress');
+const volumeProgress = document.getElementById('volume-progress');
+
 const stopsDisplay = document.getElementById('stops-display');
 const diveDetails = document.getElementById('dive-details');
 
 // Initialize Gauges
 function initGauges() {
     // Set up initial dasharray for progress rings
-    // We need to know the length of the path
     const length = timeProgress.getTotalLength();
-    timeProgress.style.strokeDasharray = length;
-    timeProgress.style.strokeDashoffset = length;
 
-    depthProgress.style.strokeDasharray = length;
-    depthProgress.style.strokeDashoffset = length;
+    // Check if elements exist
+    if (!timeProgress || !depthProgress || !pressureProgress || !sacProgress || !volumeProgress) {
+        console.error("Missing gauge elements");
+        return;
+    }
 
+    [timeProgress, depthProgress, pressureProgress, sacProgress, volumeProgress].forEach(p => {
+        p.style.strokeDasharray = length;
+        p.style.strokeDashoffset = length;
+    });
+
+    console.log("Gauges initialized");
     updateUI();
 }
-
 // Interaction Logic
 function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0.5) {
     let startY = 0;
@@ -97,6 +124,33 @@ setupInteraction(
     0.1 // Sensitivity for depth
 );
 
+setupInteraction(
+    pressureGauge,
+    () => currentPressure,
+    (val) => currentPressure = val,
+    MIN_PRESSURE,
+    MAX_PRESSURE,
+    1
+);
+
+setupInteraction(
+    sacGauge,
+    () => currentSAC,
+    (val) => currentSAC = val,
+    MIN_SAC,
+    MAX_SAC,
+    0.5
+);
+
+setupInteraction(
+    volumeGauge,
+    () => currentVolume,
+    (val) => currentVolume = val,
+    MIN_VOLUME,
+    MAX_VOLUME,
+    1
+);
+
 
 // Calculation Logic
 function getMN90Profile(depth, time) {
@@ -142,32 +196,72 @@ function formatTime(minutes) {
     return `${h}:${m.toString().padStart(2, '0')}`;
 }
 
+function calculateGasConsumption(depth, time, profile) {
+    if (depth <= 0) return 0;
+
+    // 1. Bottom Gas
+    const bottomPressure = 1 + depth / 10;
+    const bottomGas = time * bottomPressure * currentSAC;
+
+    // 2. Ascent Gas
+    let ascentGas = 0;
+
+    // Ascent to first stop (or surface)
+    // Speed 15m/min (MN90: 15-17m/min)
+    const ascentSpeed = 15;
+    const stops = profile ? profile.stops : {};
+
+    // Get depths of stops
+    const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a); // Deepest first
+    const firstTargetDepth = stopDepths.length > 0 ? stopDepths[0] : 0;
+
+    // Ascent from bottom to first target
+    if (depth > firstTargetDepth) {
+        const travelTime = (depth - firstTargetDepth) / ascentSpeed;
+        const avgPressure = 1 + (depth + firstTargetDepth) / 20;
+        ascentGas += travelTime * avgPressure * currentSAC;
+    }
+
+    // Stops and travel between stops
+    let currentStopDepth = firstTargetDepth;
+
+    stopDepths.forEach((d, i) => {
+        // Gas at stop
+        const stopDuration = stops[d];
+        const stopPressure = 1 + d / 10;
+        ascentGas += stopDuration * stopPressure * currentSAC;
+
+        // Travel to next stop (or surface)
+        const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : 0;
+        const segmentSpeed = 6; // 6m/min between stops
+
+        const travelTime = (d - nextTarget) / segmentSpeed;
+        const avgPressure = 1 + (d + nextTarget) / 20;
+        ascentGas += travelTime * avgPressure * currentSAC;
+
+        currentStopDepth = nextTarget;
+    });
+
+    return Math.ceil(bottomGas + ascentGas);
+}
+
 // Update UI
 function updateUI() {
     // Update Values
     timeDisplay.textContent = formatTime(currentTime);
     depthDisplay.textContent = currentDepth;
+    pressureDisplay.textContent = currentPressure;
+    sacDisplay.textContent = currentSAC;
+    volumeDisplay.textContent = currentVolume;
 
     // Update Gauges Progress
-    // Map value to 0-1 range
-    const timeRatio = Math.min(currentTime / 60, 1); // Cap visual at 1 hour for full circle? Or max time?
-    // Let's say max gauge is 60 mins for better resolution, or make it dynamic.
-    // The screenshot shows "0:06", so maybe it's just a linear scale.
-    // Let's use 60 mins as full scale for the gauge visual, but allow value to go higher.
-    const timeVisualMax = 60;
-    const timePercent = Math.min(currentTime / timeVisualMax, 1);
-
-    const depthVisualMax = 60;
-    const depthPercent = Math.min(currentDepth / depthVisualMax, 1);
-
     const length = timeProgress.getTotalLength();
 
-    // Path definition: M 30 100 A 50 50 0 1 1 90 100
-    // This is a partial circle (approx 250 degrees?)
-    // Actually let's assume the path length corresponds to the full range.
-
-    timeProgress.style.strokeDashoffset = length * (1 - timePercent);
-    depthProgress.style.strokeDashoffset = length * (1 - depthPercent);
+    timeProgress.style.strokeDashoffset = length * (1 - Math.min(currentTime / 60, 1));
+    depthProgress.style.strokeDashoffset = length * (1 - Math.min(currentDepth / 60, 1));
+    pressureProgress.style.strokeDashoffset = length * (1 - Math.min(currentPressure / MAX_PRESSURE, 1));
+    sacProgress.style.strokeDashoffset = length * (1 - Math.min(currentSAC / MAX_SAC, 1));
+    volumeProgress.style.strokeDashoffset = length * (1 - Math.min(currentVolume / MAX_VOLUME, 1));
 
     // Calculate and Display Results
     const result = getMN90Profile(currentDepth, currentTime);
@@ -207,42 +301,43 @@ function updateUI() {
             const stopEl = document.createElement('div');
             stopEl.className = 'stop-item';
             stopEl.innerHTML = `
-                <div class="stop-time">${stops[d]}</div>
-                <div class="stop-dot"></div>
-                <div class="stop-depth">${d}m</div>
-            `;
+                    <div class="stop-time">${stops[d]}</div>
+                    <div class="stop-dot"></div>
+                    <div class="stop-depth">${d}m</div>
+                `;
             stopsDisplay.appendChild(stopEl);
         }
     });
 
+    // Calculate DTR
+    let dtr = 0;
     if (!hasStops) {
         stopsDisplay.innerHTML = '<div class="placeholder-text">Pas de palier</div>';
-        // DTR calculation for no stops
-        const ascentTime = currentDepth / 15; // 15m/min
-        const dtr = Math.ceil(ascentTime);
-
-        // Group
-        let details = `DTR: ${dtr} min`;
-        if (group) details += ` | Groupe: ${group}`;
-        diveDetails.textContent = details;
+        const ascentTime = currentDepth / 15;
+        dtr = Math.ceil(ascentTime);
     } else {
-        // DTR Calculation with stops
-        // Ascent to first stop
         const ascentToFirst = (currentDepth - firstStopDepth) / 15;
-
-        // Ascent between stops and to surface (6m/min)
-        // From first stop to surface, it's (firstStopDepth / 6) minutes total travel time?
-        // Yes, 3m takes 0.5min. 6m takes 1 min travel + stop.
-        // So travel time from first stop depth to surface = firstStopDepth / 6.
-
         const ascentFromFirst = firstStopDepth / 6;
-
         const totalAscentAndStops = ascentToFirst + totalStopTime + ascentFromFirst;
-        const dtr = Math.round(totalAscentAndStops);
+        dtr = Math.round(totalAscentAndStops);
+    }
 
-        let details = `DTR: ${dtr} min`;
-        if (group) details += ` | Groupe: ${group}`;
-        diveDetails.textContent = details;
+    // Calculate Gas
+    const gasUsed = calculateGasConsumption(currentDepth, currentTime, result.profile);
+    const pressureUsed = gasUsed / currentVolume;
+    const remainingPressure = Math.round(currentPressure - pressureUsed);
+
+    // Update Details Footer
+    const dtrFormatted = formatTime(dtr);
+    const gpsText = group ? `gps ${group}` : 'gps -';
+    const reserveText = `réserve ${remainingPressure} bar`;
+
+    diveDetails.textContent = `${gpsText} • dtr ${dtrFormatted} • ${reserveText}`;
+
+    if (remainingPressure < 50) {
+        diveDetails.style.color = '#e53935';
+    } else {
+        diveDetails.style.color = '#888';
     }
 }
 

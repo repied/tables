@@ -15,8 +15,62 @@
 
 <body>
     <div class="app-container">
-        <!-- Gauges Area -->
-        <div class="gauges">
+        <!-- Top Row: Gas Settings -->
+        <div class="gauges-row">
+            <!-- Pressure Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="pressure-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress" id="pressure-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
+                            stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="240" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="pressure-display">200</div>
+                        <div class="gauge-unit">bar</div>
+                    </div>
+                </div>
+                <div class="gauge-label">pression</div>
+            </div>
+
+            <!-- SAC Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="sac-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress" id="sac-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
+                            stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="240" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="sac-display">20</div>
+                        <div class="gauge-unit">l/min</div>
+                    </div>
+                </div>
+                <div class="gauge-label">consommation</div>
+            </div>
+
+            <!-- Volume Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="volume-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress" id="volume-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
+                            stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="240" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="volume-display">15</div>
+                        <div class="gauge-unit">l</div>
+                    </div>
+                </div>
+                <div class="gauge-label">volume</div>
+            </div>
+        </div>
+
+        <!-- Middle Row: Profile -->
+        <div class="gauges-row main-gauges">
             <!-- Duration Gauge -->
             <div class="gauge-wrapper">
                 <div class="gauge-container" id="time-gauge-container">
