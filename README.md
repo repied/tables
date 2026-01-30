@@ -2,7 +2,7 @@
 `Tables` is a simple HTML+JS+CSS [PWA](https://en.wikipedia.org/wiki/Progressive_web_app) app to plan dives using French Navy [MN90 tables](https://fr.wikipedia.org/wiki/Tables_de_d%C3%A9compression). 
 
 # MN90 Data source
-Tables data are taken from https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/
+Tables data is coming from this [excel file](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/).
 
 # Usage
 Visit https://repied.github.io/tables and choose the dive maximum depth and bottom time by sliding gauges up or down.
