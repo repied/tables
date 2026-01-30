@@ -1,10 +1,13 @@
-const CACHE_NAME = 'mn90-planner-v3';
+const CACHE_NAME = 'mn90-planner-v4';
 const urlsToCache = [
     './',
     './index.html',
     './style.css',
     './script.js',
-    './mn90.js',
+    './dataManager.js',
+    './data/mn90_stops.csv',
+    './data/mn90-n2.csv',
+    './data/mn90-majoration.csv',
     './manifest.json',
     './assets/favicon.png',
     './assets/background.png'

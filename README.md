@@ -6,7 +6,6 @@ Tables data is coming from this [excel file](https://eppeplongee.wordpress.com/2
 
 # Usage
 Visit https://repied.github.io/tables and choose the dive maximum depth and bottom time by sliding gauges up or down.
-TODO: add a successive dive 
 
 Then app returns
 . the less conservative safe set of stops.
@@ -29,3 +28,11 @@ Users do not go to the App Store or Play Store as the app is a PWA. They simply 
 * Open this folder with VS Code (preferably as a [devcontainer](https://containers.dev/)) or in a Github [Codespace](https://github.com/features/codespaces).
 * After the devcontainer is ready you can start a local development server with the installed `ms-vscode.live-server` extension, or with `npm run start`.  The application will be available at a local URL, typically `http://127.0.0.1:5500`.
 * Playwright test can be run with `npm test`.
+
+# TODO
+- import mn90 true data from csv instead of json
+- get rid of json
+- add a few tests for typical dives
+- add a successive dive 
+  - parse the 2 other csv and use them correctly to compute the stop of the second dive
+  - figure out a UX way to rpesent this second dive 

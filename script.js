@@ -5,6 +5,12 @@ let currentPressure = 200; // bar
 let currentSAC = 20; // l/min
 let currentVolume = 15; // liters
 
+// Successive Dive State
+let isSuccessiveMode = false;
+let prevGroup = 'A';
+let surfaceInterval = 60; // minutes
+let currentMajoration = 0;
+
 // Constants
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 0;
@@ -17,8 +23,6 @@ const MAX_SAC = 30;
 const MIN_SAC = 5;
 const MAX_VOLUME = 20;
 const MIN_VOLUME = 6;
-
-// MN90 Data is available via MN90 global variable
 
 // UI Elements
 const timeGauge = document.getElementById('time-gauge-container');
@@ -42,12 +46,55 @@ const volumeProgress = document.getElementById('volume-progress');
 const stopsDisplay = document.getElementById('stops-display');
 const diveDetails = document.getElementById('dive-details');
 
-// Initialize Gauges
+// Successive Elements
+const successiveToggle = document.getElementById('successive-mode-toggle');
+const successiveControls = document.getElementById('successive-controls');
+const prevGroupSelect = document.getElementById('prev-group-select');
+const intervalInput = document.getElementById('interval-input');
+const majorationDisplay = document.getElementById('majoration-display');
+
+
+// Initialize
+async function init() {
+    console.log("Loading data...");
+    const success = await window.dataManager.loadAllData();
+    if (!success) {
+        alert("Erreur de chargement des données. Vérifiez la connexion.");
+        return;
+    }
+
+    initGauges();
+    initSuccessiveControls();
+    setupInteractions();
+
+    // Export CSV handler
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportMN90ToCSV);
+    }
+
+    // Import CSV handler
+    const importBtn = document.getElementById('import-btn');
+    const fileInput = document.getElementById('csv-file-input');
+
+    if (importBtn && fileInput) {
+        importBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processCSVImport(e.target.files[0]);
+                e.target.value = '';
+            }
+        });
+    }
+}
+
 function initGauges() {
     // Set up initial dasharray for progress rings
     const length = timeProgress.getTotalLength();
 
-    // Check if elements exist
     if (!timeProgress || !depthProgress || !pressureProgress || !sacProgress || !volumeProgress) {
         console.error("Missing gauge elements");
         return;
@@ -58,9 +105,45 @@ function initGauges() {
         p.style.strokeDashoffset = length;
     });
 
-    console.log("Gauges initialized");
     updateUI();
 }
+
+function initSuccessiveControls() {
+    if (!successiveToggle) return;
+
+    // Populate Group Select
+    const groups = 'ABCDEFGHIJKLMNOP'.split('');
+    prevGroupSelect.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+    prevGroupSelect.value = prevGroup;
+    intervalInput.value = surfaceInterval;
+
+    // Toggle Handler
+    successiveToggle.addEventListener('change', (e) => {
+        isSuccessiveMode = e.target.checked;
+        successiveControls.style.display = isSuccessiveMode ? 'flex' : 'none';
+        updateUI();
+    });
+
+    // Inputs Handler
+    prevGroupSelect.addEventListener('change', (e) => {
+        prevGroup = e.target.value;
+        updateUI();
+    });
+
+    intervalInput.addEventListener('input', (e) => {
+        surfaceInterval = parseInt(e.target.value) || 0;
+        updateUI();
+    });
+}
+
+function setupInteractions() {
+    setupInteraction(timeGauge, () => currentTime, (val) => currentTime = val, MIN_TIME, MAX_TIME, 0.2);
+    setupInteraction(depthGauge, () => currentDepth, (val) => currentDepth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
+    setupInteraction(pressureGauge, () => currentPressure, (val) => currentPressure = val, MIN_PRESSURE, MAX_PRESSURE, 1);
+    setupInteraction(sacGauge, () => currentSAC, (val) => currentSAC = val, MIN_SAC, MAX_SAC, 0.5);
+    setupInteraction(volumeGauge, () => currentVolume, (val) => currentVolume = val, MIN_VOLUME, MAX_VOLUME, 1);
+}
+
 // Interaction Logic
 function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0.5) {
     let startY = 0;
@@ -77,16 +160,11 @@ function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0
 
     element.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
-
-        const deltaY = startY - e.clientY; // Drag UP is positive
+        const deltaY = startY - e.clientY;
         const change = Math.round(deltaY * sensitivity);
-
         let newValue = startValue + change;
-
-        // Clamp
         if (newValue < min) newValue = min;
         if (newValue > max) newValue = max;
-
         if (newValue !== getValue()) {
             setValue(newValue);
             updateUI();
@@ -105,64 +183,13 @@ function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0
     });
 }
 
-// Setup interactions
-setupInteraction(
-    timeGauge,
-    () => currentTime,
-    (val) => currentTime = val,
-    MIN_TIME,
-    MAX_TIME,
-    0.2 // Sensitivity for time
-);
-
-setupInteraction(
-    depthGauge,
-    () => currentDepth,
-    (val) => currentDepth = val,
-    MIN_DEPTH,
-    MAX_DEPTH,
-    0.1 // Sensitivity for depth
-);
-
-setupInteraction(
-    pressureGauge,
-    () => currentPressure,
-    (val) => currentPressure = val,
-    MIN_PRESSURE,
-    MAX_PRESSURE,
-    1
-);
-
-setupInteraction(
-    sacGauge,
-    () => currentSAC,
-    (val) => currentSAC = val,
-    MIN_SAC,
-    MAX_SAC,
-    0.5
-);
-
-setupInteraction(
-    volumeGauge,
-    () => currentVolume,
-    (val) => currentVolume = val,
-    MIN_VOLUME,
-    MAX_VOLUME,
-    1
-);
-
-
 // Calculation Logic
 function getMN90Profile(depth, time) {
-    // MN90 depths are keys in the object (strings "12", "15" etc)
-    // Find the smallest table depth >= currentDepth
-    // Ensure we have sorted keys
+    const MN90 = window.dataManager.getMN90();
     const tableDepths = Object.keys(MN90).map(Number).sort((a, b) => a - b);
-
     let targetDepth = tableDepths.find(d => d >= depth);
 
     if (!targetDepth && depth > 0) {
-        // Exceeds max table depth or not found
         if (depth <= tableDepths[tableDepths.length - 1]) {
             // Should have been found.
         } else {
@@ -175,11 +202,10 @@ function getMN90Profile(depth, time) {
 
     const profiles = MN90[targetDepth];
 
-    // Find profile with time >= currentTime
+    // Find profile with time >= time
     let profile = profiles.find(p => p.time >= time);
 
     if (!profile) {
-        // Exceeds max time for this depth
         return { error: "Hors table" };
     }
 
@@ -199,20 +225,19 @@ function formatTime(minutes) {
 function calculateGasConsumption(depth, time, profile) {
     if (depth <= 0) return 0;
 
-    // 1. Bottom Gas
+    // 1. Bottom Gas (Uses actual bottom time)
+    // Note: profile might be based on Time + Majoration, but gas is consumed based on Actual Time.
+    // However, stops are based on profile.
+
     const bottomPressure = 1 + depth / 10;
     const bottomGas = time * bottomPressure * currentSAC;
 
     // 2. Ascent Gas
     let ascentGas = 0;
-
-    // Ascent to first stop (or surface)
-    // Speed 15m/min (MN90: 15-17m/min)
     const ascentSpeed = 15;
     const stops = profile ? profile.stops : {};
 
-    // Get depths of stops
-    const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a); // Deepest first
+    const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
     const firstTargetDepth = stopDepths.length > 0 ? stopDepths[0] : 0;
 
     // Ascent from bottom to first target
@@ -222,18 +247,15 @@ function calculateGasConsumption(depth, time, profile) {
         ascentGas += travelTime * avgPressure * currentSAC;
     }
 
-    // Stops and travel between stops
     let currentStopDepth = firstTargetDepth;
 
     stopDepths.forEach((d, i) => {
-        // Gas at stop
         const stopDuration = stops[d];
         const stopPressure = 1 + d / 10;
         ascentGas += stopDuration * stopPressure * currentSAC;
 
-        // Travel to next stop (or surface)
         const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : 0;
-        const segmentSpeed = 6; // 6m/min between stops
+        const segmentSpeed = 6;
 
         const travelTime = (d - nextTarget) / segmentSpeed;
         const avgPressure = 1 + (d + nextTarget) / 20;
@@ -247,24 +269,45 @@ function calculateGasConsumption(depth, time, profile) {
 
 // Update UI
 function updateUI() {
-    // Update Values
+    // 1. Calculate Majoration if in Successive Mode
+    let effectiveTime = currentTime;
+    let majText = "+0 min";
+
+    if (isSuccessiveMode) {
+        const result = window.dataManager.calculateSuccessive(prevGroup, surfaceInterval, currentDepth);
+        if (result.error) {
+            majText = "Err";
+            currentMajoration = 0;
+        } else {
+            currentMajoration = result.majoration;
+            majText = `+${currentMajoration} min`;
+            effectiveTime += currentMajoration;
+        }
+    } else {
+        currentMajoration = 0;
+    }
+
+    if (majorationDisplay) {
+        majorationDisplay.textContent = `Majoration: ${majText}`;
+    }
+
+    // 2. Update Values
     timeDisplay.textContent = formatTime(currentTime);
     depthDisplay.textContent = currentDepth;
     pressureDisplay.textContent = currentPressure;
     sacDisplay.textContent = currentSAC;
     volumeDisplay.textContent = currentVolume;
 
-    // Update Gauges Progress
+    // 3. Update Gauges Progress
     const length = timeProgress.getTotalLength();
-
     timeProgress.style.strokeDashoffset = length * (1 - Math.min(currentTime / 60, 1));
     depthProgress.style.strokeDashoffset = length * (1 - Math.min(currentDepth / 60, 1));
     pressureProgress.style.strokeDashoffset = length * (1 - Math.min(currentPressure / MAX_PRESSURE, 1));
     sacProgress.style.strokeDashoffset = length * (1 - Math.min(currentSAC / MAX_SAC, 1));
     volumeProgress.style.strokeDashoffset = length * (1 - Math.min(currentVolume / MAX_VOLUME, 1));
 
-    // Calculate and Display Results
-    const result = getMN90Profile(currentDepth, currentTime);
+    // 4. Calculate Profile using Effective Time
+    const result = getMN90Profile(currentDepth, effectiveTime);
 
     stopsDisplay.innerHTML = '';
     diveDetails.innerHTML = '';
@@ -286,13 +329,12 @@ function updateUI() {
 
     const { stops, group } = result.profile;
 
-    // Render stops
+    // 5. Render Stops
     const depths = [15, 12, 9, 6, 3];
     let hasStops = false;
     let totalStopTime = 0;
     let firstStopDepth = 0;
 
-    // Check for any stops first to set globals
     depths.forEach(d => {
         if (stops[d]) {
             if (!hasStops) firstStopDepth = d;
@@ -305,7 +347,6 @@ function updateUI() {
         const stopEl = document.createElement('div');
         stopEl.className = 'stop-item';
 
-        // Determine content
         let visualContent = '';
         if (stops[d]) {
             stopEl.classList.add('active');
@@ -314,10 +355,6 @@ function updateUI() {
             visualContent = `<div class="stop-dot"></div>`;
         }
 
-        // Calculate visual height for depth (scale factor)
-        // 15m is deepest. 3m is shallowest.
-        // We want the line length to represent depth from the "surface" (top labels).
-        // Scale: 5px per meter + a base minimum (e.g., 5px) to ensure 3m has a line.
         const lineHeight = (d * 5);
 
         stopEl.innerHTML = `
@@ -330,10 +367,9 @@ function updateUI() {
         stopsDisplay.appendChild(stopEl);
     });
 
-    // Calculate DTR
+    // 6. Calculate DTR
     let dtr = 0;
     if (!hasStops) {
-        stopsDisplay.innerHTML = '<div class="placeholder-text">Pas de palier</div>';
         const ascentTime = currentDepth / 15;
         dtr = Math.ceil(ascentTime);
     } else {
@@ -343,12 +379,12 @@ function updateUI() {
         dtr = Math.round(totalAscentAndStops);
     }
 
-    // Calculate Gas
+    // 7. Calculate Gas (Use Actual Time, not Effective Time)
     const gasUsed = calculateGasConsumption(currentDepth, currentTime, result.profile);
     const pressureUsed = gasUsed / currentVolume;
     const remainingPressure = Math.round(currentPressure - pressureUsed);
 
-    // Update Details Footer
+    // 8. Update Details
     const dtrFormatted = formatTime(dtr);
     const gpsText = group ? `gps ${group}` : 'gps -';
     const reserveText = `réserve ${remainingPressure} bar`;
@@ -358,145 +394,102 @@ function updateUI() {
     if (remainingPressure < 50) {
         diveDetails.style.color = '#e53935';
     } else {
-        diveDetails.style.color = '#888';
+        diveDetails.style.color = '#fff'; // White for better visibility against blur
     }
 }
 
-// Initial Call
-// Wait for DOM
-document.addEventListener('DOMContentLoaded', () => {
-    initGauges();
 
-    // Export CSV handler
-    const exportBtn = document.getElementById('export-btn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportMN90ToCSV);
-    }
+// Export Logic
+function exportMN90ToCSV() {
+    const MN90 = window.dataManager.getMN90();
+    const headers = ['Profondeur (m)', 'Temps (min)', '15m', '12m', '9m', '6m', '3m', 'Groupe'];
+    const rows = [];
+    rows.push(headers.join(','));
+    const depths = Object.keys(MN90).map(Number).sort((a, b) => a - b);
 
-    // Import CSV handler
-    const importBtn = document.getElementById('import-btn');
-    const fileInput = document.getElementById('csv-file-input');
-
-    if (importBtn && fileInput) {
-        importBtn.addEventListener('click', () => {
-            fileInput.click();
+    depths.forEach(depth => {
+        const profiles = MN90[depth];
+        profiles.forEach(p => {
+            const stops = p.stops || {};
+            const row = [
+                depth,
+                p.time,
+                stops[15] || '',
+                stops[12] || '',
+                stops[9] || '',
+                stops[6] || '',
+                stops[3] || '',
+                p.group || ''
+            ];
+            rows.push(row.join(','));
         });
+    });
 
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                processCSVImport(e.target.files[0]);
-                // Reset input so same file can be selected again if needed
-                e.target.value = '';
-            }
-        });
-    }
+    const csvContent = rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "mn90_tables.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
-    function processCSVImport(file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const text = e.target.result;
-            const lines = text.split('\n');
-            const data = {};
+// Import Logic
+function processCSVImport(file) {
+    // Note: This logic duplicates dataManager logic partially, but it's for user import.
+    // It recreates the JSON structure which is what downloadJSON expects.
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        const data = {};
 
-            // Skip header (row 0)
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const cols = line.split(',');
+            if (cols.length < 8) continue;
 
-                const cols = line.split(',');
-                // Format: Depth, Time, 15m, 12m, 9m, 6m, 3m, Group
-                // Note: columns might be empty strings if no stop
+            const depth = parseInt(cols[0]);
+            const time = parseInt(cols[1]); // Assuming int here for simplicity
 
-                if (cols.length < 8) continue; // Invalid row
+            if (isNaN(depth) || isNaN(time)) continue;
 
-                const depth = parseInt(cols[0]);
-                const time = parseInt(cols[1]);
+            const stops = {};
+            if (cols[2]) stops[15] = parseInt(cols[2]);
+            if (cols[3]) stops[12] = parseInt(cols[3]);
+            if (cols[4]) stops[9] = parseInt(cols[4]);
+            if (cols[5]) stops[6] = parseInt(cols[5]);
+            if (cols[6]) stops[3] = parseInt(cols[6]);
 
-                if (isNaN(depth) || isNaN(time)) continue;
+            const group = cols[7] ? cols[7].trim() : undefined;
 
-                const stops = {};
-                if (cols[2]) stops[15] = parseInt(cols[2]);
-                if (cols[3]) stops[12] = parseInt(cols[3]);
-                if (cols[4]) stops[9] = parseInt(cols[4]);
-                if (cols[5]) stops[6] = parseInt(cols[5]);
-                if (cols[6]) stops[3] = parseInt(cols[6]);
+            const profile = { time: time, stops: stops };
+            if (group) profile.group = group;
 
-                const group = cols[7] ? cols[7].trim() : undefined;
+            if (!data[depth]) data[depth] = [];
+            data[depth].push(profile);
+        }
+        downloadJSON(data, "mn90_imported.json");
+    };
+    reader.readAsText(file);
+}
 
-                const profile = {
-                    time: time,
-                    stops: stops
-                };
-                if (group) profile.group = group;
+function downloadJSON(data, filename) {
+    const jsonContent = JSON.stringify(data, null, 4);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
-                if (!data[depth]) {
-                    data[depth] = [];
-                }
-                data[depth].push(profile);
-            }
-
-            downloadJSON(data, "mn90_imported.json");
-        };
-        reader.readAsText(file);
-    }
-
-    function downloadJSON(data, filename) {
-        const jsonContent = JSON.stringify(data, null, 4); // Pretty print
-        const blob = new Blob([jsonContent], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    function exportMN90ToCSV() {
-        // Define columns
-        const headers = ['Profondeur (m)', 'Temps (min)', '15m', '12m', '9m', '6m', '3m', 'Groupe'];
-        const rows = [];
-
-        // Add Header
-        rows.push(headers.join(','));
-
-        // Iterate over MN90 data
-        // Keys are depths
-        const depths = Object.keys(MN90).map(Number).sort((a, b) => a - b);
-
-        depths.forEach(depth => {
-            const profiles = MN90[depth];
-            profiles.forEach(p => {
-                const stops = p.stops || {};
-
-                // CSV Row: Depth, Time, Stops(15,12,9,6,3), Group
-                const row = [
-                    depth,
-                    p.time,
-                    stops[15] || '',
-                    stops[12] || '',
-                    stops[9] || '',
-                    stops[6] || '',
-                    stops[3] || '',
-                    p.group || ''
-                ];
-
-                rows.push(row.join(','));
-            });
-        });
-
-        const csvContent = rows.join('\n');
-
-        // Create download
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", "mn90_tables.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}); // End of DOMContentLoaded
+// Start
+document.addEventListener('DOMContentLoaded', init);
