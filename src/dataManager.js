@@ -21,9 +21,9 @@ function parseDuration(str) {
 async function loadAllData() {
     try {
         const [stopsRes, n2Res, majRes] = await Promise.all([
-            fetch('data/mn90_stops.csv'),
-            fetch('data/mn90-n2.csv'),
-            fetch('data/mn90-majoration.csv')
+            fetch('../data/mn90_stops.csv'),
+            fetch('../data/mn90-n2.csv'),
+            fetch('../data/mn90-majoration.csv')
         ]);
 
         const stopsText = await stopsRes.text();
