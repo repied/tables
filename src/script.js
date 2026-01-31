@@ -72,23 +72,6 @@ async function init() {
     if (exportBtn) {
         exportBtn.addEventListener('click', exportMN90ToCSV);
     }
-
-    // Import CSV handler
-    const importBtn = document.getElementById('import-btn');
-    const fileInput = document.getElementById('csv-file-input');
-
-    if (importBtn && fileInput) {
-        importBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                processCSVImport(e.target.files[0]);
-                e.target.value = '';
-            }
-        });
-    }
 }
 
 function initGauges() {
@@ -431,60 +414,6 @@ function exportMN90ToCSV() {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", "mn90_tables.csv");
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// Import Logic
-function processCSVImport(file) {
-    // Note: This logic duplicates dataManager logic partially, but it's for user import.
-    // It recreates the JSON structure which is what downloadJSON expects.
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        const text = e.target.result;
-        const lines = text.split('\n');
-        const data = {};
-
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
-            const cols = line.split(',');
-            if (cols.length < 8) continue;
-
-            const depth = parseInt(cols[0]);
-            const time = parseInt(cols[1]); // Assuming int here for simplicity
-
-            if (isNaN(depth) || isNaN(time)) continue;
-
-            const stops = {};
-            if (cols[2]) stops[15] = parseInt(cols[2]);
-            if (cols[3]) stops[12] = parseInt(cols[3]);
-            if (cols[4]) stops[9] = parseInt(cols[4]);
-            if (cols[5]) stops[6] = parseInt(cols[5]);
-            if (cols[6]) stops[3] = parseInt(cols[6]);
-
-            const group = cols[7] ? cols[7].trim() : undefined;
-
-            const profile = { time: time, stops: stops };
-            if (group) profile.group = group;
-
-            if (!data[depth]) data[depth] = [];
-            data[depth].push(profile);
-        }
-        downloadJSON(data, "mn90_imported.json");
-    };
-    reader.readAsText(file);
-}
-
-function downloadJSON(data, filename) {
-    const jsonContent = JSON.stringify(data, null, 4);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
