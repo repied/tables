@@ -4,7 +4,7 @@ test('app loads and shows main elements', async ({ page }) => {
     await page.goto('/');
 
     // Check title
-    await expect(page).toHaveTitle('Tables MN90');
+    await expect(page).toHaveTitle('Tables');
 
     // Check Gauges
     await expect(page.locator('#pressure-gauge-container')).toBeVisible();
@@ -15,7 +15,7 @@ test('app loads and shows main elements', async ({ page }) => {
 
     // Check initial values
     await expect(page.locator('#pressure-display')).toHaveText('200');
-    await expect(page.locator('#depth-display')).toHaveText('20');
+    await expect(page.locator('#depth-display')).toHaveText('40');
 
     // Check footer contains expected text structure (gps, dtr, réserve)
     await expect(page.locator('#dive-details')).toContainText('gps');
