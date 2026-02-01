@@ -334,7 +334,7 @@ function calculateDTR(depth, stops) {
         const ascentToFirst = (depth - firstStopDepth) / 15;
         const ascentFromFirst = firstStopDepth / 6;
         const totalAscentAndStops = ascentToFirst + totalStopTime + ascentFromFirst;
-        dtr = Math.round(totalAscentAndStops);
+        dtr = Math.ceil(totalAscentAndStops);
     }
     return dtr;
 }
