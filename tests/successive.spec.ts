@@ -14,29 +14,14 @@ test('Successive dive calculation flow', async ({ page }) => {
         el.dispatchEvent(new Event('change'));
     });
 
-    // 2. Set Previous Group to H (from 20m 40min dive)
-    await page.selectOption('#prev-group-select', 'H');
+    // 2. The app now automatically uses the group from Dive 1 (Default 40m/25min -> Group J)
+    // and defaults Dive 2 depth to 20m.
+    // We verify the calculation based on these defaults.
+    // Group J, Interval 60 -> N2 1.11
+    // Depth 20m -> Table Majoration for 1.11, 20m -> 37 min.
 
-    // 3. Set Interval to 60 min
-    const intervalInput = page.locator('#interval-input');
-    await intervalInput.fill('60');
-    // Trigger input event if needed
-    await intervalInput.dispatchEvent('input');
-
-    // 4. Set Current Depth to 20m
-    // We can simulate drag or set variable directly if exposed, but UI test prefers interaction.
-    // However, dragging gauges is flaky.
-    // Let's rely on the fact that default might be different, so we must set it.
-    // Or we can use page.evaluate to set state variables if they were exposed?
-    // They are not exposed on window.
-    // But we can drag.
-    // Or we can test the calculation logic unit-wise via evaluate.
-
-    // Let's check the displayed Majoration.
-    // Logic: Group H, Interval 60 -> N2 1.05.
-    // Table 3: N2 1.05 -> Next row 1.07.
-    // Default Depth is 40m.
-    // Row 1.07, Depth 40 (Index 11) -> Value 15.
+    // 3. Interval is controlled via gauge now. Default is 60 min.
+    // We can assume 60 min is set.
 
     // Wait for update
     await page.waitForTimeout(500);
@@ -44,7 +29,7 @@ test('Successive dive calculation flow', async ({ page }) => {
     const majText = await page.locator('#majoration-display').innerText();
     console.log("Majoration displayed:", majText);
 
-    expect(majText).toContain('+15 min');
+    expect(majText).toContain('+37 min');
 
     // Verify calculation helper works for other values
     const calculation = await page.evaluate(() => {

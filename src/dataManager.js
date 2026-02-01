@@ -131,6 +131,10 @@ function calculateSuccessive(prevGroup, interval, depth) {
     // Standard MN90: If interval > max table interval (12h), N2 is 0.8 (or reset).
     // Actually, usually >12h means new dive (no residual).
 
+    if (interval > 720) { // > 12h
+        return { majoration: 0, n2: 0 };
+    }
+
     const row = Table2_N2.data[prevGroup];
     if (!row) return { error: "Invalid Group" };
 

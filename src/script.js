@@ -5,6 +5,10 @@ let currentPressure = 200; // bar
 let currentSAC = 20; // l/min
 let currentVolume = 15; // liters
 
+// Dive 2 State
+let dive2Depth = 20;
+let dive2Time = 30;
+
 // Successive Dive State
 let isSuccessiveMode = false;
 let prevGroup = 'A';
@@ -20,9 +24,11 @@ const MIN_TIME = 0;
 const MAX_PRESSURE = 300;
 const MIN_PRESSURE = 0;
 const MAX_SAC = 30;
-const MIN_SAC = 5;
-const MAX_VOLUME = 20;
+const MIN_SAC = 10;
+const MAX_VOLUME = 30;
 const MIN_VOLUME = 6;
+const MAX_INTERVAL = 720; // 12h
+const MIN_INTERVAL = 15; // 15min
 
 // UI Elements
 const timeGauge = document.getElementById('time-gauge-container');
@@ -49,9 +55,21 @@ const diveDetails = document.getElementById('dive-details');
 // Successive Elements
 const successiveToggle = document.getElementById('successive-mode-toggle');
 const successiveControls = document.getElementById('successive-controls');
-const prevGroupSelect = document.getElementById('prev-group-select');
-const intervalInput = document.getElementById('interval-input');
 const majorationDisplay = document.getElementById('majoration-display');
+
+// Interval Gauge Elements
+const intervalGauge = document.getElementById('interval-gauge-container');
+const intervalDisplay = document.getElementById('interval-display');
+const intervalProgress = document.getElementById('interval-progress');
+
+// Dive 2 UI Elements
+const timeGauge2 = document.getElementById('time-gauge-container-2');
+const depthGauge2 = document.getElementById('depth-gauge-container-2');
+const timeDisplay2 = document.getElementById('time-display-2');
+const depthDisplay2 = document.getElementById('depth-display-2');
+const timeProgress2 = document.getElementById('time-progress-2');
+const depthProgress2 = document.getElementById('depth-progress-2');
+const stopsDisplay2 = document.getElementById('stops-display-2');
 
 
 // Initialize
@@ -82,33 +100,28 @@ function initGauges() {
         p.style.strokeDashoffset = length;
     });
 
+    if (timeProgress2 && depthProgress2) {
+        [timeProgress2, depthProgress2].forEach(p => {
+            p.style.strokeDasharray = length;
+            p.style.strokeDashoffset = length;
+        });
+    }
+
+    if (intervalProgress) {
+        intervalProgress.style.strokeDasharray = length;
+        intervalProgress.style.strokeDashoffset = length;
+    }
+
     updateUI();
 }
 
 function initSuccessiveControls() {
     if (!successiveToggle) return;
 
-    // Populate Group Select
-    const groups = 'ABCDEFGHIJKLMNOP'.split('');
-    prevGroupSelect.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
-    prevGroupSelect.value = prevGroup;
-    intervalInput.value = surfaceInterval;
-
     // Toggle Handler
     successiveToggle.addEventListener('change', (e) => {
         isSuccessiveMode = e.target.checked;
-        successiveControls.style.display = isSuccessiveMode ? 'flex' : 'none';
-        updateUI();
-    });
-
-    // Inputs Handler
-    prevGroupSelect.addEventListener('change', (e) => {
-        prevGroup = e.target.value;
-        updateUI();
-    });
-
-    intervalInput.addEventListener('input', (e) => {
-        surfaceInterval = parseInt(e.target.value) || 0;
+        successiveControls.style.display = isSuccessiveMode ? 'block' : 'none'; // changed to block to fit rows
         updateUI();
     });
 }
@@ -119,7 +132,18 @@ function setupInteractions() {
     setupInteraction(pressureGauge, () => currentPressure, (val) => currentPressure = val, MIN_PRESSURE, MAX_PRESSURE, 1);
     setupInteraction(sacGauge, () => currentSAC, (val) => currentSAC = val, MIN_SAC, MAX_SAC, 0.5);
     setupInteraction(volumeGauge, () => currentVolume, (val) => currentVolume = val, MIN_VOLUME, MAX_VOLUME, 1);
+
+    console.log("Setting up Dive 2 interactions. Found:", !!timeGauge2, !!depthGauge2);
+    if (timeGauge2 && depthGauge2) {
+        setupInteraction(timeGauge2, () => dive2Time, (val) => dive2Time = val, MIN_TIME, MAX_TIME, 0.2);
+        setupInteraction(depthGauge2, () => dive2Depth, (val) => dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
+    }
+
+    if (intervalGauge) {
+        setupInteraction(intervalGauge, () => surfaceInterval, (val) => surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 1);
+    }
 }
+
 
 // Interaction Logic
 function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0.5) {
@@ -128,6 +152,7 @@ function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0
     let isDragging = false;
 
     element.addEventListener('pointerdown', (e) => {
+        console.log('pointerdown on', element.id);
         isDragging = true;
         startY = e.clientY;
         startValue = getValue();
@@ -137,6 +162,7 @@ function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0
 
     element.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
+        console.log('pointermove', element.id);
         const deltaY = startY - e.clientY;
         const change = Math.round(deltaY * sensitivity);
         let newValue = startValue + change;
@@ -244,81 +270,27 @@ function calculateGasConsumption(depth, time, profile) {
     return Math.ceil(bottomGas + ascentGas);
 }
 
-// Update UI
-function updateUI() {
-    // 1. Calculate Majoration if in Successive Mode
-    let effectiveTime = currentTime;
-    let majText = "+0 min";
-
-    if (isSuccessiveMode) {
-        const result = window.dataManager.calculateSuccessive(prevGroup, surfaceInterval, currentDepth);
-        if (result.error) {
-            majText = "Err";
-            currentMajoration = 0;
-        } else {
-            currentMajoration = result.majoration;
-            majText = `+${currentMajoration} min`;
-            effectiveTime += currentMajoration;
-        }
-    } else {
-        currentMajoration = 0;
-    }
-
-    if (majorationDisplay) {
-        majorationDisplay.textContent = `Majoration: ${majText}`;
-    }
-
-    // 2. Update Values
-    timeDisplay.textContent = formatTime(currentTime);
-    depthDisplay.textContent = currentDepth;
-    pressureDisplay.textContent = currentPressure;
-    sacDisplay.textContent = currentSAC;
-    volumeDisplay.textContent = currentVolume;
-
-    // 3. Update Gauges Progress
-    const length = timeProgress.getTotalLength();
-    timeProgress.style.strokeDashoffset = length * (1 - Math.min(currentTime / 60, 1));
-    depthProgress.style.strokeDashoffset = length * (1 - Math.min(currentDepth / 60, 1));
-    pressureProgress.style.strokeDashoffset = length * (1 - Math.min(currentPressure / MAX_PRESSURE, 1));
-    sacProgress.style.strokeDashoffset = length * (1 - Math.min(currentSAC / MAX_SAC, 1));
-    volumeProgress.style.strokeDashoffset = length * (1 - Math.min(currentVolume / MAX_VOLUME, 1));
-
-    // 4. Calculate Profile using Effective Time
-    const result = getMN90Profile(currentDepth, effectiveTime);
-
-    stopsDisplay.innerHTML = '';
-    diveDetails.innerHTML = '';
+// Helper to render stops
+function renderStops(result, containerElement) {
+    containerElement.innerHTML = '';
 
     if (!result) {
-        stopsDisplay.innerHTML = '<div class="placeholder-text">Profond. max dépassée</div>';
+        containerElement.innerHTML = '<div class="placeholder-text">Profond. max dépassée</div>';
         return;
     }
 
     if (result.error) {
-        stopsDisplay.innerHTML = '<div class="placeholder-text">Hors table</div>';
+        containerElement.innerHTML = '<div class="placeholder-text">Hors table</div>';
         return;
     }
 
     if (result.note === "Surface") {
-        stopsDisplay.innerHTML = '<div class="placeholder-text">Surface</div>';
+        containerElement.innerHTML = '<div class="placeholder-text">Surface</div>';
         return;
     }
 
-    const { stops, group } = result.profile;
-
-    // 5. Render Stops
+    const { stops } = result.profile;
     const depths = [15, 12, 9, 6, 3];
-    let hasStops = false;
-    let totalStopTime = 0;
-    let firstStopDepth = 0;
-
-    depths.forEach(d => {
-        if (stops[d]) {
-            if (!hasStops) firstStopDepth = d;
-            hasStops = true;
-            totalStopTime += stops[d];
-        }
-    });
 
     depths.forEach(d => {
         const stopEl = document.createElement('div');
@@ -341,37 +313,132 @@ function updateUI() {
                 ${visualContent}
             </div>
         `;
-        stopsDisplay.appendChild(stopEl);
+        containerElement.appendChild(stopEl);
     });
+}
 
-    // 6. Calculate DTR
+function calculateDTR(depth, stops) {
     let dtr = 0;
+    const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
+    let hasStops = stopDepths.length > 0;
+    let totalStopTime = 0;
+    for (let d in stops) totalStopTime += stops[d];
+
     if (!hasStops) {
-        const ascentTime = currentDepth / 15;
+        const ascentTime = depth / 15;
         dtr = Math.ceil(ascentTime);
     } else {
-        const ascentToFirst = (currentDepth - firstStopDepth) / 15;
+        const firstStopDepth = stopDepths[0];
+        const ascentToFirst = (depth - firstStopDepth) / 15;
         const ascentFromFirst = firstStopDepth / 6;
         const totalAscentAndStops = ascentToFirst + totalStopTime + ascentFromFirst;
         dtr = Math.round(totalAscentAndStops);
     }
+    return dtr;
+}
 
-    // 7. Calculate Gas (Use Actual Time, not Effective Time)
-    const gasUsed = calculateGasConsumption(currentDepth, currentTime, result.profile);
-    const pressureUsed = gasUsed / currentVolume;
-    const remainingPressure = Math.round(currentPressure - pressureUsed);
+// Update UI
+function updateUI() {
+    // -------------------------
+    // DIVE 1 CALCULATION
+    // -------------------------
 
-    // 8. Update Details
-    const dtrFormatted = formatTime(dtr);
-    const gpsText = group ? `gps ${group}` : 'gps -';
-    const reserveText = `réserve ${remainingPressure} bar`;
+    // Update Values
+    timeDisplay.textContent = formatTime(currentTime);
+    depthDisplay.textContent = currentDepth;
+    pressureDisplay.textContent = currentPressure;
+    sacDisplay.textContent = currentSAC;
+    volumeDisplay.textContent = currentVolume;
 
-    diveDetails.textContent = `${gpsText} • dtr ${dtrFormatted} • ${reserveText}`;
+    // Update Gauges Progress
+    const length = timeProgress.getTotalLength();
+    timeProgress.style.strokeDashoffset = length * (1 - Math.min(currentTime / 60, 1));
+    depthProgress.style.strokeDashoffset = length * (1 - Math.min(currentDepth / 60, 1));
+    pressureProgress.style.strokeDashoffset = length * (1 - Math.min(currentPressure / MAX_PRESSURE, 1));
+    sacProgress.style.strokeDashoffset = length * (1 - Math.min(currentSAC / MAX_SAC, 1));
+    volumeProgress.style.strokeDashoffset = length * (1 - Math.min(currentVolume / MAX_VOLUME, 1));
 
-    if (remainingPressure < 50) {
-        diveDetails.style.color = '#e53935';
-    } else {
-        diveDetails.style.color = '#fff'; // White for better visibility against blur
+    // Calculate Profile (No Majoration for Dive 1)
+    const result1 = getMN90Profile(currentDepth, currentTime);
+
+    // Render Dive 1 Stops
+    renderStops(result1, stopsDisplay);
+
+    // Dive 1 Details
+    diveDetails.innerHTML = '';
+    let gps1 = null;
+
+    if (result1 && !result1.error && result1.note !== "Surface") {
+        gps1 = result1.profile.group;
+        const stops = result1.profile.stops;
+
+        // DTR
+        const dtr = calculateDTR(currentDepth, stops);
+        const dtrFormatted = formatTime(dtr);
+
+        // Gas
+        const gasUsed = calculateGasConsumption(currentDepth, currentTime, result1.profile);
+        const pressureUsed = gasUsed / currentVolume;
+        const remainingPressure = Math.round(currentPressure - pressureUsed);
+
+        const gpsText = gps1 ? `gps ${gps1}` : 'gps -';
+        const reserveText = `réserve ${remainingPressure} bar`;
+
+        diveDetails.textContent = `${gpsText} • dtr ${dtrFormatted} • ${reserveText}`;
+
+        if (remainingPressure < 50) {
+            diveDetails.style.color = '#e53935';
+        } else {
+            diveDetails.style.color = '#fff';
+        }
+    } else if (result1 && result1.error) {
+        diveDetails.textContent = "Hors table";
+    }
+
+    // -------------------------
+    // DIVE 2 CALCULATION
+    // -------------------------
+
+    if (isSuccessiveMode) {
+        // Auto-update Group from Dive 1 if valid
+        if (gps1) {
+            prevGroup = gps1;
+        }
+
+        // Calculate Majoration
+        const succResult = window.dataManager.calculateSuccessive(prevGroup, surfaceInterval, dive2Depth);
+
+        let majText = "Err";
+        currentMajoration = 0;
+
+        if (succResult && !succResult.error) {
+            currentMajoration = succResult.majoration;
+            majText = `+${currentMajoration} min`;
+        } else if (succResult && succResult.error) {
+            majText = "Err"; // e.g. interval too short
+        }
+
+        if (majorationDisplay) {
+            majorationDisplay.textContent = `Majoration: ${majText}`;
+        }
+
+        // Update Interval Gauge
+        if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
+        if (intervalProgress) intervalProgress.style.strokeDashoffset = length * (1 - Math.min(surfaceInterval / MAX_INTERVAL, 1));
+
+        // Update Dive 2 Values & Gauges
+        if (timeDisplay2) timeDisplay2.textContent = formatTime(dive2Time);
+        if (depthDisplay2) depthDisplay2.textContent = dive2Depth;
+
+        if (timeProgress2) timeProgress2.style.strokeDashoffset = length * (1 - Math.min(dive2Time / 60, 1));
+        if (depthProgress2) depthProgress2.style.strokeDashoffset = length * (1 - Math.min(dive2Depth / 60, 1));
+
+        // Calculate Dive 2 Profile
+        // Total Duration = Real Time + Majoration
+        const effectiveTime2 = dive2Time + currentMajoration;
+        const result2 = getMN90Profile(dive2Depth, effectiveTime2);
+
+        renderStops(result2, stopsDisplay2);
     }
 }
 

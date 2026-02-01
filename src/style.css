@@ -16,25 +16,23 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     justify-content: center;
-    height: 100vh;
-    /* overflow: hidden; Removed to allow scrolling */
+    min-height: 100vh;
 }
 
 .app-container {
     width: 100%;
     max-width: 600px;
-    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     gap: 20px;
     padding: 20px;
     box-sizing: border-box;
-    overflow-y: auto;
 }
 
 .gauges {
@@ -51,7 +49,8 @@ body {
 }
 
 .gauges-row.main-gauges {
-    flex: 1;
+    /* Removed flex: 1 to allow natural height */
+    margin-bottom: 20px;
 }
 
 .gauge-wrapper {
