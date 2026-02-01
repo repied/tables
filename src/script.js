@@ -4,6 +4,7 @@ let currentTime = 25; // minutes
 let currentPressure = 200; // bar
 let currentSAC = 20; // l/min
 let currentVolume = 15; // liters
+let currentO2 = 21; // Percentage
 
 // Dive 2 State
 let dive2Depth = 20;
@@ -27,6 +28,8 @@ const MAX_SAC = 30;
 const MIN_SAC = 10;
 const MAX_VOLUME = 30;
 const MIN_VOLUME = 6;
+const MAX_O2 = 40;
+const MIN_O2 = 21;
 const MAX_INTERVAL = 720; // 12h
 const MIN_INTERVAL = 15; // 15min
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
@@ -36,18 +39,21 @@ const depthGauge = document.getElementById('depth-gauge-container');
 const pressureGauge = document.getElementById('pressure-gauge-container');
 const sacGauge = document.getElementById('sac-gauge-container');
 const volumeGauge = document.getElementById('volume-gauge-container');
+const o2Gauge = document.getElementById('o2-gauge-container');
 
 const timeDisplay = document.getElementById('time-display');
 const depthDisplay = document.getElementById('depth-display');
 const pressureDisplay = document.getElementById('pressure-display');
 const sacDisplay = document.getElementById('sac-display');
 const volumeDisplay = document.getElementById('volume-display');
+const o2Display = document.getElementById('o2-display');
 
 const timeProgress = document.getElementById('time-progress');
 const depthProgress = document.getElementById('depth-progress');
 const pressureProgress = document.getElementById('pressure-progress');
 const sacProgress = document.getElementById('sac-progress');
 const volumeProgress = document.getElementById('volume-progress');
+const o2Progress = document.getElementById('o2-progress');
 
 const stopsDisplay = document.getElementById('stops-display');
 const diveDetails = document.getElementById('dive-details');
@@ -92,12 +98,12 @@ function initGauges() {
     // Set up initial dasharray for progress rings
     const length = timeProgress.getTotalLength();
 
-    if (!timeProgress || !depthProgress || !pressureProgress || !sacProgress || !volumeProgress) {
+    if (!timeProgress || !depthProgress || !pressureProgress || !sacProgress || !volumeProgress || !o2Progress) {
         console.error("Missing gauge elements");
         return;
     }
 
-    [timeProgress, depthProgress, pressureProgress, sacProgress, volumeProgress].forEach(p => {
+    [timeProgress, depthProgress, pressureProgress, sacProgress, volumeProgress, o2Progress].forEach(p => {
         p.style.strokeDasharray = length;
         p.style.strokeDashoffset = length;
     });
@@ -134,6 +140,7 @@ function setupInteractions() {
     setupInteraction(pressureGauge, () => currentPressure, (val) => currentPressure = val, MIN_PRESSURE, MAX_PRESSURE, 1);
     setupInteraction(sacGauge, () => currentSAC, (val) => currentSAC = val, MIN_SAC, MAX_SAC, 0.5);
     setupInteraction(volumeGauge, () => currentVolume, (val) => currentVolume = val, MIN_VOLUME, MAX_VOLUME, 1);
+    setupInteraction(o2Gauge, () => currentO2, (val) => currentO2 = val, MIN_O2, MAX_O2, 0.2);
 
     console.log("Setting up Dive 2 interactions. Found:", !!timeGauge2, !!depthGauge2);
     if (timeGauge2 && depthGauge2) {
@@ -339,6 +346,18 @@ function calculateDTR(depth, stops) {
     return dtr;
 }
 
+// Nitrox Helpers
+function calculateEAD(depth, o2) {
+    if (o2 <= 21) return depth;
+    const fN2 = (100 - o2) / 100;
+    const ead = ((depth + 10) * fN2 / 0.79) - 10;
+    return Math.max(0, ead);
+}
+
+function calculatePPO2(depth, o2) {
+    return (1 + depth / 10) * (o2 / 100);
+}
+
 // Update UI
 function updateUI() {
     // -------------------------
@@ -351,6 +370,7 @@ function updateUI() {
     pressureDisplay.textContent = currentPressure;
     sacDisplay.textContent = currentSAC;
     volumeDisplay.textContent = currentVolume;
+    o2Display.textContent = currentO2;
 
     // Update Gauges Progress
     const length = timeProgress.getTotalLength();
@@ -359,9 +379,15 @@ function updateUI() {
     pressureProgress.style.strokeDashoffset = length * (1 - Math.min(currentPressure / MAX_PRESSURE, 1));
     sacProgress.style.strokeDashoffset = length * (1 - Math.min(currentSAC / MAX_SAC, 1));
     volumeProgress.style.strokeDashoffset = length * (1 - Math.min(currentVolume / MAX_VOLUME, 1));
+    o2Progress.style.strokeDashoffset = length * (1 - Math.min((currentO2) / 50, 1));
 
-    // Calculate Profile (No Majoration for Dive 1)
-    const result1 = getMN90Profile(currentDepth, currentTime);
+    // Nitrox Calcs
+    const ead1 = calculateEAD(currentDepth, currentO2);
+    const ppo2_1 = calculatePPO2(currentDepth, currentO2);
+    const isNitrox = currentO2 > 21;
+
+    // Calculate Profile (Use EAD for Dive 1)
+    const result1 = getMN90Profile(ead1, currentTime);
 
     // Render Dive 1 Stops
     renderStops(result1, stopsDisplay);
@@ -385,11 +411,17 @@ function updateUI() {
 
         const gpsText = gps1 ? `gps ${gps1}` : 'gps -';
         const reserveText = `réserve ${remainingPressure} bar`;
+        let nitroxText = '';
+        if (isNitrox) {
+            nitroxText = ` • ppO2 ${ppo2_1.toFixed(2)}`;
+        }
 
-        diveDetails.textContent = `${gpsText} • dtr ${dtrFormatted} • ${reserveText}`;
+        diveDetails.textContent = `${gpsText} • dtr ${dtrFormatted} • ${reserveText}${nitroxText}`;
 
-        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_1 > 1.6) {
             diveDetails.style.color = '#e53935';
+        } else if (ppo2_1 > 1.4) {
+            diveDetails.style.color = '#ff9800'; // Orange warning
         } else {
             diveDetails.style.color = '#fff';
         }
@@ -416,8 +448,13 @@ function updateUI() {
             prevGroup = gps1;
         }
 
-        // Calculate Majoration
-        const succResult = window.dataManager.calculateSuccessive(prevGroup, surfaceInterval, dive2Depth);
+        // Dive 2 Nitrox Calcs
+        // Assuming same mix for now
+        const ead2 = calculateEAD(dive2Depth, currentO2);
+        const ppo2_2 = calculatePPO2(dive2Depth, currentO2);
+
+        // Calculate Majoration using EAD2
+        const succResult = window.dataManager.calculateSuccessive(prevGroup, surfaceInterval, ead2);
 
         let majText = "Err";
         currentMajoration = 0;
@@ -446,8 +483,9 @@ function updateUI() {
 
         // Calculate Dive 2 Profile
         // Total Duration = Real Time + Majoration
+        // Use EAD2 for Profile Lookup
         const effectiveTime2 = dive2Time + currentMajoration;
-        const result2 = getMN90Profile(dive2Depth, effectiveTime2);
+        const result2 = getMN90Profile(ead2, effectiveTime2);
 
         renderStops(result2, stopsDisplay2);
 
@@ -468,11 +506,17 @@ function updateUI() {
                 const remainingPressure = Math.round(currentPressure - pressureUsed);
 
                 const reserveText = `réserve ${remainingPressure} bar`;
+                let nitroxText2 = '';
+                if (isNitrox) {
+                    nitroxText2 = ` • ppO2 ${ppo2_2.toFixed(2)}`;
+                }
 
-                diveDetails2.textContent = `dtr ${dtrFormatted} • ${reserveText}`;
+                diveDetails2.textContent = `dtr ${dtrFormatted} • ${reserveText}${nitroxText2}`;
 
-                if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+                if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > 1.6) {
                     diveDetails2.style.color = '#e53935';
+                } else if (ppo2_2 > 1.4) {
+                    diveDetails2.style.color = '#ff9800';
                 } else {
                     diveDetails2.style.color = '#fff';
                 }
