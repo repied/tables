@@ -66,12 +66,6 @@ async function init() {
     initGauges();
     initSuccessiveControls();
     setupInteractions();
-
-    // Export CSV handler
-    const exportBtn = document.getElementById('export-btn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportMN90ToCSV);
-    }
 }
 
 function initGauges() {
@@ -381,44 +375,6 @@ function updateUI() {
     }
 }
 
-
-// Export Logic
-function exportMN90ToCSV() {
-    const MN90 = window.dataManager.getMN90();
-    const headers = ['Profondeur (m)', 'Temps (min)', '15m', '12m', '9m', '6m', '3m', 'Groupe'];
-    const rows = [];
-    rows.push(headers.join(','));
-    const depths = Object.keys(MN90).map(Number).sort((a, b) => a - b);
-
-    depths.forEach(depth => {
-        const profiles = MN90[depth];
-        profiles.forEach(p => {
-            const stops = p.stops || {};
-            const row = [
-                depth,
-                p.time,
-                stops[15] || '',
-                stops[12] || '',
-                stops[9] || '',
-                stops[6] || '',
-                stops[3] || '',
-                p.group || ''
-            ];
-            rows.push(row.join(','));
-        });
-    });
-
-    const csvContent = rows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "mn90_tables.csv");
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 // Start
 document.addEventListener('DOMContentLoaded', init);
