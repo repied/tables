@@ -15,6 +15,7 @@
             },
             "extensions": [
                 "ms-playwright.playwright",
+                "ritwickdey.liveserver",
                 "ms-vscode.live-server",
                 "usernamehw.errorlens",
                 "wayou.vscode-todo-highlight",
@@ -28,5 +29,5 @@
     },
     "remoteUser": "node",
     // "postCreateCommand": "git config commit.gpgsign false && npm install && npx playwright install"
-    "postCreateCommand": "npm install && npx playwright install"
+    "postCreateCommand": "npm install && npx playwright install && unalias rm"
 }
