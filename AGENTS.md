@@ -21,9 +21,6 @@ Look at the ./README.md file fo instruction on how to test.
 ### 3. Data Processing & Visualization
 *   **MN90 Logic**: Implementing complex lookups (Dive Tables) and algorithms (Air Consumption, DTR) in pure JavaScript.
 *   **Dynamic Graphing**: Visualizing decompression stops as a depth-proportional vertical chart using CSS heights and Flexbox alignment.
-*   **File I/O**:
-    *   **Export**: Generating CSV files client-side using `Blob` and `URL.createObjectURL`.
-    *   **Import**: Parsing CSV files using `FileReader` and mapping columns to data structures.
 
 ### 4. Testing & Debugging
 *   **Playwright E2E**:
