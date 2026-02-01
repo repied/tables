@@ -75,8 +75,8 @@ body {
     cursor: ns-resize;
     user-select: none;
     -webkit-user-select: none;
-    background: rgba(255, 255, 255, 0.1);
-    /* Whitening effect */
+    background: rgba(0, 0, 0, 0.2);
+    /* Darkening effect for contrast */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 50%;
