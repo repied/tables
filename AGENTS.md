@@ -23,6 +23,7 @@ Look at the ./README.md file fo instruction on how to test.
 *   **Dynamic Graphing**: Visualizing decompression stops as a depth-proportional vertical chart using CSS heights and Flexbox alignment.
 
 ### 4. Testing & Debugging
+*   **Simple browser**: use http://127.0.0.1 instead of http://localhost if you want to check a url
 *   **Playwright E2E**:
     *   Writing tests to verify UI element visibility and initial state.
     *   Simulating user interactions (mouse drag/move) to test gauge responsiveness.

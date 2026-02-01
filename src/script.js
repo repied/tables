@@ -29,7 +29,7 @@ const MAX_VOLUME = 30;
 const MIN_VOLUME = 6;
 const MAX_INTERVAL = 720; // 12h
 const MIN_INTERVAL = 15; // 15min
-
+const RESERVE_PRESSURE_THRESHOLD = 50; // bar
 // UI Elements
 const timeGauge = document.getElementById('time-gauge-container');
 const depthGauge = document.getElementById('depth-gauge-container');
@@ -56,6 +56,7 @@ const diveDetails = document.getElementById('dive-details');
 const successiveToggle = document.getElementById('successive-mode-toggle');
 const successiveControls = document.getElementById('successive-controls');
 const majorationDisplay = document.getElementById('majoration-display');
+const successiveHeaderText = document.getElementById('successive-header-text');
 
 // Interval Gauge Elements
 const intervalGauge = document.getElementById('interval-gauge-container');
@@ -70,6 +71,7 @@ const depthDisplay2 = document.getElementById('depth-display-2');
 const timeProgress2 = document.getElementById('time-progress-2');
 const depthProgress2 = document.getElementById('depth-progress-2');
 const stopsDisplay2 = document.getElementById('stops-display-2');
+const diveDetails2 = document.getElementById('dive-details-2');
 
 
 // Initialize
@@ -386,13 +388,22 @@ function updateUI() {
 
         diveDetails.textContent = `${gpsText} • dtr ${dtrFormatted} • ${reserveText}`;
 
-        if (remainingPressure < 50) {
+        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
             diveDetails.style.color = '#e53935';
         } else {
             diveDetails.style.color = '#fff';
         }
     } else if (result1 && result1.error) {
         diveDetails.textContent = "Hors table";
+    }
+
+    // Update Successive Header Text with GPS
+    if (successiveHeaderText) {
+        if (gps1) {
+            successiveHeaderText.textContent = `Seconde plongée (GPS ${gps1})`;
+        } else {
+            successiveHeaderText.textContent = `Seconde plongée`;
+        }
     }
 
     // -------------------------
@@ -439,6 +450,36 @@ function updateUI() {
         const result2 = getMN90Profile(dive2Depth, effectiveTime2);
 
         renderStops(result2, stopsDisplay2);
+
+        // Dive 2 Details
+        if (diveDetails2) {
+            diveDetails2.innerHTML = '';
+            if (result2 && !result2.error && result2.note !== "Surface") {
+                const stops = result2.profile.stops;
+
+                // DTR
+                const dtr = calculateDTR(dive2Depth, stops);
+                const dtrFormatted = formatTime(dtr);
+
+                // Gas (Assume fresh tank with currentPressure and currentVolume)
+                // Use Actual Time (dive2Time) for bottom consumption
+                const gasUsed = calculateGasConsumption(dive2Depth, dive2Time, result2.profile);
+                const pressureUsed = gasUsed / currentVolume;
+                const remainingPressure = Math.round(currentPressure - pressureUsed);
+
+                const reserveText = `réserve ${remainingPressure} bar`;
+
+                diveDetails2.textContent = `dtr ${dtrFormatted} • ${reserveText}`;
+
+                if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+                    diveDetails2.style.color = '#e53935';
+                } else {
+                    diveDetails2.style.color = '#fff';
+                }
+            } else if (result2 && result2.error) {
+                diveDetails2.textContent = "Hors table";
+            }
+        }
     }
 }
 
