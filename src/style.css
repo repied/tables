@@ -6,6 +6,8 @@
     /* Red */
     --accent-secondary: #e0e0e0;
     --gauge-bg: #3e4259;
+    --gauge-color-secondary: #4caf50;
+    /* Green for top gauges */
 }
 
 body {
