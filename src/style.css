@@ -378,3 +378,28 @@ input:checked+.slider:before {
     transform: scale(0.98);
     transition: transform 0.1s;
 }
+
+/* Small mobile devices */
+@media (max-width: 400px) {
+    .app-container {
+        padding: 10px;
+    }
+
+    .gauge-wrapper.small {
+        width: 20%;
+    }
+
+    .gauge-value.small-text {
+        font-size: 1.2rem;
+    }
+
+    .gauge-unit {
+        font-size: 0.8rem;
+        margin-top: 2px;
+    }
+
+    /* Reduce text size for main gauges on small screens */
+    .gauges-row.main-gauges .gauge-value {
+        font-size: 2.0rem;
+    }
+}

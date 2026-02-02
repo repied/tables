@@ -74,11 +74,12 @@
             <!-- O2 Gauge -->
             <div class="gauge-wrapper small">
                 <div class="gauge-container" id="o2-gauge-container">
-                    <svg class="gauge-ring" viewBo top-gauge-ringx="0 0 120 120">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
                             stroke-linecap="round" />
-                        <path class="ring-progress" id="o2-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
-                            stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="240" />
+                        <path class="ring-progress top-gauge-ring" id="o2-progress" d="M 30 100 A 50 50 0 1 1 90 100"
+                            fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="240"
+                            stroke-dashoffset="240" />
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="o2-display">21</div>

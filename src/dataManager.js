@@ -21,10 +21,14 @@ function parseDuration(str) {
 async function loadAllData() {
     try {
         const [stopsRes, n2Res, majRes] = await Promise.all([
-            fetch('../data/mn90_stops.csv'),
-            fetch('../data/mn90-n2.csv'),
-            fetch('../data/mn90-majoration.csv')
+            fetch('./data/mn90_stops.csv'),
+            fetch('./data/mn90-n2.csv'),
+            fetch('./data/mn90-majoration.csv')
         ]);
+
+        if (!stopsRes.ok || !n2Res.ok || !majRes.ok) {
+            throw new Error("Failed to fetch one or more data files");
+        }
 
         const stopsText = await stopsRes.text();
         const n2Text = await n2Res.text();

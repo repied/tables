@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mn90-planner-v4';
+const CACHE_NAME = 'mn90-planner-v5';
 const urlsToCache = [
     './',
     './index.html',
