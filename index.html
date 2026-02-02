@@ -228,6 +228,14 @@
     <script src="./src/script.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    window.location.reload();
+                    refreshing = true;
+                }
+            });
+
             navigator.serviceWorker.register('./sw.js')
                 .then(reg => console.log('SW registered', reg))
                 .catch(err => console.log('SW failed', err));
