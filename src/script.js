@@ -11,7 +11,7 @@ let dive2Depth = 20;
 let dive2Time = 30;
 
 // Successive Dive State
-let isSuccessiveMode = false;
+let isSuccessiveMode = true;
 let prevGroup = 'A';
 let surfaceInterval = 60; // minutes
 let currentMajoration = 0;
@@ -59,7 +59,6 @@ const stopsDisplay = document.getElementById('stops-display');
 const diveDetails = document.getElementById('dive-details');
 
 // Successive Elements
-const successiveToggle = document.getElementById('successive-mode-toggle');
 const successiveControls = document.getElementById('successive-controls');
 const majorationDisplay = document.getElementById('majoration-display');
 const successiveHeaderText = document.getElementById('successive-header-text');
@@ -90,7 +89,6 @@ async function init() {
     }
 
     initGauges();
-    initSuccessiveControls();
     setupInteractions();
 }
 
@@ -121,17 +119,6 @@ function initGauges() {
     }
 
     updateUI();
-}
-
-function initSuccessiveControls() {
-    if (!successiveToggle) return;
-
-    // Toggle Handler
-    successiveToggle.addEventListener('change', (e) => {
-        isSuccessiveMode = e.target.checked;
-        successiveControls.style.display = isSuccessiveMode ? 'block' : 'none'; // changed to block to fit rows
-        updateUI();
-    });
 }
 
 function setupInteractions() {

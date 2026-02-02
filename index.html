@@ -88,6 +88,9 @@
 
         <!-- First dive Area  -->
         <div class="results-container">
+            <div class="successive-header" style="justify-content: center; margin-bottom: 10px;">
+                <span id="first-dive-header-text">Première plongée</span>
+            </div>
 
             <div class="gauges-row main-gauges">
                 <!-- Duration Gauge -->
@@ -139,20 +142,14 @@
         </div>
 
         <div class="successive-container glass-panel">
-            <div class="successive-header">
-                <label class="switch">
-                    <input type="checkbox" id="successive-mode-toggle">
-                    <span class="slider round"></span>
-                </label>
+            <div class="successive-header" style="justify-content: center;">
                 <span id="successive-header-text">Seconde plongée</span>
             </div>
 
-            <div class="successive-controls" id="successive-controls" style="display: none;">
-                <div class="input-row"
-                    style="display: flex; gap: 1rem; width: 100%; justify-content: center; margin-bottom: 1rem;">
-
+            <div class="successive-controls" id="successive-controls">
+                <div class="gauges-row">
                     <!-- Interval Gauge -->
-                    <div class="gauge-wrapper small">
+                    <div class="gauge-wrapper medium">
                         <div class="gauge-container" id="interval-gauge-container">
                             <svg class="gauge-ring" viewBox="0 0 120 120">
                                 <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
@@ -169,14 +166,8 @@
                         <div class="gauge-label">intervalle</div>
                     </div>
 
-                </div>
-                <div class="majoration-display" id="majoration-display">
-                    Majoration: +0 min
-                </div>
-
-                <div class="gauges-row main-gauges">
                     <!-- Duration Gauge 2 -->
-                    <div class="gauge-wrapper">
+                    <div class="gauge-wrapper medium">
                         <div class="gauge-container" id="time-gauge-container-2">
                             <svg class="gauge-ring" viewBox="0 0 120 120">
                                 <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
@@ -194,7 +185,7 @@
                     </div>
 
                     <!-- Depth Gauge 2 -->
-                    <div class="gauge-wrapper">
+                    <div class="gauge-wrapper medium">
                         <div class="gauge-container" id="depth-gauge-container-2">
                             <svg class="gauge-ring" viewBox="0 0 120 120">
                                 <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
@@ -210,6 +201,11 @@
                         </div>
                         <div class="gauge-label">profondeur</div>
                     </div>
+                </div>
+
+                <div class="majoration-display" id="majoration-display"
+                    style="text-align: center; margin-bottom: 15px;">
+                    Majoration: +0 min
                 </div>
 
                 <div class="stops-display" id="stops-display-2">

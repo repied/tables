@@ -7,14 +7,8 @@ test('Successive dive calculation flow', async ({ page }) => {
     // Wait for data load (console log "Gauges initialized")
     await page.waitForFunction(() => window.dataManager && window.dataManager.getMN90() && Object.keys(window.dataManager.getMN90()).length > 0);
 
-    // 1. Enable Successive Mode
-    // Directly toggle via JS to avoid layout/visibility issues with custom checkbox
-    await page.$eval('#successive-mode-toggle', el => {
-        el.checked = true;
-        el.dispatchEvent(new Event('change'));
-    });
-
-    // 2. The app now automatically uses the group from Dive 1 (Default 40m/25min -> Group J)
+    // 1. Successive Mode is now default.
+    // The app automatically uses the group from Dive 1 (Default 40m/25min -> Group J)
     // and defaults Dive 2 depth to 20m.
     // We verify the calculation based on these defaults.
     // Group J, Interval 60 -> N2 1.11

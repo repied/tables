@@ -65,6 +65,10 @@ body {
     width: 22%;
 }
 
+.gauge-wrapper.medium {
+    width: 30%;
+}
+
 .gauge-container {
     position: relative;
     width: 100%;
@@ -274,10 +278,12 @@ body {
 
 .successive-controls {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
     margin-top: 15px;
-    gap: 10px;
+    gap: 15px;
+    width: 100%;
 }
 
 .control-group {
