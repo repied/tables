@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/favicon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e2130">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 
@@ -31,7 +31,7 @@
                         <div class="gauge-unit">bar</div>
                     </div>
                 </div>
-                <div class="gauge-label">pression</div>
+                <!-- <div class="gauge-label">Press.</div> -->
             </div>
 
             <!-- SAC Gauge -->
@@ -48,7 +48,7 @@
                         <div class="gauge-unit">l/min</div>
                     </div>
                 </div>
-                <div class="gauge-label">consommation</div>
+                <!-- <div class="gauge-label">Conso.</div> -->
             </div>
 
             <!-- Volume Gauge -->
@@ -65,7 +65,7 @@
                         <div class="gauge-unit">l</div>
                     </div>
                 </div>
-                <div class="gauge-label">volume</div>
+                <!-- <div class="gauge-label">Vol.</div> -->
             </div>
 
             <!-- O2 Gauge -->
@@ -79,10 +79,10 @@
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="o2-display">21</div>
-                        <div class="gauge-unit">% O2</div>
+                        <div class="gauge-unit">% O<sub>2</sub></div>
                     </div>
                 </div>
-                <div class="gauge-label">nitrox</div>
+                <!-- <div class="gauge-label">O<sub>2</sub></div> -->
             </div>
         </div>
 
@@ -110,7 +110,7 @@
                             <div class="gauge-unit">h:mm</div>
                         </div>
                     </div>
-                    <div class="gauge-label">durée</div>
+                    <!-- <div class="gauge-label">T</div> -->
                 </div>
 
                 <!-- Depth Gauge -->
@@ -128,7 +128,7 @@
                             <div class="gauge-unit">m</div>
                         </div>
                     </div>
-                    <div class="gauge-label">profondeur</div>
+                    <!-- <div class="gauge-label">Profondeur</div> -->
                 </div>
             </div>
             <div class="stops-display" id="stops-display">
@@ -140,7 +140,24 @@
             </div>
 
         </div>
-
+        <!-- Interval Gauge -->
+        <div class="gauges-row">
+            <div class="gauge-wrapper medium">
+                <div class="gauge-container" id="interval-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress" id="interval-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
+                            stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="240" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="interval-display">60</div>
+                        <div class="gauge-unit">h:mm</div>
+                    </div>
+                </div>
+                <div class="gauge-label">intervalle</div>
+            </div>
+        </div>
         <div class="successive-container glass-panel">
             <div class="successive-header" style="justify-content: center;">
                 <span id="successive-header-text">Seconde plongée</span>
@@ -148,23 +165,7 @@
 
             <div class="successive-controls" id="successive-controls">
                 <div class="gauges-row">
-                    <!-- Interval Gauge -->
-                    <div class="gauge-wrapper medium">
-                        <div class="gauge-container" id="interval-gauge-container">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress" id="interval-progress" d="M 30 100 A 50 50 0 1 1 90 100"
-                                    fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="240"
-                                    stroke-dashoffset="240" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value small-text" id="interval-display">60</div>
-                                <div class="gauge-unit">h:mm</div>
-                            </div>
-                        </div>
-                        <div class="gauge-label">intervalle</div>
-                    </div>
+
 
                     <!-- Duration Gauge 2 -->
                     <div class="gauge-wrapper medium">
@@ -177,11 +178,11 @@
                                     stroke-dashoffset="240" />
                             </svg>
                             <div class="gauge-content">
-                                <div class="gauge-value" id="time-display-2">0:00</div>
+                                <div class="gauge-value small-text" id="time-display-2">0:00</div>
                                 <div class="gauge-unit">h:mm</div>
                             </div>
                         </div>
-                        <div class="gauge-label">durée</div>
+                        <!-- <div class="gauge-label">durée</div> -->
                     </div>
 
                     <!-- Depth Gauge 2 -->
@@ -195,11 +196,11 @@
                                     stroke-dashoffset="240" />
                             </svg>
                             <div class="gauge-content">
-                                <div class="gauge-value" id="depth-display-2">0</div>
+                                <div class="gauge-value small-text" id="depth-display-2">0</div>
                                 <div class="gauge-unit">m</div>
                             </div>
                         </div>
-                        <div class="gauge-label">profondeur</div>
+                        <!-- <div class="gauge-label">profondeur</div> -->
                     </div>
                 </div>
 
