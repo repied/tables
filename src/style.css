@@ -81,12 +81,12 @@ body {
     cursor: ns-resize;
     user-select: none;
     -webkit-user-select: none;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.4);
     /* Darkening effect for contrast */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .gauge-ring {
@@ -120,7 +120,7 @@ body {
 }
 
 .gauge-value {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     font-weight: 300;
 }
 
@@ -129,8 +129,8 @@ body {
 }
 
 .gauge-unit {
-    font-size: 1rem;
-    color: #888;
+    font-size: 0.9rem;
+    color: #ccc;
     margin-top: 5px;
 }
 
@@ -139,23 +139,23 @@ body {
     font-size: 1.2rem;
     color: #fff;
     text-transform: lowercase;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
     padding: 4px 12px;
     border-radius: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .results-container {
-    background: rgba(255, 255, 255, 0.1);
-    /* Whitening effect */
+    background: rgba(0, 0, 0, 0.4);
+    /* Darkening effect */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 20px;
     min-height: 150px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .actions-container {
@@ -165,9 +165,9 @@ body {
 }
 
 .action-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-color);
     padding: 10px 20px;
     border-radius: 20px;
@@ -177,7 +177,7 @@ body {
 }
 
 .action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.6);
 }
 
 .stops-display {
@@ -251,8 +251,12 @@ body {
 .dive-details {
     margin-top: 20px;
     text-align: center;
-    font-size: 0.9rem;
-    color: #888;
+    font-size: 1.1rem;
+    color: #fff;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    font-weight: 500;
 }
 
 /* Successive dive section */
@@ -262,11 +266,11 @@ body {
 }
 
 .glass-panel {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .successive-header {
@@ -297,6 +301,17 @@ body {
 .control-group label {
     font-size: 0.8rem;
     color: #aaa;
+}
+
+.majoration-display {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 15px;
+    border-radius: 10px;
 }
 
 .glass-input {
@@ -398,8 +413,4 @@ input:checked+.slider:before {
         margin-top: 2px;
     }
 
-    /* Reduce text size for main gauges on small screens */
-    .gauges-row.main-gauges .gauge-value {
-        font-size: 2.0rem;
-    }
 }

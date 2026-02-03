@@ -397,13 +397,13 @@ function updateUI() {
         const remainingPressure = Math.round(currentPressure - pressureUsed);
 
         const gpsText = gps1 ? `gps ${gps1}` : 'gps -';
-        const reserveText = `réserve ${remainingPressure} bar`;
+        const reserveText = `réserve <strong>${remainingPressure}</strong> bar`;
         let nitroxText = '';
         if (isNitrox) {
-            nitroxText = ` • ppO2 ${ppo2_1.toFixed(2)}`;
+            nitroxText = ` • ppO2 <strong>${ppo2_1.toFixed(2)}</strong>`;
         }
 
-        diveDetails.textContent = `${gpsText} • dtr ${dtrFormatted} • ${reserveText}${nitroxText}`;
+        diveDetails.innerHTML = `${gpsText} • dtr <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText}`;
 
         if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_1 > 1.6) {
             diveDetails.style.color = '#e53935';
@@ -492,13 +492,13 @@ function updateUI() {
                 const pressureUsed = gasUsed / currentVolume;
                 const remainingPressure = Math.round(currentPressure - pressureUsed);
 
-                const reserveText = `réserve ${remainingPressure} bar`;
+                const reserveText = `réserve <strong>${remainingPressure}</strong> bar`;
                 let nitroxText2 = '';
                 if (isNitrox) {
-                    nitroxText2 = ` • ppO2 ${ppo2_2.toFixed(2)}`;
+                    nitroxText2 = ` • ppO2 <strong>${ppo2_2.toFixed(2)}</strong>`;
                 }
 
-                diveDetails2.textContent = `dtr ${dtrFormatted} • ${reserveText}${nitroxText2}`;
+                diveDetails2.innerHTML = `dtr <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText2}`;
 
                 if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > 1.6) {
                     diveDetails2.style.color = '#e53935';

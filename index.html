@@ -32,7 +32,6 @@
                         <div class="gauge-unit">bar</div>
                     </div>
                 </div>
-                <!-- <div class="gauge-label">Press.</div> -->
             </div>
 
             <!-- SAC Gauge -->
@@ -50,7 +49,6 @@
                         <div class="gauge-unit">l/min</div>
                     </div>
                 </div>
-                <!-- <div class="gauge-label">Conso.</div> -->
             </div>
 
             <!-- Volume Gauge -->
@@ -68,7 +66,6 @@
                         <div class="gauge-unit">l</div>
                     </div>
                 </div>
-                <!-- <div class="gauge-label">Vol.</div> -->
             </div>
 
             <!-- O2 Gauge -->
@@ -86,7 +83,6 @@
                         <div class="gauge-unit">% O<sub>2</sub></div>
                     </div>
                 </div>
-                <!-- <div class="gauge-label">O<sub>2</sub></div> -->
             </div>
         </div>
 
@@ -97,14 +93,12 @@
             </div>
 
             <div class="gauges-row main-gauges">
-                <!-- Duration Gauge -->
+                <!-- Duration Gauge 1 -->
                 <div class="gauge-wrapper medium">
                     <div class="gauge-container" id="time-gauge-container">
                         <svg class="gauge-ring" viewBox="0 0 120 120">
-                            <!-- Background Circle (Track) -->
                             <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
                                 stroke-linecap="round" />
-                            <!-- Progress Circle -->
                             <path class="ring-progress" id="time-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
                                 stroke-width="8" stroke-linecap="round" stroke-dasharray="240"
                                 stroke-dashoffset="240" />
@@ -114,10 +108,9 @@
                             <div class="gauge-unit">h:mm</div>
                         </div>
                     </div>
-                    <!-- <div class="gauge-label">T</div> -->
                 </div>
 
-                <!-- Depth Gauge -->
+                <!-- Depth Gauge 1 -->
                 <div class="gauge-wrapper medium">
                     <div class="gauge-container" id="depth-gauge-container">
                         <svg class="gauge-ring" viewBox="0 0 120 120">
@@ -132,7 +125,6 @@
                             <div class="gauge-unit">m</div>
                         </div>
                     </div>
-                    <!-- <div class="gauge-label">Profondeur</div> -->
                 </div>
             </div>
             <div class="stops-display" id="stops-display">
@@ -140,10 +132,11 @@
                 <div class="placeholder-text">Configurez votre plongée</div>
             </div>
             <div class="dive-details" id="dive-details">
-                <!-- DTR, Group -->
+                <!-- DTR, Group , reserve for dive 1-->
             </div>
 
         </div>
+
         <!-- Interval Gauge -->
         <div class="gauges-row">
             <div class="gauge-wrapper medium">
@@ -155,7 +148,7 @@
                             stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="240" />
                     </svg>
                     <div class="gauge-content">
-                        <div class="gauge-value small-text" id="interval-display">60</div>
+                        <div class="gauge-value" id="interval-display">60</div>
                         <div class="gauge-unit">h:mm</div>
                     </div>
                 </div>
@@ -182,11 +175,10 @@
                                     stroke-dashoffset="240" />
                             </svg>
                             <div class="gauge-content">
-                                <div class="gauge-value small-text" id="time-display-2">0:00</div>
+                                <div class="gauge-value" id="time-display-2">0:00</div>
                                 <div class="gauge-unit">h:mm</div>
                             </div>
                         </div>
-                        <!-- <div class="gauge-label">durée</div> -->
                     </div>
 
                     <!-- Depth Gauge 2 -->
@@ -200,20 +192,19 @@
                                     stroke-dashoffset="240" />
                             </svg>
                             <div class="gauge-content">
-                                <div class="gauge-value small-text" id="depth-display-2">0</div>
+                                <div class="gauge-value" id="depth-display-2">0</div>
                                 <div class="gauge-unit">m</div>
                             </div>
                         </div>
-                        <!-- <div class="gauge-label">profondeur</div> -->
                     </div>
                 </div>
 
-                <div class="majoration-display" id="majoration-display"
-                    style="text-align: center; margin-bottom: 15px;">
+                <div class="majoration-display" id="majoration-display">
                     Majoration: +0 min
                 </div>
 
                 <div class="stops-display" id="stops-display-2">
+                    <!-- Stops will be inserted here -->
                     <div class="placeholder-text">Résultats plongée 2</div>
                 </div>
                 <div class="dive-details" id="dive-details-2">
