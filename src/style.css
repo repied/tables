@@ -65,7 +65,7 @@ body {
 }
 
 .gauge-wrapper.small {
-    width: 22%;
+    width: 20%;
 }
 
 .gauge-wrapper.medium {
@@ -135,7 +135,7 @@ body.gf-mode .ring-progress:not(.fixed-color-gauge-ring) {
 }
 
 .gauge-value.small-text {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 
 .gauge-unit {
@@ -171,6 +171,8 @@ body.gf-mode .ring-progress:not(.fixed-color-gauge-ring) {
 .actions-container {
     display: flex;
     justify-content: center;
+    gap: 10px;
+    align-items: center;
 }
 
 .action-btn {
@@ -434,12 +436,12 @@ input:checked+.slider:before {
     position: relative;
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
-    border-radius: 30px;
-    padding: 4px;
+    border-radius: 20px;
+    padding: 3px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 30%;
-    min-width: 140px;
+    width: 25%;
+    min-width: 120px;
 }
 
 .toggle-wrapper input[type="radio"] {
@@ -449,13 +451,13 @@ input:checked+.slider:before {
 .toggle-option {
     flex: 1;
     text-align: center;
-    padding: 8px 0;
+    padding: 6px 0;
     cursor: pointer;
     z-index: 2;
     color: #ccc;
     transition: color 0.3s ease;
     font-weight: 500;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .toggle-wrapper input[type="radio"]:checked+.toggle-option {
@@ -464,13 +466,13 @@ input:checked+.slider:before {
 
 .toggle-slider {
     position: absolute;
-    top: 4px;
-    left: 4px;
-    bottom: 4px;
-    width: calc(50% - 4px);
+    top: 3px;
+    left: 3px;
+    bottom: 3px;
+    width: calc(50% - 3px);
     /* Assuming 2 options */
     background: var(--accent-color);
-    border-radius: 25px;
+    border-radius: 17px;
     transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     z-index: 1;
 }

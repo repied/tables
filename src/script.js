@@ -311,7 +311,6 @@ function calculateBuehlmannPlan(diveParams) {
 
 // Initialize
 async function init() {
-    console.log("Loading data...");
     const success = await window.dataManager.loadAllData();
     if (!success) {
         alert("Erreur de chargement des données. Vérifiez la connexion.");
@@ -382,7 +381,6 @@ function setupInteractions() {
         });
     }
 
-    console.log("Setting up Dive 2 interactions. Found:", !!timeGauge2, !!depthGauge2);
     if (timeGauge2 && depthGauge2) {
         setupGaugeInteraction(timeGauge2, () => dive2Time, (val) => dive2Time = val, MIN_TIME, MAX_TIME, 0.2);
         setupGaugeInteraction(depthGauge2, () => dive2Depth, (val) => dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
@@ -401,7 +399,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
     let isDragging = false;
 
     gaugeElement.addEventListener('pointerdown', (e) => {
-        console.log('pointerdown on', gaugeElement.id);
+        // console.log('pointerdown on', gaugeElement.id);
         isDragging = true;
         startY = e.clientY;
         startValue = getValue();
@@ -411,7 +409,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
 
     gaugeElement.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
-        console.log('pointermove', gaugeElement.id);
+        // console.log('pointermove', gaugeElement.id);
         const deltaY = startY - e.clientY;
         const change = Math.round(deltaY * sensitivity);
         let newValue = startValue + change;
