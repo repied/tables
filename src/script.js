@@ -16,7 +16,7 @@ let currentGFLow = 85;
 let currentGFHigh = 85;
 
 // Successive Dive State
-let prevGroup = 'A';
+let prevGroup = null;
 let surfaceInterval = 60 * 3; // minutes
 
 // Constants
@@ -747,7 +747,7 @@ function updateUI() {
         if (majorationDisplay) {
             const avgTension = finalTensions1 ? (finalTensions1.reduce((a, b) => a + b, 0) / finalTensions1.length).toFixed(2) : '-';
             const tensionsStr = finalTensions1 ? finalTensions1.map(t => t.toFixed(2)).join(', ') : '-';
-            majorationDisplay.textContent = `Variation ppN2 compartiments ${avgTension} bar -> `;
+            majorationDisplay.innerHTML = `Tension moyenne durant intervalle<br>${avgTension} bar -> `;
         }
         // Buehlmann Algo for Dive 2 with residual nitrogen
         const fN2 = (100 - gazO2pct) / 100;
@@ -763,7 +763,7 @@ function updateUI() {
             const displayTensions = currentTensions || finalTensions1;
             const avgTension = displayTensions ? (displayTensions.reduce((a, b) => a + b, 0) / displayTensions.length).toFixed(2) : '-';
             const tensionsStr = displayTensions ? displayTensions.map(t => t.toFixed(2)).join(', ') : '-';
-            majorationDisplay.textContent += `${avgTension} bar`;
+            majorationDisplay.innerHTML += `${avgTension} bar`;
         }
 
         // Dive 2 Simulation
