@@ -88,6 +88,14 @@ body {
     -webkit-backdrop-filter: blur(10px);
     border-radius: 50%;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+body:not(.gf-mode) #gf-low-gauge-container,
+body:not(.gf-mode) #gf-high-gauge-container {
+    opacity: 0.3;
+    filter: grayscale(1);
+    pointer-events: none;
 }
 
 .gauge-ring {

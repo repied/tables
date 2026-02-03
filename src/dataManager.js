@@ -124,88 +124,9 @@ function parseMajorationTable(csv) {
     return { depths, data };
 }
 
-// Logic for Successive Dive
-function calculateSuccessive(prevGroup, interval, depth) {
-    if (!prevGroup || !interval || !depth) return { error: "Missing parameters" };
-    if (!Table2_N2 || !Table3_Maj) return { error: "Data not loaded" };
-
-    // 1. Get Residual Nitrogen (Coeff)
-    // Find Interval Column: Largest interval in table <= actual interval
-    // Standard MN90: If interval > max table interval (12h), N2 is 0.8 (or reset).
-    // Actually, usually >12h means new dive (no residual).
-
-    if (interval > 720) { // > 12h
-        return { majoration: 0, n2: 0 };
-    }
-
-    const row = Table2_N2.data[prevGroup];
-    if (!row) return { error: "Invalid Group" };
-
-    // Find index
-    // Table intervals are e.g. 15, 30, 45.
-    // Logic: If I wait 20 min, I use 15 min column.
-    // If I wait 10 min, it's < 15. Consecutive logic applies (not handled here).
-    // We assume input > 15 min.
-
-    let intervalIndex = -1;
-    for (let i = Table2_N2.intervals.length - 1; i >= 0; i--) {
-        if (interval >= Table2_N2.intervals[i]) {
-            intervalIndex = i;
-            break;
-        }
-    }
-
-    if (intervalIndex === -1) {
-        // Interval < 15 mins.
-        return { error: "Interval too short (<15min)" };
-    }
-
-    const n2Coeff = row[intervalIndex];
-    if (!n2Coeff || isNaN(n2Coeff)) {
-        // If empty, usually means coefficient is back to baseline or specific rule.
-        // In CSV provided, trails are empty?
-        // CSV: "A, 0.84... 0.81,,,,,"
-        // If empty, it likely means saturated/no change or fully desaturated?
-        // Actually, looking at CSV, for A: after 6h00 (0.81), cells are empty.
-        // This implies 0.81 persists or resets?
-        // MN90: After 12h, desaturation complete.
-        // If empty, and > last value, assume desaturation continues or stays at min?
-        // Let's assume if we are off the chart to the right, N2 is minimal (or 0.8/0.79 i.e. pure air).
-        // Let's return 0 majoration.
-        return { majoration: 0, n2: "min" };
-    }
-
-    // 2. Get Majoration
-    // Find N2 Row: Smallest N2 in table >= actual N2
-    const majTable = Table3_Maj.data;
-    const targetN2Row = majTable.find(r => r.n2 >= n2Coeff);
-
-    if (!targetN2Row) {
-        // N2 too high? Should not happen if tables align.
-        return { error: "N2 out of range" };
-    }
-
-    // Find Depth Column: Smallest depth in table >= actual depth
-    // Depths: 12, 15...
-    const majDepths = Table3_Maj.depths;
-    const depthIndex = majDepths.findIndex(d => d >= depth);
-
-    if (depthIndex === -1) {
-        // Too deep (beyond 60m?)
-        return { error: "Too deep for table" };
-    }
-
-    const majoration = targetN2Row.majorations[depthIndex];
-
-    return {
-        majoration: majoration || 0,
-        n2: n2Coeff
-    };
-}
 
 // Expose to window
 window.dataManager = {
     loadAllData,
     getMN90: () => MN90_Tables,
-    calculateSuccessive
 };

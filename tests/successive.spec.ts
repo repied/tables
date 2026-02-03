@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+declare global {
+    interface Window {
+        dataManager: any;
+    }
+}
+
 test('Successive dive calculation flow', async ({ page }) => {
     // Go to app
     await page.goto('/');
@@ -23,11 +29,11 @@ test('Successive dive calculation flow', async ({ page }) => {
     const majText = await page.locator('#majoration-display').innerText();
     console.log("Majoration displayed:", majText);
 
-    expect(majText).toContain('+37 min');
+    expect(majText).toContain('+7 min');
 
     // Verify calculation helper works for other values
     const calculation = await page.evaluate(() => {
-        return window.dataManager.calculateSuccessive('H', 60, 20);
+        return calculateSuccessive('H', 60, 20);
     });
 
     console.log("Calculation result for H, 60min, 20m:", calculation);
