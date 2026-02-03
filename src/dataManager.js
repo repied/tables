@@ -38,7 +38,6 @@ async function loadAllData() {
         Table2_N2 = parseN2Table(n2Text);
         Table3_Maj = parseMajorationTable(majText);
 
-        console.log("All tables loaded successfully");
         return true;
     } catch (e) {
         console.error("Failed to load data", e);

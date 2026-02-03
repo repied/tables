@@ -1,5 +1,5 @@
 
-// Dives State
+// Dives Parameters
 let dive1Depth = 40; // meters
 let dive1Time = 15; // minutes
 let dive2Depth = 40;
@@ -40,10 +40,11 @@ const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
 const PPO2_THRESHOLD = 1.4; // Maximum safe ppO2
 
-// Cosntan dive parameters
-const SURFACE_PRESSURE = 1; // bar
-const ASCENT_RATE = 15; // m/min
-const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min
+// Constant dive parameters
+const AIR_FN2 = 0.79;
+const SURFACE_PRESSURE = 1; // bar TODO: cahnge for altitude diving?
+const ASCENT_RATE = 15; // m/min  15m/min is recommended
+const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
 const DESCENT_RATE = 20; // m/min
 
 // UI Elements
@@ -191,7 +192,7 @@ function calculateBuehlmannPlan(diveParams) {
     } = diveParams;
 
     if (bottomTime <= 0 || maxDepth <= 0) {
-        return { dtr: 0, stops: {}, finalTensions: initialTensions || Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, fN2)) };
+        return { dtr: 0, stops: {}, finalTensions: initialTensions || Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, AIR_FN2)) };
     }
 
     // Convert gfLow/High to 0-1 if passed as 0-100
@@ -199,7 +200,8 @@ function calculateBuehlmannPlan(diveParams) {
     const _gfHigh = gfHigh > 1 ? gfHigh / 100 : gfHigh;
 
     let firstStopDepth = null;
-    let tensions = initialTensions ? [...initialTensions] : Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, fN2));
+    // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
+    let tensions = initialTensions ? [...initialTensions] : Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, AIR_FN2));
 
     let stopsArr = [];
     let dtr = 0;
@@ -705,9 +707,9 @@ function updateUI() {
         successiveHeaderText.textContent = `Seconde plongée`;
     }
 
-    // -------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------
     // DIVE 2 CALCULATION
-    // -------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------
 
     // Auto-update Group from Dive 1 if valid
     if (gps1) {
@@ -743,22 +745,28 @@ function updateUI() {
     if (isGFMode) {
 
         if (majorationDisplay) {
-            const avgTension = finalTensions1 ? (finalTensions1.reduce((a, b) => a + b, 0) / finalTensions1.length).toFixed(3) : '-';
+            const avgTension = finalTensions1 ? (finalTensions1.reduce((a, b) => a + b, 0) / finalTensions1.length).toFixed(2) : '-';
             const tensionsStr = finalTensions1 ? finalTensions1.map(t => t.toFixed(2)).join(', ') : '-';
-            majorationDisplay.textContent = `Tensions: [${tensionsStr}] Avg: ${avgTension}`;
+            majorationDisplay.textContent = `Variation ppN2 compartiments ${avgTension} bar -> `;
         }
         // Buehlmann Algo for Dive 2 with residual nitrogen
         const fN2 = (100 - gazO2pct) / 100;
-        // Surface interval
-        // Evolve tensions
+
+        // Surface interval evolution
         let currentTensions = finalTensions1;
-        // We need to evolve for surfaceInterval
         if (currentTensions) {
-            const surfacePN2 = depthToPN2(0, 1, 0.79); // Air at surface
+            const surfacePN2 = depthToPN2(0, SURFACE_PRESSURE, AIR_FN2); // Air at surface
             currentTensions = updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
         }
 
-        // Dive 2
+        if (majorationDisplay) {
+            const displayTensions = currentTensions || finalTensions1;
+            const avgTension = displayTensions ? (displayTensions.reduce((a, b) => a + b, 0) / displayTensions.length).toFixed(2) : '-';
+            const tensionsStr = displayTensions ? displayTensions.map(t => t.toFixed(2)).join(', ') : '-';
+            majorationDisplay.textContent += `${avgTension} bar`;
+        }
+
+        // Dive 2 Simulation
         const res2 = calculateBuehlmannPlan({
             bottomTime: dive2Time,
             maxDepth: dive2Depth,
@@ -781,7 +789,7 @@ function updateUI() {
 
         if (succResult && !succResult.error) {
             currentMajoration = succResult.majoration;
-            majText = `+ ${currentMajoration} min(GPS ${gps1})`;
+            majText = `+${currentMajoration} min (GPS ${gps1})`;
         } else if (succResult && succResult.error) {
             majText = "Err"; // e.g. interval too short
         }
@@ -815,13 +823,13 @@ function updateUI() {
             const pressureUsed = gasUsed / tankVolume;
             const remainingPressure = Math.round(initTankPressure - pressureUsed);
 
-            const reserveText = `réserve < strong > ${remainingPressure}</strong > bar`;
+            const reserveText = `réserve <strong>${remainingPressure}</strong> bar`;
             let nitroxText2 = '';
             if (isNitrox) {
-                nitroxText2 = ` • ppO2 < strong > ${ppo2_2.toFixed(2)}</strong > `;
+                nitroxText2 = ` • ppO2 <strong>${ppo2_2.toFixed(2)}</strong>`;
             }
 
-            diveDetails2.innerHTML = `dtr < strong > ${dtrFormatted}</strong > • ${reserveText}${nitroxText2} `;
+            diveDetails2.innerHTML = `dtr <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText2}`;
 
             if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > 1.6) {
                 diveDetails2.style.color = '#e53935';

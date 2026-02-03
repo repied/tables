@@ -119,6 +119,11 @@ body.gf-mode .ring-progress:not(.fixed-color-gauge-ring) {
     stroke: var(--gauge-color-secondary);
 }
 
+body.gf-mode .majoration-display {
+    color: var(--gauge-color-secondary);
+}
+
+
 .gauge-content {
     position: absolute;
     top: 50%;
