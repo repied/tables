@@ -6,6 +6,11 @@ let currentSAC = 20; // l/min
 let currentVolume = 15; // liters
 let currentO2 = 21; // Percentage
 
+// GF Mode State
+let isGFMode = false;
+let currentGFLow = 30;
+let currentGFHigh = 80;
+
 // Dive 2 State
 let dive2Depth = 20;
 let dive2Time = 30;
@@ -30,6 +35,8 @@ const MAX_VOLUME = 30;
 const MIN_VOLUME = 6;
 const MAX_O2 = 40;
 const MIN_O2 = 21;
+const MAX_GF = 100;
+const MIN_GF = 10;
 const MAX_INTERVAL = 720; // 12h
 const MIN_INTERVAL = 15; // 15min
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
@@ -54,6 +61,17 @@ const pressureProgress = document.getElementById('pressure-progress');
 const sacProgress = document.getElementById('sac-progress');
 const volumeProgress = document.getElementById('volume-progress');
 const o2Progress = document.getElementById('o2-progress');
+
+// GF Elements
+const mn90Toggle = document.getElementById('mode-mn90');
+const gfToggle = document.getElementById('mode-gf');
+
+const gfLowGauge = document.getElementById('gf-low-gauge-container');
+const gfHighGauge = document.getElementById('gf-high-gauge-container');
+const gfLowDisplay = document.getElementById('gf-low-display');
+const gfHighDisplay = document.getElementById('gf-high-display');
+const gfLowProgress = document.getElementById('gf-low-progress');
+const gfHighProgress = document.getElementById('gf-high-progress');
 
 const stopsDisplay = document.getElementById('stops-display');
 const diveDetails = document.getElementById('dive-details');
@@ -113,6 +131,13 @@ function initGauges() {
         });
     }
 
+    if (gfLowProgress && gfHighProgress) {
+        [gfLowProgress, gfHighProgress].forEach(p => {
+            p.style.strokeDasharray = length;
+            p.style.strokeDashoffset = length;
+        });
+    }
+
     if (intervalProgress) {
         intervalProgress.style.strokeDasharray = length;
         intervalProgress.style.strokeDashoffset = length;
@@ -122,43 +147,59 @@ function initGauges() {
 }
 
 function setupInteractions() {
-    setupInteraction(timeGauge, () => currentTime, (val) => currentTime = val, MIN_TIME, MAX_TIME, 0.2);
-    setupInteraction(depthGauge, () => currentDepth, (val) => currentDepth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
-    setupInteraction(pressureGauge, () => currentPressure, (val) => currentPressure = val, MIN_PRESSURE, MAX_PRESSURE, 1);
-    setupInteraction(sacGauge, () => currentSAC, (val) => currentSAC = val, MIN_SAC, MAX_SAC, 0.5);
-    setupInteraction(volumeGauge, () => currentVolume, (val) => currentVolume = val, MIN_VOLUME, MAX_VOLUME, 1);
-    setupInteraction(o2Gauge, () => currentO2, (val) => currentO2 = val, MIN_O2, MAX_O2, 0.2);
+    setupGaugeInteraction(timeGauge, () => currentTime, (val) => currentTime = val, MIN_TIME, MAX_TIME, 0.2);
+    setupGaugeInteraction(depthGauge, () => currentDepth, (val) => currentDepth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
+    setupGaugeInteraction(pressureGauge, () => currentPressure, (val) => currentPressure = val, MIN_PRESSURE, MAX_PRESSURE, 1);
+    setupGaugeInteraction(sacGauge, () => currentSAC, (val) => currentSAC = val, MIN_SAC, MAX_SAC, 0.5);
+    setupGaugeInteraction(volumeGauge, () => currentVolume, (val) => currentVolume = val, MIN_VOLUME, MAX_VOLUME, 1);
+    setupGaugeInteraction(o2Gauge, () => currentO2, (val) => currentO2 = val, MIN_O2, MAX_O2, 0.2);
+
+    if (gfLowGauge && gfHighGauge) {
+        setupGaugeInteraction(gfLowGauge, () => currentGFLow, (val) => currentGFLow = val, MIN_GF, MAX_GF, 0.5);
+        setupGaugeInteraction(gfHighGauge, () => currentGFHigh, (val) => currentGFHigh = val, MIN_GF, MAX_GF, 0.5);
+    }
+
+    if (mn90Toggle && gfToggle) {
+        mn90Toggle.addEventListener('change', () => {
+            isGFMode = false;
+            updateUI();
+        });
+        gfToggle.addEventListener('change', () => {
+            isGFMode = true;
+            updateUI();
+        });
+    }
 
     console.log("Setting up Dive 2 interactions. Found:", !!timeGauge2, !!depthGauge2);
     if (timeGauge2 && depthGauge2) {
-        setupInteraction(timeGauge2, () => dive2Time, (val) => dive2Time = val, MIN_TIME, MAX_TIME, 0.2);
-        setupInteraction(depthGauge2, () => dive2Depth, (val) => dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
+        setupGaugeInteraction(timeGauge2, () => dive2Time, (val) => dive2Time = val, MIN_TIME, MAX_TIME, 0.2);
+        setupGaugeInteraction(depthGauge2, () => dive2Depth, (val) => dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
     }
 
     if (intervalGauge) {
-        setupInteraction(intervalGauge, () => surfaceInterval, (val) => surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 1);
+        setupGaugeInteraction(intervalGauge, () => surfaceInterval, (val) => surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 1);
     }
 }
 
 
 // Interaction Logic
-function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0.5) {
+function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5) {
     let startY = 0;
     let startValue = 0;
     let isDragging = false;
 
-    element.addEventListener('pointerdown', (e) => {
-        console.log('pointerdown on', element.id);
+    gaugeElement.addEventListener('pointerdown', (e) => {
+        console.log('pointerdown on', gaugeElement.id);
         isDragging = true;
         startY = e.clientY;
         startValue = getValue();
-        element.setPointerCapture(e.pointerId);
-        element.style.cursor = 'ns-resize';
+        gaugeElement.setPointerCapture(e.pointerId);
+        gaugeElement.style.cursor = 'ns-resize';
     });
 
-    element.addEventListener('pointermove', (e) => {
+    gaugeElement.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
-        console.log('pointermove', element.id);
+        console.log('pointermove', gaugeElement.id);
         const deltaY = startY - e.clientY;
         const change = Math.round(deltaY * sensitivity);
         let newValue = startValue + change;
@@ -170,15 +211,15 @@ function setupInteraction(element, getValue, setValue, min, max, sensitivity = 0
         }
     });
 
-    element.addEventListener('pointerup', (e) => {
+    gaugeElement.addEventListener('pointerup', (e) => {
         isDragging = false;
-        element.style.cursor = 'default';
-        element.releasePointerCapture(e.pointerId);
+        gaugeElement.style.cursor = 'default';
+        gaugeElement.releasePointerCapture(e.pointerId);
     });
 
-    element.addEventListener('pointercancel', (e) => {
+    gaugeElement.addEventListener('pointercancel', (e) => {
         isDragging = false;
-        element.style.cursor = 'default';
+        gaugeElement.style.cursor = 'default';
     });
 }
 
@@ -347,6 +388,8 @@ function calculatePPO2(depth, o2) {
 
 // Update UI
 function updateUI() {
+    document.body.classList.toggle('gf-mode', isGFMode);
+
     // -------------------------
     // DIVE 1 CALCULATION
     // -------------------------
@@ -368,13 +411,38 @@ function updateUI() {
     volumeProgress.style.strokeDashoffset = length * (1 - Math.min(currentVolume / MAX_VOLUME, 1));
     o2Progress.style.strokeDashoffset = length * (1 - Math.min((currentO2) / 50, 1));
 
+    if (isGFMode) {
+        gfLowDisplay.textContent = currentGFLow;
+        gfHighDisplay.textContent = currentGFHigh;
+        gfLowProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFLow / 100, 1));
+        gfHighProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFHigh / 100, 1));
+    }
+
     // Nitrox Calcs
     const ead1 = calculateEAD(currentDepth, currentO2);
     const ppo2_1 = calculatePPO2(currentDepth, currentO2);
     const isNitrox = currentO2 > 21;
 
-    // Calculate Profile (Use EAD for Dive 1)
-    const result1 = getMN90Profile(ead1, currentTime);
+    let result1;
+    let dtr;
+
+    if (isGFMode) {
+        // Fake Algo
+        result1 = {
+            profile: {
+                stops: { 3: 5, 6: 2 },
+                group: 'Z'
+            },
+            note: ''
+        };
+        dtr = 98;
+    } else {
+        // Calculate Profile (Use EAD for Dive 1)
+        result1 = getMN90Profile(ead1, currentTime);
+        if (result1 && !result1.error && result1.note !== "Surface") {
+            dtr = calculateDTR(currentDepth, result1.profile.stops);
+        }
+    }
 
     // Render Dive 1 Stops
     renderStops(result1, stopsDisplay);
@@ -388,7 +456,7 @@ function updateUI() {
         const stops = result1.profile.stops;
 
         // DTR
-        const dtr = calculateDTR(currentDepth, stops);
+        // dtr is already calculated above
         const dtrFormatted = formatTime(dtr);
 
         // Gas
@@ -471,8 +539,25 @@ function updateUI() {
         // Calculate Dive 2 Profile
         // Total Duration = Real Time + Majoration
         // Use EAD2 for Profile Lookup
-        const effectiveTime2 = dive2Time + currentMajoration;
-        const result2 = getMN90Profile(ead2, effectiveTime2);
+        let result2;
+        let dtr2;
+
+        if (isGFMode) {
+            // Fake Algo for Dive 2
+            result2 = {
+                profile: {
+                    stops: { 3: 8 },
+                    group: 'Z'
+                }
+            };
+            dtr2 = 33;
+        } else {
+            const effectiveTime2 = dive2Time + currentMajoration;
+            result2 = getMN90Profile(ead2, effectiveTime2);
+            if (result2 && !result2.error && result2.note !== "Surface") {
+                dtr2 = calculateDTR(dive2Depth, result2.profile.stops);
+            }
+        }
 
         renderStops(result2, stopsDisplay2);
 
@@ -483,7 +568,7 @@ function updateUI() {
                 const stops = result2.profile.stops;
 
                 // DTR
-                const dtr = calculateDTR(dive2Depth, stops);
+                const dtr = dtr2;
                 const dtrFormatted = formatTime(dtr);
 
                 // Gas (Assume fresh tank with currentPressure and currentVolume)

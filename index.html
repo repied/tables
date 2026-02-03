@@ -23,7 +23,7 @@
                     <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
                             stroke-linecap="round" />
-                        <path class="ring-progress top-gauge-ring" id="pressure-progress"
+                        <path class="ring-progress fixed-color-gauge-ring " id="pressure-progress"
                             d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
                             stroke-dasharray="240" stroke-dashoffset="240" />
                     </svg>
@@ -40,9 +40,9 @@
                     <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
                             stroke-linecap="round" />
-                        <path class="ring-progress top-gauge-ring" id="sac-progress" d="M 30 100 A 50 50 0 1 1 90 100"
-                            fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="240"
-                            stroke-dashoffset="240" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="sac-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="240" stroke-dashoffset="240" />
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="sac-display">20</div>
@@ -57,7 +57,7 @@
                     <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
                             stroke-linecap="round" />
-                        <path class="ring-progress top-gauge-ring" id="volume-progress"
+                        <path class="ring-progress fixed-color-gauge-ring " id="volume-progress"
                             d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
                             stroke-dasharray="240" stroke-dashoffset="240" />
                     </svg>
@@ -74,13 +74,64 @@
                     <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
                             stroke-linecap="round" />
-                        <path class="ring-progress top-gauge-ring" id="o2-progress" d="M 30 100 A 50 50 0 1 1 90 100"
-                            fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="240"
-                            stroke-dashoffset="240" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="o2-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="240" stroke-dashoffset="240" />
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="o2-display">21</div>
                         <div class="gauge-unit">% O<sub>2</sub></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GF Gauges Row -->
+        <div class="gauges-row" id="gf-gauges-row">
+
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="actions-container toggle-container">
+            <div class="toggle-wrapper">
+                <input type="radio" name="mode-toggle" id="mode-mn90" value="mn90" checked>
+                <label for="mode-mn90" class="toggle-option">MN90</label>
+
+                <input type="radio" name="mode-toggle" id="mode-gf" value="gf">
+                <label for="mode-gf" class="toggle-option">GF</label>
+
+                <div class="toggle-slider"></div>
+            </div>
+            <!-- GF Low Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-low-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-low-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="240" stroke-dashoffset="240" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-low-display">30</div>
+                        <div class="gauge-unit">Low</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GF High Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-high-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-high-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="240" stroke-dashoffset="240" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-high-display">80</div>
+                        <div class="gauge-unit">High</div>
                     </div>
                 </div>
             </div>
@@ -144,8 +195,9 @@
                     <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
                             stroke-linecap="round" />
-                        <path class="ring-progress" id="interval-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
-                            stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="240" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="interval-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="240" stroke-dashoffset="240" />
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value" id="interval-display">60</div>
