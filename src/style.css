@@ -4,6 +4,8 @@
     --text-color: #ffffff;
     --accent-color: #e53935;
     /* Red */
+    --accent-blue: #2196f3;
+    /* Blue for settings */
     --accent-secondary: #e0e0e0;
     --gauge-bg: #3e4259;
     --gauge-color-secondary: #4caf50;
@@ -116,6 +118,10 @@ body:not(.gf-mode) #gf-high-gauge-container {
     stroke: var(--accent-color);
     fill: none;
     transition: stroke-dashoffset 0.1s linear;
+}
+
+.fixed-color-gauge-ring {
+    stroke: var(--accent-blue);
 }
 
 #gf-low-progress,
@@ -486,12 +492,13 @@ input:checked+.slider:before {
     /* Assuming 2 options */
     background: var(--accent-color);
     border-radius: 17px;
-    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), background 0.3s ease;
     z-index: 1;
 }
 
 #mode-gf:checked~.toggle-slider {
     transform: translateX(100%);
+    background: var(--gauge-color-secondary);
 }
 
 /* Footer Links */
