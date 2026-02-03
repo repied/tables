@@ -20,6 +20,7 @@ Look at the ./README.md file fo instruction on how to test.
 
 ### 3. Data Processing & Visualization
 *   **MN90 Logic**: Implementing complex lookups (Dive Tables) and algorithms (Air Consumption, DTR) in pure JavaScript.
+*   **Bühlmann ZHL-16C**: Implementing Gradient Factors algorithm for custom decompression planning, including residual nitrogen calculation for repetitive dives.
 *   **Dynamic Graphing**: Visualizing decompression stops as a depth-proportional vertical chart using CSS heights and Flexbox alignment.
 
 ### 4. Testing & Debugging

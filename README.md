@@ -1,11 +1,11 @@
 # Tables
-A [PWA](https://en.wikipedia.org/wiki/Progressive_web_app) for planning dives with French Navy [MN90 tables](https://fr.wikipedia.org/wiki/Tables_de_d%C3%A9compression) (source: [Excel](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)).
+A [PWA](https://en.wikipedia.org/wiki/Progressive_web_app) for planning dives using either **French Navy MN90 tables** or **Bühlmann ZHL-16C with Gradient Factors**.
 
 # Usage
-Visit [https://repied.github.io/tables](https://repied.github.io/tables). Set depth and time to calculate:
+Visit [https://repied.github.io/tables](https://repied.github.io/tables). Toggle between MN90 and GF modes. Set depth, time, and gases to calculate:
 - Decompression stops
-- Successive Dive Group (GPS)
 - Remaining tank pressure
+- Successive Dive Group (GPS for MN90)
 
 # Installation
 - **Android/Desktop**: Use the install prompt or "+" icon in the address bar.
