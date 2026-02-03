@@ -321,6 +321,7 @@ async function init() {
 
     initGauges();
     setupInteractions();
+    setupModal();
 }
 
 function initGauges() {
@@ -925,3 +926,26 @@ function calculateSuccessive(prevGroup, interval, depth) {
 
 // Start
 document.addEventListener('DOMContentLoaded', init);
+
+function setupModal() {
+    const modal = document.getElementById("help-modal");
+    const btn = document.getElementById("help-link");
+    const span = document.getElementsByClassName("close-button")[0];
+
+    if (btn && modal && span) {
+        btn.onclick = function (e) {
+            e.preventDefault();
+            modal.style.display = "block";
+        }
+
+        span.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
+}
