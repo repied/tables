@@ -12,7 +12,7 @@ Can be installed on mobile/laptop/desktop and used offline. Direct installation 
 - **iOS**: In Safari, tap Share -> "Add to Home Screen".
 
 # References
-- Design: [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
+- Design copied from [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
 - MN90 tables: [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
 - ZH-L16C parameters: [Wikipedia](https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm)
 - Co-developped with: [Gemini 3 Pro/Fast](https://blog.google/products-and-platforms/products/gemini/gemini-3/) (~40 millions tokens used)
