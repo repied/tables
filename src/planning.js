@@ -1,13 +1,21 @@
 (function (window) {
 
     // Constant dive parameters
-    const AIR_FN2 = 0.79;
+    const SURFACE_DEPTH = 0;
     const SURFACE_PRESSURE = 1; // bar TODO: change for altitude diving?
+    const AIR_FN2 = 0.79;
+    const SURFACE_AIR_PPN2 = AIR_FN2 * SURFACE_PRESSURE;
     const DESCENT_RATE = 20; // m/min
     const ASCENT_RATE = 15; // m/min  15m/min is recommended
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
 
+
+
     // --- BUEHLMANN ALGORITHM ---
+    const BUEHLMANN_stopInterval = 3
+    const BUEHLMANN_lastStopDepth = 3;
+    const BUEHLMANN_timeStep = 10 / 60; // minutes
+
     const BUEHLMANN = [
         { t12: 5.0, A: 1.1696, B: 0.5578 },
         { t12: 8.0, A: 1.0, B: 0.6514 },
@@ -28,9 +36,8 @@
     ];
 
     const N_COMPARTMENTS = BUEHLMANN.length;
-    const HALF_LIFES = BUEHLMANN.map(c => c.t12);
+    const HALF_LIVES = BUEHLMANN.map(c => c.t12);
     // const GF_INCREMENT = 5; // Unused
-    const SURFACE_DEPTH = 0;
     const MAX_STOP_TIME_BEFORE_INFTY = 720;
 
     function depthToPressure(depth, surfacePressure) {
@@ -47,7 +54,7 @@
     }
 
     function updateAllTensions(tensions, PN2, t) {
-        return HALF_LIFES.map((t12, i) => updateTension(tensions[i], PN2, t, t12));
+        return HALF_LIVES.map((t12, i) => updateTension(tensions[i], PN2, t, t12));
     }
 
     function getMValue(A, B, pressure) {
@@ -90,22 +97,32 @@
 
     function calculateBuehlmannPlan(diveParams) {
         const {
-            bottomTime, maxDepth, gfLow, gfHigh,
-            surfacePressure = SURFACE_PRESSURE, stopInterval = 3, lastStopDepth = 3, timeStep = 0.5,
-            fN2, initialTensions, ascentRate = ASCENT_RATE, descentRate = DESCENT_RATE
+            bottomTime,
+            maxDepth,
+            gfLow,
+            gfHigh,
+            surfacePressure = SURFACE_PRESSURE,
+            stopInterval = BUEHLMANN_stopInterval,
+            lastStopDepth = BUEHLMANN_lastStopDepth,
+            timeStep = BUEHLMANN_timeStep,
+            fN2: gaz_fN2,
+            initialTensions,
+            ascentRate = ASCENT_RATE,
+            descentRate = DESCENT_RATE
         } = diveParams;
+        const surfaceTensions = Array(N_COMPARTMENTS).fill(depthToPN2(SURFACE_DEPTH, surfacePressure, SURFACE_AIR_PPN2))
 
         if (bottomTime <= 0 || maxDepth <= 0) {
-            return { dtr: 0, stops: {}, finalTensions: initialTensions || Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, AIR_FN2)) };
+            return { dtr: 0, stops: {}, finalTensions: initialTensions || surfaceTensions };
         }
+        // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
+        let tensions = initialTensions ? [...initialTensions] : [...surfaceTensions]; // deep copy
 
         // Convert gfLow/High to 0-1 if passed as 0-100
         const _gfLow = gfLow > 1 ? gfLow / 100 : gfLow;
         const _gfHigh = gfHigh > 1 ? gfHigh / 100 : gfHigh;
 
         let firstStopDepth = null;
-        // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
-        let tensions = initialTensions ? [...initialTensions] : Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, AIR_FN2));
 
         let stopsArr = [];
         let dtr = 0;
@@ -117,7 +134,7 @@
         while (nextDepth < maxDepth) {
             t_dive_total += timeStep;
             const depthStep = (currentDepth + nextDepth) / 2;
-            const PN2Step = depthToPN2(depthStep, surfacePressure, fN2);
+            const PN2Step = depthToPN2(depthStep, surfacePressure, gaz_fN2);
             tensions = updateAllTensions(tensions, PN2Step, timeStep);
             currentDepth = nextDepth;
             nextDepth = currentDepth + descentRate * timeStep;
@@ -127,7 +144,7 @@
         if (t_last > 0) {
             t_dive_total += t_last;
             const depthLast = (currentDepth + maxDepth) / 2;
-            tensions = updateAllTensions(tensions, depthToPN2(depthLast, surfacePressure, fN2), t_last);
+            tensions = updateAllTensions(tensions, depthToPN2(depthLast, surfacePressure, gaz_fN2), t_last);
             currentDepth = maxDepth;
         }
 
@@ -139,7 +156,7 @@
         let t_elapsed_bottom = 0;
         while (t_elapsed_bottom < t_at_bottom) {
             let step = Math.min(timeStep, t_at_bottom - t_elapsed_bottom);
-            tensions = updateAllTensions(tensions, depthToPN2(currentDepth, surfacePressure, fN2), step);
+            tensions = updateAllTensions(tensions, depthToPN2(currentDepth, surfacePressure, gaz_fN2), step);
             t_dive_total += step;
             t_elapsed_bottom += step;
         }
@@ -155,7 +172,7 @@
 
             const t_ascend = (currentDepth - nextDepth) / ascentRate;
             const depth_ascend = (nextDepth + currentDepth) / 2;
-            const PN2_ascend = depthToPN2(depth_ascend, surfacePressure, fN2);
+            const PN2_ascend = depthToPN2(depth_ascend, surfacePressure, gaz_fN2);
 
             let tensions_next = updateAllTensions(tensions, PN2_ascend, t_ascend);
 
@@ -165,7 +182,7 @@
                 if (firstStopDepth === null) firstStopDepth = currentDepth;
 
                 let stopTime = 0;
-                const PN2_stop = depthToPN2(currentDepth, surfacePressure, fN2);
+                const PN2_stop = depthToPN2(currentDepth, surfacePressure, gaz_fN2);
 
                 while (!isSafe) {
                     stopTime += timeStep;
@@ -193,7 +210,7 @@
         if (currentDepth > 0) {
             const t_final = currentDepth / ascentRate;
             const depth_final = currentDepth / 2;
-            tensions = updateAllTensions(tensions, depthToPN2(depth_final, surfacePressure, fN2), t_final);
+            tensions = updateAllTensions(tensions, depthToPN2(depth_final, surfacePressure, gaz_fN2), t_final);
             dtr += t_final;
             currentDepth = 0;
         }
@@ -398,7 +415,7 @@
 
     // Expose Planning API
     window.Planning = {
-        AIR_FN2,
+        AIR_FN2: SURFACE_AIR_PPN2,
         SURFACE_PRESSURE,
         ASCENT_RATE,
         getMN90Profile,
