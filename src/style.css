@@ -660,21 +660,6 @@ input:checked+.slider:before {
     }
 }
 
-.close-button {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: #fff;
-    text-decoration: none;
-    cursor: pointer;
-}
-
 .modal h2 {
     margin-top: 0;
     color: var(--text-color);

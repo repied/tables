@@ -559,22 +559,15 @@ document.addEventListener('DOMContentLoaded', init);
 function setupModal() {
     const modal = document.getElementById("help-modal");
     const btn = document.getElementById("help-link");
-    const span = document.getElementsByClassName("close-button")[0];
 
-    if (btn && modal && span) {
+    if (btn && modal) {
         btn.onclick = function (e) {
             e.preventDefault();
             modal.style.display = "block";
         }
 
-        span.onclick = function () {
+        modal.onclick = function () {
             modal.style.display = "none";
-        }
-
-        window.onclick = function (event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
         }
 
         // Show modal on first visit
