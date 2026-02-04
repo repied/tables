@@ -37,8 +37,7 @@ const MIN_GF_pct = 10;
 const MAX_INTERVAL = 60 * 12; // after 12 hours MN90 assumes a fresh dive
 const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
-const PPO2_THRESHOLD_ORANGE = 1.4; // Maximum safe ppO2
-const PPO2_THRESHOLD_RED = 1.6; // Maximum safe ppO2
+const PPO2_THRESHOLD_ORANGE = 1.6; // Maximum safe ppO2
 
 // Language State
 let currentLang = localStorage.getItem('selectedLang') || 'fr';
@@ -391,17 +390,19 @@ function updateUI() {
 
         const gpsHtml = (gps1 === 'GF_GPS' || !gps1) ? '' : `<div class="gps-badge">${window.translations[currentLang].gps} ${gps1}</div>`;
         const dtrHtml = `<div class="result-box important"><span class="result-label">${translations[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-        const reserveHtml = `<div class="result-box important"><span class="result-label">${translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+        const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
         let nitroxHtml = '';
         if (isNitrox) {
-            nitroxHtml = `<div class="result-box"><span class="result-label">ppO2</span><span class="result-value">${ppo2_1.toFixed(2)}</span></div>`;
+            nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2</span><span class="result-value">${ppo2_1.toFixed(2)}</span></div>`;
         }
 
         diveDetails.innerHTML = `${gpsHtml}${dtrHtml}${reserveHtml}${nitroxHtml}`;
 
-        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_1 > PPO2_THRESHOLD_RED) {
-            diveDetails.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#e53935');
-        } else if (ppo2_1 > PPO2_THRESHOLD_ORANGE) {
+        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+            const rb = diveDetails.querySelector('.reserve-box');
+            if (rb) rb.style.backgroundColor = '#e53935';
+        }
+        if (ppo2_1 > PPO2_THRESHOLD_ORANGE) {
             diveDetails.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
         }
     } else if (result1 && result1.error) {
@@ -519,17 +520,20 @@ function updateUI() {
             const remainingPressure = Math.round(initTankPressure - pressureUsed);
 
             const dtrHtml = `<div class="result-box important"><span class="result-label">${window.translations[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-            const reserveHtml = `<div class="result-box important"><span class="result-label">${window.translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+            const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${window.translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
             let nitroxHtml = '';
             if (isNitrox) {
-                nitroxHtml = `<div class="result-box"><span class="result-label">ppO2</span><span class="result-value">${ppo2_2.toFixed(2)}</span></div>`;
+                nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2</span><span class="result-value">${ppo2_2.toFixed(2)}</span></div>`;
             }
 
             diveDetails2.innerHTML = `${dtrHtml}${reserveHtml}${nitroxHtml}`;
 
-            if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > PPO2_THRESHOLD_RED) {
-                diveDetails2.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#e53935');
-            } else if (ppo2_2 > PPO2_THRESHOLD_ORANGE) {
+            if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+                const rb = diveDetails2.querySelector('.reserve-box');
+                if (rb) rb.style.backgroundColor = '#e53935';
+            }
+
+            if (ppo2_2 > PPO2_THRESHOLD_ORANGE) {
                 diveDetails2.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
             }
         } else if (result2 && result2.error) {
