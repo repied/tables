@@ -1,6 +1,6 @@
-# Copilot instructions for `tables` 
+# Coding agents instructions for `tables` 
 
-Look at the ./README.md file fo instruction on how to test.
+First read ./README.md file. Remember that your are most likely developing in a devcontainer.
 
 ## Development Skills & Patterns Learned
 
@@ -8,6 +8,7 @@ Look at the ./README.md file fo instruction on how to test.
 *   **Manifest Configuration**: Creating `manifest.json` for standalone mobile experience (icons, theme colors, display modes).
 *   **Service Worker**: Implementing `sw.js` for offline asset caching and version management (`caches.open`, `event.respondWith`).
 *   **Mobile Meta Tags**: Configuring `viewport` for non-scalable mobile interfaces and iOS-specific tags (`apple-mobile-web-app-capable`).
+*   **Release New version**: Needing to update `const CACHE_NAME = ;` in `sw.js` to make sure user's cache is refreshed
 
 ### 2. Vanilla Web Development (No Framework)
 *   **Interactive SVG Gauges**:
