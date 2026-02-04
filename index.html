@@ -95,10 +95,10 @@
         <div class="actions-container toggle-container">
             <div class="toggle-wrapper">
                 <input type="radio" name="mode-toggle" id="mode-mn90" value="mn90" checked>
-                <label for="mode-mn90" class="toggle-option">MN90</label>
+                <label for="mode-mn90" class="toggle-option" id="mode-mn90-label">MN90</label>
 
                 <input type="radio" name="mode-toggle" id="mode-gf" value="gf">
-                <label for="mode-gf" class="toggle-option">GF</label>
+                <label for="mode-gf" class="toggle-option" id="mode-gf-label">GF</label>
 
                 <div class="toggle-slider"></div>
             </div>
@@ -114,7 +114,7 @@
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="gf-low-display">30</div>
-                        <div class="gauge-unit">Low</div>
+                        <div class="gauge-unit" id="gf-low-unit" data-i18n="low">Low</div>
                     </div>
                 </div>
             </div>
@@ -131,7 +131,7 @@
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="gf-high-display">80</div>
-                        <div class="gauge-unit">High</div>
+                        <div class="gauge-unit" id="gf-high-unit" data-i18n="high">High</div>
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
         <!-- First dive Area  -->
         <div class="results-container">
             <div class="successive-header" style="justify-content: center; margin-bottom: 10px;">
-                <span id="first-dive-header-text">Première plongée</span>
+                <span id="first-dive-header-text" data-i18n="firstDive">Première plongée</span>
             </div>
 
             <div class="gauges-row main-gauges">
@@ -180,7 +180,7 @@
             </div>
             <div class="stops-display" id="stops-display">
                 <!-- Stops will be inserted here -->
-                <div class="placeholder-text">Configurez votre plongée</div>
+                <div class="placeholder-text" data-i18n="configureDive">Configurez votre plongée</div>
             </div>
             <div class="dive-details" id="dive-details">
                 <!-- DTR, Group , reserve for dive 1-->
@@ -204,12 +204,12 @@
                         <div class="gauge-unit">h:mm</div>
                     </div>
                 </div>
-                <div class="gauge-label">Intervalle</div>
+                <div class="gauge-label" data-i18n="interval">Intervalle</div>
             </div>
         </div>
         <div class="successive-container glass-panel">
             <div class="successive-header" style="justify-content: center;">
-                <span id="successive-header-text">Seconde plongée</span>
+                <span id="successive-header-text" data-i18n="secondDive">Seconde plongée</span>
             </div>
 
             <div class="successive-controls" id="successive-controls">
@@ -257,7 +257,7 @@
 
                 <div class="stops-display" id="stops-display-2">
                     <!-- Stops will be inserted here -->
-                    <div class="placeholder-text">Résultats plongée 2</div>
+                    <div class="placeholder-text" data-i18n="dive2Results">Résultats plongée 2</div>
                 </div>
                 <div class="dive-details" id="dive-details-2">
                     <!-- DTR, Reserve for Dive 2 -->
@@ -266,39 +266,52 @@
         </div>
 
         <div class="footer-links">
-            <a href="https://github.com/repied/tables" target="_blank" rel="noopener noreferrer">Source</a>
+            <a href="https://github.com/repied/tables" target="_blank" rel="noopener noreferrer"
+                data-i18n="source">Source</a>
             <!-- <a href="https://www.gsp-plongee.fr/" target="_blank" rel="noopener noreferrer" class="img-link">
                 <img src="./assets/gsp.avif" alt="GSP" style="height: 50px; vertical-align: middle;">
             </a> -->
-            <a href="#" id="help-link">Aide</a>
+            <a href="#" id="help-link" data-i18n="help">Aide</a>
+            <div class="lang-selector">
+                <img src="./assets/fr-flag-800.png" alt="FR" class="flag-icon">
+                <label class="switch">
+                    <input type="checkbox" id="lang-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <img src="./assets/uk-flag-800.png" alt="UK" class="flag-icon">
+            </div>
         </div>
 
         <!-- Help Modal -->
         <div id="help-modal" class="modal">
             <div class="modal-content">
                 <span class="close-button">&times;</span>
-                <h2>Aide & Informations</h2>
-                <p>Cette application permet de planifier des plongées simples et successives.</p>
+                <h2 data-i18n="helpTitle">Aide & Informations</h2>
+                <p data-i18n="helpIntro">Cette application permet de planifier des plongées simples et successives.</p>
 
-                <h3>Utilisation</h3>
+                <h3 data-i18n="usageTitle">Utilisation</h3>
                 <ul>
-                    <li>Utilisez les jauges circulaires pour ajuster la profondeur, le temps, et les paramètres de gaz.
+                    <li data-i18n="usage1">Utilisez les jauges circulaires pour ajuster la profondeur, le temps, et les
+                        paramètres de gaz.
                     </li>
-                    <li>Basculez entre le mode <strong>MN90</strong> (Tables) et <strong>GF</strong> (Bühlmann ZHL-16C).
+                    <li data-i18n="usage2">Basculez entre le mode <strong>MN90</strong> (Tables) et <strong>GF</strong>
+                        (Bühlmann ZHL-16C).
                     </li>
-                    <li>Pour les plongées successives, réglez l'intervalle de surface.</li>
+                    <li data-i18n="usage3">Pour les plongées successives, réglez l'intervalle de surface.</li>
                 </ul>
 
-                <h3>Hypothèses de calcul</h3>
+                <h3 data-i18n="calcTitle">Hypothèses de calcul</h3>
                 <ul>
-                    <li><strong>Vitesse de descente :</strong> 20 m/min</li>
-                    <li><strong>Vitesse de remontée :</strong> 15 m/min (jusqu'au premier palier)</li>
-                    <li><strong>Vitesse entre paliers :</strong> 6 m/min</li>
-                    <li><strong>Modèle MN90 :</strong> Basé sur les tables officielles MN90.</li>
-                    <li><strong>Modèle GF :</strong> Algorithme de décompression Bühlmann ZHL-16C avec facteurs de
+                    <li data-i18n="calc1"><strong>Vitesse de descente :</strong> 20 m/min</li>
+                    <li data-i18n="calc2"><strong>Vitesse de remontée :</strong> 15 m/min (jusqu'au premier palier)</li>
+                    <li data-i18n="calc3"><strong>Vitesse entre paliers :</strong> 6 m/min</li>
+                    <li data-i18n="calc4"><strong>Modèle MN90 :</strong> Basé sur les tables officielles MN90.</li>
+                    <li data-i18n="calc5"><strong>Modèle GF :</strong> Algorithme de décompression Bühlmann ZHL-16C avec
+                        facteurs de
                         gradient.</li>
                 </ul>
-                <p><em>Attention : Cette application est fournie à titre indicatif et ne remplace pas une formation
+                <p><em data-i18n="warning">Attention : Cette application est fournie à titre indicatif et ne remplace
+                        pas une formation
                         adéquate ni un ordinateur de plongée certifié.</em></p>
             </div>
         </div>

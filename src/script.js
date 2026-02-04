@@ -40,6 +40,76 @@ const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
 const PPO2_THRESHOLD = 1.4; // Maximum safe ppO2
 
+// Language State
+let currentLang = 'fr';
+
+const translations = {
+    fr: {
+        firstDive: "Première plongée",
+        configureDive: "Configurez votre plongée",
+        interval: "Intervalle",
+        secondDive: "Seconde plongée",
+        dive2Results: "Résultats plongée 2",
+        source: "Source",
+        help: "Aide",
+        helpTitle: "Aide & Informations",
+        helpIntro: "Cette application permet de planifier des plongées simples et successives.",
+        usageTitle: "Utilisation",
+        usage1: "Utilisez les jauges circulaires pour ajuster la profondeur, le temps, et les paramètres de gaz.",
+        usage2: "Basculez entre le mode <strong>MN90</strong> (Tables) et <strong>GF</strong> (Bühlmann ZHL-16C).",
+        usage3: "Pour les plongées successives, réglez l'intervalle de surface.",
+        calcTitle: "Hypothèses de calcul",
+        calc1: "<strong>Vitesse de descente :</strong> 20 m/min",
+        calc2: "<strong>Vitesse de remontée :</strong> 15 m/min (jusqu'au premier palier)",
+        calc3: "<strong>Vitesse entre paliers :</strong> 6 m/min",
+        calc4: "<strong>Modèle MN90 :</strong> Basé sur les tables officielles MN90.",
+        calc5: "<strong>Modèle GF :</strong> Algorithme de décompression Bühlmann ZHL-16C avec facteurs de gradient.",
+        warning: "Attention : Cette application est fournie à titre indicatif et ne remplace pas une formation adéquate ni un ordinateur de plongée certifié.",
+        maxDepthExceeded: "Profond. max dépassée",
+        outOfTable: "Hors table",
+        surface: "Surface",
+        dtr: "dtr",
+        gps: "gps",
+        reserve: "réserve",
+        majoration: "Majoration",
+        avgTension: "Tension moyenne durant intervalle",
+        low: "Bas",
+        high: "Haut"
+    },
+    en: {
+        firstDive: "First dive",
+        configureDive: "Configure your dive",
+        interval: "Interval",
+        secondDive: "Second dive",
+        dive2Results: "Dive 2 results",
+        source: "Source",
+        help: "Help",
+        helpTitle: "Help & Information",
+        helpIntro: "This application allows planning simple and successive dives.",
+        usageTitle: "Usage",
+        usage1: "Use the circular gauges to adjust depth, time, and gas settings.",
+        usage2: "Toggle between <strong>MN90</strong> mode (Tables) and <strong>GF</strong> mode (Bühlmann ZHL-16C).",
+        usage3: "For successive dives, set the surface interval.",
+        calcTitle: "Calculation Assumptions",
+        calc1: "<strong>Descent rate:</strong> 20 m/min",
+        calc2: "<strong>Ascent rate:</strong> 15 m/min (up to the first stop)",
+        calc3: "<strong>Rate between stops:</strong> 6 m/min",
+        calc4: "<strong>MN90 model:</strong> Based on official MN90 tables.",
+        calc5: "<strong>GF model:</strong> Bühlmann ZHL-16C decompression algorithm with gradient factors.",
+        warning: "Warning: This application is provided for information only and does not replace proper training or a certified dive computer.",
+        maxDepthExceeded: "Max depth exceeded",
+        outOfTable: "Out of table",
+        surface: "Surface",
+        dtr: "dtr",
+        gps: "gps",
+        reserve: "reserve",
+        majoration: "Penalty time",
+        avgTension: "Average tension during interval",
+        low: "Low",
+        high: "High"
+    }
+};
+
 // Constant dive parameters
 const AIR_FN2 = 0.79;
 const SURFACE_PRESSURE = 1; // bar TODO: cahnge for altitude diving?
@@ -322,6 +392,26 @@ async function init() {
     initGauges();
     setupInteractions();
     setupModal();
+
+    const langToggle = document.getElementById('lang-toggle');
+    if (langToggle) {
+        langToggle.addEventListener('change', () => {
+            currentLang = langToggle.checked ? 'en' : 'fr';
+            translateUI();
+            updateUI();
+        });
+    }
+    translateUI();
+}
+
+function translateUI() {
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLang][key]) {
+            el.innerHTML = translations[currentLang][key];
+        }
+    });
 }
 
 function initGauges() {
@@ -522,17 +612,17 @@ function renderStops(result, containerElement) {
     containerElement.innerHTML = '';
 
     if (!result) {
-        containerElement.innerHTML = '<div class="placeholder-text">Profond. max dépassée</div>';
+        containerElement.innerHTML = `<div class="placeholder-text">${translations[currentLang].maxDepthExceeded}</div>`;
         return;
     }
 
     if (result.error) {
-        containerElement.innerHTML = '<div class="placeholder-text">Hors table</div>';
+        containerElement.innerHTML = `<div class="placeholder-text">${translations[currentLang].outOfTable}</div>`;
         return;
     }
 
     if (result.note === "Surface") {
-        containerElement.innerHTML = '<div class="placeholder-text">Surface</div>';
+        containerElement.innerHTML = `<div class="placeholder-text">${translations[currentLang].surface}</div>`;
         return;
     }
 
@@ -682,14 +772,14 @@ function updateUI() {
         const pressureUsed = gasUsed / tankVolume;
         const remainingPressure = Math.floor(initTankPressure - pressureUsed);
 
-        const gpsText = (gps1 === 'GF_GPS') ? '' : (gps1 ? `gps ${gps1}` : 'gps -');
-        const reserveText = `réserve <strong>${remainingPressure}</strong> bar`;
+        const gpsText = (gps1 === 'GF_GPS') ? '' : (gps1 ? `${translations[currentLang].gps} ${gps1}` : `${translations[currentLang].gps} -`);
+        const reserveText = `${translations[currentLang].reserve} <strong>${remainingPressure}</strong> bar`;
         let nitroxText = '';
         if (isNitrox) {
             nitroxText = ` • ppO2 <strong>${ppo2_1.toFixed(2)}</strong>`;
         }
 
-        diveDetails.innerHTML = `${gpsText ? gpsText + ' • ' : ''}dtr <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText}`;
+        diveDetails.innerHTML = `${gpsText ? gpsText + ' • ' : ''}${translations[currentLang].dtr} <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText}`;
 
         if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_1 > 1.6) {
             diveDetails.style.color = '#e53935';
@@ -699,12 +789,12 @@ function updateUI() {
             diveDetails.style.color = '#fff';
         }
     } else if (result1 && result1.error) {
-        diveDetails.textContent = "Hors table";
+        diveDetails.textContent = translations[currentLang].outOfTable;
     }
 
     // Update Successive Header Text with GPS
     if (successiveHeaderText) {
-        successiveHeaderText.textContent = `Seconde plongée`;
+        successiveHeaderText.textContent = translations[currentLang].secondDive;
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------
@@ -745,9 +835,10 @@ function updateUI() {
     if (isGFMode) {
 
         if (majorationDisplay) {
+            const avgTensionLabel = translations[currentLang].avgTension;
             const avgTension = finalTensions1 ? (finalTensions1.reduce((a, b) => a + b, 0) / finalTensions1.length).toFixed(2) : '-';
             const tensionsStr = finalTensions1 ? finalTensions1.map(t => t.toFixed(2)).join(', ') : '-';
-            majorationDisplay.innerHTML = `Tension moyenne durant intervalle<br>${avgTension} bar -> `;
+            majorationDisplay.innerHTML = `${avgTensionLabel}<br>${avgTension} bar -> `;
         }
         // Buehlmann Algo for Dive 2 with residual nitrogen
         const fN2 = (100 - gazO2pct) / 100;
@@ -789,13 +880,13 @@ function updateUI() {
 
         if (succResult && !succResult.error) {
             currentMajoration = succResult.majoration;
-            majText = `+${currentMajoration} min (GPS ${gps1})`;
+            majText = `+${currentMajoration} min (${translations[currentLang].gps} ${gps1})`;
         } else if (succResult && succResult.error) {
             majText = "Err"; // e.g. interval too short
         }
 
         if (majorationDisplay) {
-            majorationDisplay.textContent = `Majoration: ${majText} `;
+            majorationDisplay.textContent = `${translations[currentLang].majoration}: ${majText} `;
         }
 
         const effectiveTime2 = dive2Time + currentMajoration;
@@ -823,13 +914,13 @@ function updateUI() {
             const pressureUsed = gasUsed / tankVolume;
             const remainingPressure = Math.round(initTankPressure - pressureUsed);
 
-            const reserveText = `réserve <strong>${remainingPressure}</strong> bar`;
+            const reserveText = `${translations[currentLang].reserve} <strong>${remainingPressure}</strong> bar`;
             let nitroxText2 = '';
             if (isNitrox) {
                 nitroxText2 = ` • ppO2 <strong>${ppo2_2.toFixed(2)}</strong>`;
             }
 
-            diveDetails2.innerHTML = `dtr <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText2}`;
+            diveDetails2.innerHTML = `${translations[currentLang].dtr} <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText2}`;
 
             if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > 1.6) {
                 diveDetails2.style.color = '#e53935';
@@ -839,7 +930,7 @@ function updateUI() {
                 diveDetails2.style.color = '#fff';
             }
         } else if (result2 && result2.error) {
-            diveDetails2.textContent = "Hors table";
+            diveDetails2.textContent = translations[currentLang].outOfTable;
         }
     }
 

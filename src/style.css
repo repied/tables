@@ -523,6 +523,44 @@ input:checked+.slider:before {
     opacity: 1;
 }
 
+.lang-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 15px;
+    vertical-align: middle;
+}
+
+.flag-icon {
+    width: 20px;
+    height: auto;
+    border-radius: 2px;
+}
+
+.lang-selector .switch {
+    width: 34px;
+    height: 20px;
+}
+
+.lang-selector .slider {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.lang-selector .slider:before {
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+}
+
+.lang-selector input:checked+.slider {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.lang-selector input:checked+.slider:before {
+    transform: translateX(14px);
+}
+
 .footer-links a:has(img),
 .footer-links a:has(img):hover {
     border-bottom: none;
