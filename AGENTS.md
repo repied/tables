@@ -14,15 +14,19 @@ First read ./README.md file. Remember that your are most likely developing in a 
 *   **Interactive SVG Gauges**:
     *   Using SVG `<path>` with `stroke-dasharray` and `stroke-dashoffset` to create fillable ring gauges.
     *   Implementing custom touch/drag interactions using the **Pointer Events API** (`pointerdown`, `pointermove`, `setPointerCapture`) to control values.
-*   **State Management**: Managing app state (depth, time, pressure) in global variables and updating the UI via a centralized `updateUI()` function.
-*   **Glassmorphism UI**:
-    *   Using `backdrop-filter: blur()` and semi-transparent backgrounds (`rgba`) to create readability on top of background images.
-    *   CSS Variables for consistent theming.
+*   **State Management & Persistence**: 
+    *   Managing app state in global variables with centralized `updateUI()`.
+    *   Using `localStorage` to persist user preferences (language) and onboarding state (first-visit modal).
+*   **Component Communication**: Exposing internal module data (like Dive Tables) via getter functions on the `window` object to maintain encapsulation while allowing cross-script access.
+*   **Glassmorphism & High-Contrast UI**:
+    *   Using `backdrop-filter: blur()` and semi-transparent backgrounds.
+    *   Implementing "Result Boxes" with dynamic border colors that change based on safety thresholds (e.g., low gas reserve or high ppO2).
 
 ### 3. Data Processing & Visualization
 *   **MN90 Logic**: Implementing complex lookups (Dive Tables) and algorithms (Air Consumption, DTR) in pure JavaScript.
 *   **Bühlmann ZHL-16C**: Implementing Gradient Factors algorithm for custom decompression planning, including residual nitrogen calculation for repetitive dives.
 *   **Dynamic Graphing**: Visualizing decompression stops as a depth-proportional vertical chart using CSS heights and Flexbox alignment.
+*   **Internationalization (i18n)**: Implementing a custom translation system that handles both text content and HTML-rich segments (like safety disclaimers).
 
 ### 4. Testing & Debugging
 *   **Simple browser**: use http://127.0.0.1 instead of http://localhost if you want to check a url
@@ -30,4 +34,5 @@ First read ./README.md file. Remember that your are most likely developing in a 
     *   Writing tests to verify UI element visibility and initial state.
     *   Simulating user interactions (mouse drag/move) to test gauge responsiveness.
     *   Capturing browser console errors within tests to ensure application stability.
+    *   **Bypassing State**: Using `page.addInitScript` to mock `localStorage` values (like `hasVisited`) to ensure tests start in a clean, predictable state.
 *   **Robustness**: Adding null checks for DOM elements to prevent initialization errors.
