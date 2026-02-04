@@ -1,4 +1,3 @@
-
 // Dives Parameters
 let dive1Depth = 40; // meters
 let dive1Time = 15; // minutes
@@ -22,7 +21,7 @@ let surfaceInterval = 60 * 3; // minutes
 // Constants
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 0;
-const MAX_TIME = 240;
+const MAX_TIME = 60 * 3;
 const MIN_TIME = 0;
 
 const MAX_TANK_PRESSURE = 300;
@@ -175,12 +174,12 @@ function initGauges() {
 }
 
 function setupInteractions() {
-    setupGaugeInteraction(timeGauge, () => dive1Time, (val) => dive1Time = val, MIN_TIME, MAX_TIME, 0.2);
-    setupGaugeInteraction(depthGauge, () => dive1Depth, (val) => dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
+    setupGaugeInteraction(timeGauge, () => dive1Time, (val) => dive1Time = val, MIN_TIME, MAX_TIME, 1);
+    setupGaugeInteraction(depthGauge, () => dive1Depth, (val) => dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.2);
     setupGaugeInteraction(pressureGauge, () => initTankPressure, (val) => initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 1);
     setupGaugeInteraction(sacGauge, () => sac, (val) => sac = val, MIN_SAC, MAX_SAC, 0.5);
-    setupGaugeInteraction(volumeGauge, () => tankVolume, (val) => tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 1);
-    setupGaugeInteraction(o2Gauge, () => gazO2pct, (val) => gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 0.2);
+    setupGaugeInteraction(volumeGauge, () => tankVolume, (val) => tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 10);
+    setupGaugeInteraction(o2Gauge, () => gazO2pct, (val) => gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 1);
 
     if (gfLowGauge && gfHighGauge) {
         setupGaugeInteraction(gfLowGauge, () => currentGFLow, (val) => currentGFLow = val, MIN_GF_pct, MAX_GF_pct, 0.5);
@@ -323,12 +322,12 @@ function updateUI() {
 
     // Update Gauges Progress
     const length = timeProgress.getTotalLength();
-    timeProgress.style.strokeDashoffset = length * (1 - Math.min(dive1Time / 60, 1));
-    depthProgress.style.strokeDashoffset = length * (1 - Math.min(dive1Depth / 60, 1));
+    timeProgress.style.strokeDashoffset = length * (1 - Math.min(dive1Time / MAX_TIME, 1));
+    depthProgress.style.strokeDashoffset = length * (1 - Math.min(dive1Depth / MAX_DEPTH, 1));
     pressureProgress.style.strokeDashoffset = length * (1 - Math.min(initTankPressure / MAX_TANK_PRESSURE, 1));
     sacProgress.style.strokeDashoffset = length * (1 - Math.min(sac / MAX_SAC, 1));
     volumeProgress.style.strokeDashoffset = length * (1 - Math.min(tankVolume / MAX_TANK_VOLUME, 1));
-    o2Progress.style.strokeDashoffset = length * (1 - Math.min((gazO2pct) / 50, 1));
+    o2Progress.style.strokeDashoffset = length * (1 - Math.min((gazO2pct) / MAX_O2_pct, 1));
 
     // Update GF Gauges
     gfLowDisplay.textContent = currentGFLow;
