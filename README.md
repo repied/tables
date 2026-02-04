@@ -7,7 +7,7 @@ A free and open source [Progressive Web App](https://en.wikipedia.org/wiki/Progr
 - Set depth, time, surface interval and gases parameters to plan 2 successive dives.
 
 # Installation
-Can be installed on mobile without using stores to be used offline.
+Can be installed on mobile/laptop and used offline. Installation is direct (no PlayStore, no AppStore). 
 - **Android/Desktop**: Use the install prompt or "+" icon in the address bar.
 - **iOS**: In Safari, tap Share -> "Add to Home Screen".
 
