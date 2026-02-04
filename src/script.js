@@ -43,80 +43,6 @@ const PPO2_THRESHOLD = 1.4; // Maximum safe ppO2
 // Language State
 let currentLang = 'fr';
 
-const translations = {
-    fr: {
-        firstDive: "Première plongée",
-        configureDive: "Configurez votre plongée",
-        interval: "Intervalle",
-        secondDive: "Seconde plongée",
-        dive2Results: "Résultats plongée 2",
-        source: "Source",
-        help: "Aide",
-        helpTitle: "Aide & Informations",
-        helpIntro: "Cette application permet de planifier des plongées simples et successives.",
-        usageTitle: "Utilisation",
-        usage1: "Utilisez les jauges circulaires pour ajuster la profondeur, le temps, et les paramètres de gaz.",
-        usage2: "Basculez entre le mode <strong>MN90</strong> (Tables) et <strong>GF</strong> (Bühlmann ZHL-16C).",
-        usage3: "Pour les plongées successives, réglez l'intervalle de surface.",
-        calcTitle: "Hypothèses de calcul",
-        calc1: "<strong>Vitesse de descente :</strong> 20 m/min",
-        calc2: "<strong>Vitesse de remontée :</strong> 15 m/min (jusqu'au premier palier)",
-        calc3: "<strong>Vitesse entre paliers :</strong> 6 m/min",
-        calc4: "<strong>Modèle MN90 :</strong> Basé sur les tables officielles MN90.",
-        calc5: "<strong>Modèle GF :</strong> Algorithme de décompression Bühlmann ZHL-16C avec facteurs de gradient.",
-        warning: "Attention : Cette application est fournie à titre indicatif et ne remplace pas une formation adéquate ni un ordinateur de plongée certifié.",
-        maxDepthExceeded: "Profond. max dépassée",
-        outOfTable: "Hors table",
-        surface: "Surface",
-        dtr: "dtr",
-        gps: "gps",
-        reserve: "réserve",
-        majoration: "Majoration",
-        avgTension: "Tension moyenne durant intervalle",
-        low: "Bas",
-        high: "Haut"
-    },
-    en: {
-        firstDive: "First dive",
-        configureDive: "Configure your dive",
-        interval: "Interval",
-        secondDive: "Second dive",
-        dive2Results: "Dive 2 results",
-        source: "Source",
-        help: "Help",
-        helpTitle: "Help & Information",
-        helpIntro: "This application allows planning simple and successive dives.",
-        usageTitle: "Usage",
-        usage1: "Use the circular gauges to adjust depth, time, and gas settings.",
-        usage2: "Toggle between <strong>MN90</strong> mode (Tables) and <strong>GF</strong> mode (Bühlmann ZHL-16C).",
-        usage3: "For successive dives, set the surface interval.",
-        calcTitle: "Calculation Assumptions",
-        calc1: "<strong>Descent rate:</strong> 20 m/min",
-        calc2: "<strong>Ascent rate:</strong> 15 m/min (up to the first stop)",
-        calc3: "<strong>Rate between stops:</strong> 6 m/min",
-        calc4: "<strong>MN90 model:</strong> Based on official MN90 tables.",
-        calc5: "<strong>GF model:</strong> Bühlmann ZHL-16C decompression algorithm with gradient factors.",
-        warning: "Warning: This application is provided for information only and does not replace proper training or a certified dive computer.",
-        maxDepthExceeded: "Max depth exceeded",
-        outOfTable: "Out of table",
-        surface: "Surface",
-        dtr: "dtr",
-        gps: "gps",
-        reserve: "reserve",
-        majoration: "Penalty time",
-        avgTension: "Average tension during interval",
-        low: "Low",
-        high: "High"
-    }
-};
-
-// Constant dive parameters
-const AIR_FN2 = 0.79;
-const SURFACE_PRESSURE = 1; // bar TODO: cahnge for altitude diving?
-const ASCENT_RATE = 15; // m/min  15m/min is recommended
-const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
-const DESCENT_RATE = 20; // m/min
-
 // UI Elements
 const timeGauge = document.getElementById('time-gauge-container');
 const depthGauge = document.getElementById('depth-gauge-container');
@@ -173,214 +99,6 @@ const depthProgress2 = document.getElementById('depth-progress-2');
 const stopsDisplay2 = document.getElementById('stops-display-2');
 const diveDetails2 = document.getElementById('dive-details-2');
 
-// --- BUEHLMANN ALGORITHM ---
-const BUEHLMANN = [
-    { t12: 5.0, A: 1.1696, B: 0.5578 },
-    { t12: 8.0, A: 1.0, B: 0.6514 },
-    { t12: 12.5, A: 0.8618, B: 0.7222 },
-    { t12: 18.5, A: 0.7562, B: 0.7825 },
-    { t12: 27.0, A: 0.62, B: 0.8126 },
-    { t12: 38.3, A: 0.5043, B: 0.8434 },
-    { t12: 54.3, A: 0.441, B: 0.8693 },
-    { t12: 77.0, A: 0.4, B: 0.891 },
-    { t12: 109.0, A: 0.375, B: 0.9092 },
-    { t12: 146.0, A: 0.35, B: 0.9222 },
-    { t12: 187.0, A: 0.3295, B: 0.9319 },
-    { t12: 239.0, A: 0.3065, B: 0.9403 },
-    { t12: 305.0, A: 0.2835, B: 0.9477 },
-    { t12: 390.0, A: 0.261, B: 0.9544 },
-    { t12: 498.0, A: 0.248, B: 0.9602 },
-    { t12: 635.0, A: 0.2327, B: 0.9653 },
-];
-
-const N_COMPARTMENTS = BUEHLMANN.length;
-const HALF_LIFES = BUEHLMANN.map(c => c.t12);
-const GF_INCREMENT = 5;
-const SURFACE_DEPTH = 0;
-const MAX_STOP_TIME_BEFORE_INFTY = 720;
-
-function depthToPressure(depth, surfacePressure) {
-    return surfacePressure + depth / 10;
-}
-
-function depthToPN2(depth, surfacePressure, fN2) {
-    return depthToPressure(depth, surfacePressure) * fN2;
-}
-
-function updateTension(t0, pn2, t, compartment_t12) {
-    const k = Math.log(2) / compartment_t12;
-    return pn2 + (t0 - pn2) * Math.exp(-k * t);
-}
-
-function updateAllTensions(tensions, PN2, t) {
-    return HALF_LIFES.map((t12, i) => updateTension(tensions[i], PN2, t, t12));
-}
-
-function getMValue(A, B, pressure) {
-    return A + pressure / B;
-}
-
-function getModifiedMValue(A, B, pressure, GF) {
-    const M_orig = getMValue(A, B, pressure);
-    return M_orig * GF + pressure * (1 - GF);
-}
-
-function getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh) {
-    if (firstStopDepth === null) {
-        return gfLow;
-    }
-    if (depth >= firstStopDepth) {
-        return gfLow;
-    }
-    if (depth <= 0) {
-        return gfHigh;
-    }
-    const deepRatio = depth / firstStopDepth;
-    return gfLow * deepRatio + gfHigh * (1 - deepRatio);
-}
-
-function simulAtDepth(depth, tensions, firstStopDepth, gfLow, gfHigh, surfacePressure) {
-    const gf = getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh);
-    const p = depthToPressure(depth, surfacePressure);
-    let isSafe = true;
-    let satsCompIdx = [];
-    for (let i = 0; i < N_COMPARTMENTS; i++) {
-        const M_mod = getModifiedMValue(BUEHLMANN[i].A, BUEHLMANN[i].B, p, gf);
-        if (tensions[i] > M_mod) {
-            isSafe = false;
-            satsCompIdx.push(i);
-        }
-    }
-    return { isSafe, satsCompIdx };
-}
-
-function calculateBuehlmannPlan(diveParams) {
-    const {
-        bottomTime, maxDepth, gfLow, gfHigh,
-        surfacePressure = SURFACE_PRESSURE, stopInterval = 3, lastStopDepth = 3, timeStep = 0.5,
-        fN2, initialTensions, ascentRate = ASCENT_RATE, descentRate = DESCENT_RATE
-    } = diveParams;
-
-    if (bottomTime <= 0 || maxDepth <= 0) {
-        return { dtr: 0, stops: {}, finalTensions: initialTensions || Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, AIR_FN2)) };
-    }
-
-    // Convert gfLow/High to 0-1 if passed as 0-100
-    const _gfLow = gfLow > 1 ? gfLow / 100 : gfLow;
-    const _gfHigh = gfHigh > 1 ? gfHigh / 100 : gfHigh;
-
-    let firstStopDepth = null;
-    // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
-    let tensions = initialTensions ? [...initialTensions] : Array(N_COMPARTMENTS).fill(depthToPN2(0, surfacePressure, AIR_FN2));
-
-    let stopsArr = [];
-    let dtr = 0;
-    let t_dive_total = 0;
-
-    // 1. Descent
-    let currentDepth = 0;
-    let nextDepth = currentDepth + descentRate * timeStep;
-    while (nextDepth < maxDepth) {
-        t_dive_total += timeStep;
-        const depthStep = (currentDepth + nextDepth) / 2;
-        const PN2Step = depthToPN2(depthStep, surfacePressure, fN2);
-        tensions = updateAllTensions(tensions, PN2Step, timeStep);
-        currentDepth = nextDepth;
-        nextDepth = currentDepth + descentRate * timeStep;
-    }
-    // Last bit
-    let t_last = (maxDepth - currentDepth) / descentRate;
-    if (t_last > 0) {
-        t_dive_total += t_last;
-        const depthLast = (currentDepth + maxDepth) / 2;
-        tensions = updateAllTensions(tensions, depthToPN2(depthLast, surfacePressure, fN2), t_last);
-        currentDepth = maxDepth;
-    }
-
-    // 2. Bottom
-    // bottomTime includes descent time
-    const t_descent = t_dive_total;
-    const t_at_bottom = Math.max(0, bottomTime - t_descent);
-
-    let t_elapsed_bottom = 0;
-    while (t_elapsed_bottom < t_at_bottom) {
-        let step = Math.min(timeStep, t_at_bottom - t_elapsed_bottom);
-        tensions = updateAllTensions(tensions, depthToPN2(currentDepth, surfacePressure, fN2), step);
-        t_dive_total += step;
-        t_elapsed_bottom += step;
-    }
-
-    // 3. Ascent
-    while (currentDepth >= lastStopDepth) {
-        const remaining_to_laststop = currentDepth - lastStopDepth;
-        const n_full_intervals = Math.floor((remaining_to_laststop - 0.00001) / stopInterval);
-        let nextDepth = lastStopDepth + stopInterval * n_full_intervals;
-        if (currentDepth == lastStopDepth) {
-            nextDepth = SURFACE_DEPTH;
-        }
-
-        const t_ascend = (currentDepth - nextDepth) / ascentRate;
-        const depth_ascend = (nextDepth + currentDepth) / 2;
-        const PN2_ascend = depthToPN2(depth_ascend, surfacePressure, fN2);
-
-        let tensions_next = updateAllTensions(tensions, PN2_ascend, t_ascend);
-
-        let { isSafe } = simulAtDepth(nextDepth, tensions_next, firstStopDepth, _gfLow, _gfHigh, surfacePressure);
-
-        if (!isSafe) {
-            if (firstStopDepth === null) firstStopDepth = currentDepth;
-
-            let stopTime = 0;
-            const PN2_stop = depthToPN2(currentDepth, surfacePressure, fN2);
-
-            while (!isSafe) {
-                stopTime += timeStep;
-                dtr += timeStep;
-                t_dive_total += timeStep;
-                tensions = updateAllTensions(tensions, PN2_stop, timeStep);
-
-                // Check if nextDepth is safe now
-                tensions_next = updateAllTensions(tensions, PN2_ascend, t_ascend);
-                ({ isSafe } = simulAtDepth(nextDepth, tensions_next, firstStopDepth, _gfLow, _gfHigh, surfacePressure));
-
-                if (stopTime > MAX_STOP_TIME_BEFORE_INFTY) break;
-            }
-            stopsArr.push({ depth: currentDepth, time: stopTime });
-        }
-
-        // Ascend
-        currentDepth = nextDepth;
-        tensions = updateAllTensions(tensions, PN2_ascend, t_ascend);
-        dtr += t_ascend;
-        t_dive_total += t_ascend;
-    }
-
-    // Final ascent to surface from last stop or if no stops
-    if (currentDepth > 0) {
-        const t_final = currentDepth / ascentRate;
-        const depth_final = currentDepth / 2;
-        tensions = updateAllTensions(tensions, depthToPN2(depth_final, surfacePressure, fN2), t_final);
-        dtr += t_final;
-        currentDepth = 0;
-    }
-
-    // Convert stops to object
-    let stopsObj = {};
-    stopsArr.forEach(s => {
-        const d = Math.round(s.depth);
-        const t = Math.ceil(s.time);
-        if (stopsObj[d]) stopsObj[d] += t;
-        else stopsObj[d] = t;
-    });
-
-    return {
-        dtr: Math.ceil(dtr),
-        stops: stopsObj,
-        finalTensions: tensions
-    };
-}
-// --- END BUEHLMANN ---
-
 // Initialize
 async function init() {
     const success = await window.dataManager.loadAllData();
@@ -406,10 +124,11 @@ async function init() {
 
 function translateUI() {
     const elements = document.querySelectorAll('[data-i18n]');
+    const trans = window.translations;
     elements.forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (translations[currentLang][key]) {
-            el.innerHTML = translations[currentLang][key];
+        if (trans && trans[currentLang][key]) {
+            el.innerHTML = trans[currentLang][key];
         }
     });
 }
@@ -526,38 +245,6 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
     });
 }
 
-// Calculation Logic
-function getMN90Profile(depth, time) {
-    const MN90 = window.dataManager.getMN90();
-    const tableDepths = Object.keys(MN90).map(Number).sort((a, b) => a - b);
-    let targetDepth = tableDepths.find(d => d >= depth);
-
-    if (!targetDepth && depth > 0) {
-        if (depth <= tableDepths[tableDepths.length - 1]) {
-            // Should have been found.
-        } else {
-            return null; // Too deep
-        }
-    }
-
-    if (depth <= 0) return { stops: {}, note: "Surface" };
-    if (!targetDepth) return null;
-
-    const profiles = MN90[targetDepth];
-
-    // Find profile with time >= time
-    let profile = profiles.find(p => p.time >= time);
-
-    if (!profile) {
-        return { error: "Hors table" };
-    }
-
-    return {
-        tableDepth: targetDepth,
-        profile: profile
-    };
-}
-
 // Formatting
 function formatTime(minutes) {
     const h = Math.floor(minutes / 60);
@@ -565,64 +252,23 @@ function formatTime(minutes) {
     return `${h}:${m.toString().padStart(2, '0')}`;
 }
 
-function calculateGasConsumption(depth, time, profile) {
-    if (depth <= 0) return 0;
-
-    // 1. Bottom Gas (Uses actual bottom time)
-    // Note: profile might be based on Time + Majoration, but gas is consumed based on Actual Time.
-    // However, stops are based on profile.
-
-    const bottomPressure = 1 + depth / 10;
-    const bottomGas = time * bottomPressure * sac;
-
-    // 2. Ascent Gas
-    let ascentGas = 0;
-    const ascentSpeed = 15;
-    const stops = profile ? profile.stops : {};
-
-    const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
-    const firstTargetDepth = stopDepths.length > 0 ? stopDepths[0] : 0;
-
-    // Ascent from bottom to first target
-    if (depth > firstTargetDepth) {
-        const travelTime = (depth - firstTargetDepth) / ascentSpeed;
-        const avgPressure = 1 + (depth + firstTargetDepth) / 20;
-        ascentGas += travelTime * avgPressure * sac;
-    }
-
-
-    stopDepths.forEach((d, i) => {
-        const stopDuration = stops[d];
-        const stopPressure = 1 + d / 10;
-        ascentGas += stopDuration * stopPressure * sac;
-
-        const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : 0;
-        const segmentSpeed = 6;
-
-        const travelTime = (d - nextTarget) / segmentSpeed;
-        const avgPressure = 1 + (d + nextTarget) / 20;
-        ascentGas += travelTime * avgPressure * sac;
-    });
-
-    return Math.ceil(bottomGas + ascentGas);
-}
-
 // Helper to render stops
 function renderStops(result, containerElement) {
     containerElement.innerHTML = '';
+    const trans = window.translations;
 
     if (!result) {
-        containerElement.innerHTML = `<div class="placeholder-text">${translations[currentLang].maxDepthExceeded}</div>`;
+        containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].maxDepthExceeded}</div>`;
         return;
     }
 
     if (result.error) {
-        containerElement.innerHTML = `<div class="placeholder-text">${translations[currentLang].outOfTable}</div>`;
+        containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].outOfTable}</div>`;
         return;
     }
 
     if (result.note === "Surface") {
-        containerElement.innerHTML = `<div class="placeholder-text">${translations[currentLang].surface}</div>`;
+        containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].surface}</div>`;
         return;
     }
 
@@ -652,38 +298,6 @@ function renderStops(result, containerElement) {
         `;
         containerElement.appendChild(stopEl);
     });
-}
-
-function calculateDTR(depth, stops) {
-    let dtr = 0;
-    const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
-    let hasStops = stopDepths.length > 0;
-    let totalStopTime = 0;
-    for (let d in stops) totalStopTime += stops[d];
-
-    if (!hasStops) {
-        const ascentTime = depth / ASCENT_RATE;
-        dtr = Math.ceil(ascentTime);
-    } else {
-        const firstStopDepth = stopDepths[0];
-        const ascentToFirst = (depth - firstStopDepth) / ASCENT_RATE;
-        const ascentFromFirst = firstStopDepth / ASCENT_RATE_FROM_FIRST_STOP;
-        const totalAscentAndStops = ascentToFirst + totalStopTime + ascentFromFirst;
-        dtr = Math.ceil(totalAscentAndStops);
-    }
-    return dtr;
-}
-
-// Nitrox Helpers
-function calculateEAD(depth, o2) {
-    if (o2 <= 21) return depth;
-    const fN2 = (100 - o2) / 100;
-    const ead = ((depth + 10) * fN2 / 0.79) - 10;
-    return Math.max(0, ead);
-}
-
-function calculatePPO2(depth, o2) {
-    return (1 + depth / 10) * (o2 / 100);
 }
 
 // Update UI
@@ -718,8 +332,8 @@ function updateUI() {
     gfHighProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFHigh / 100, 1));
 
     // Nitrox Calcs
-    const ead1 = calculateEAD(dive1Depth, gazO2pct);
-    const ppo2_1 = calculatePPO2(dive1Depth, gazO2pct);
+    const ead1 = Planning.calculateEAD(dive1Depth, gazO2pct);
+    const ppo2_1 = Planning.calculatePPO2(dive1Depth, gazO2pct);
     const isNitrox = gazO2pct > 21;
 
     let result1;
@@ -729,7 +343,7 @@ function updateUI() {
     if (isGFMode) {
         // Buehlmann Algo
         const fN2 = (100 - gazO2pct) / 100;
-        const res_bu_1 = calculateBuehlmannPlan({
+        const res_bu_1 = Planning.calculateBuehlmannPlan({
             bottomTime: dive1Time,
             maxDepth: dive1Depth,
             gfLow: currentGFLow,
@@ -741,14 +355,14 @@ function updateUI() {
             note: ''
         };
         dtr1_buhlmann = res_bu_1.dtr;
-        dtr1 = calculateDTR(dive1Depth, result1.profile.stops);
+        dtr1 = Planning.calculateDTR(dive1Depth, result1.profile.stops);
         // console.log("Dive 1: Buehlmann DTR:", dtr1_buhlmann, "Calculated DTR:", dtr1);
         finalTensions1 = res_bu_1.finalTensions;
     } else {
         // Calculate Profile (Use EAD for Dive 1)
-        result1 = getMN90Profile(ead1, dive1Time);
+        result1 = Planning.getMN90Profile(ead1, dive1Time);
         if (result1 && !result1.error && result1.note !== "Surface") {
-            dtr1 = calculateDTR(dive1Depth, result1.profile.stops);
+            dtr1 = Planning.calculateDTR(dive1Depth, result1.profile.stops);
         }
     }
 
@@ -768,11 +382,11 @@ function updateUI() {
         const dtrFormatted = formatTime(dtr1);
 
         // Gas
-        const gasUsed = calculateGasConsumption(dive1Depth, dive1Time, result1.profile);
+        const gasUsed = Planning.calculateGasConsumption(dive1Depth, dive1Time, result1.profile, sac);
         const pressureUsed = gasUsed / tankVolume;
         const remainingPressure = Math.floor(initTankPressure - pressureUsed);
 
-        const gpsText = (gps1 === 'GF_GPS') ? '' : (gps1 ? `${translations[currentLang].gps} ${gps1}` : `${translations[currentLang].gps} -`);
+        const gpsText = (gps1 === 'GF_GPS') ? '' : (gps1 ? `${window.translations[currentLang].gps} ${gps1}` : `${window.translations[currentLang].gps} -`);
         const reserveText = `${translations[currentLang].reserve} <strong>${remainingPressure}</strong> bar`;
         let nitroxText = '';
         if (isNitrox) {
@@ -794,7 +408,7 @@ function updateUI() {
 
     // Update Successive Header Text with GPS
     if (successiveHeaderText) {
-        successiveHeaderText.textContent = translations[currentLang].secondDive;
+        successiveHeaderText.textContent = window.translations[currentLang].secondDive;
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------
@@ -808,11 +422,11 @@ function updateUI() {
 
     // Dive 2 Nitrox Calcs
     // Assuming same mix for now
-    const ead2 = calculateEAD(dive2Depth, gazO2pct);
-    const ppo2_2 = calculatePPO2(dive2Depth, gazO2pct);
+    const ead2 = Planning.calculateEAD(dive2Depth, gazO2pct);
+    const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
 
     // Calculate Majoration using EAD2
-    const succResult = calculateSuccessive(prevGroup, surfaceInterval, ead2);
+    const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
 
     // Update Interval Gauge
     if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
@@ -835,7 +449,7 @@ function updateUI() {
     if (isGFMode) {
 
         if (majorationDisplay) {
-            const avgTensionLabel = translations[currentLang].avgTension;
+            const avgTensionLabel = window.translations[currentLang].avgTension;
             const avgTension = finalTensions1 ? (finalTensions1.reduce((a, b) => a + b, 0) / finalTensions1.length).toFixed(2) : '-';
             const tensionsStr = finalTensions1 ? finalTensions1.map(t => t.toFixed(2)).join(', ') : '-';
             majorationDisplay.innerHTML = `${avgTensionLabel}<br>${avgTension} bar -> `;
@@ -846,8 +460,8 @@ function updateUI() {
         // Surface interval evolution
         let currentTensions = finalTensions1;
         if (currentTensions) {
-            const surfacePN2 = depthToPN2(0, SURFACE_PRESSURE, AIR_FN2); // Air at surface
-            currentTensions = updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
+            const surfacePN2 = Planning.depthToPN2(0, Planning.SURFACE_PRESSURE, Planning.AIR_FN2); // Air at surface
+            currentTensions = Planning.updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
         }
 
         if (majorationDisplay) {
@@ -858,7 +472,7 @@ function updateUI() {
         }
 
         // Dive 2 Simulation
-        const res2 = calculateBuehlmannPlan({
+        const res2 = Planning.calculateBuehlmannPlan({
             bottomTime: dive2Time,
             maxDepth: dive2Depth,
             gfLow: currentGFLow,
@@ -872,7 +486,7 @@ function updateUI() {
             note: ''
         };
         dtr2_buhlmann = res2.dtr;
-        dtr2 = calculateDTR(dive2Depth, result2.profile.stops);
+        dtr2 = Planning.calculateDTR(dive2Depth, result2.profile.stops);
         // console.log("Dive 2: Buehlmann DTR:", dtr2_buhlmann, "Calculated DTR:", dtr2);
     } else {
         let majText = "Err";
@@ -880,19 +494,19 @@ function updateUI() {
 
         if (succResult && !succResult.error) {
             currentMajoration = succResult.majoration;
-            majText = `+${currentMajoration} min (${translations[currentLang].gps} ${gps1})`;
+            majText = `+${currentMajoration} min (${window.translations[currentLang].gps} ${gps1})`;
         } else if (succResult && succResult.error) {
             majText = "Err"; // e.g. interval too short
         }
 
         if (majorationDisplay) {
-            majorationDisplay.textContent = `${translations[currentLang].majoration}: ${majText} `;
+            majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
         }
 
         const effectiveTime2 = dive2Time + currentMajoration;
-        result2 = getMN90Profile(ead2, effectiveTime2);
+        result2 = Planning.getMN90Profile(ead2, effectiveTime2);
         if (result2 && !result2.error && result2.note !== "Surface") {
-            dtr2 = calculateDTR(dive2Depth, result2.profile.stops);
+            dtr2 = Planning.calculateDTR(dive2Depth, result2.profile.stops);
         }
     }
 
@@ -910,17 +524,17 @@ function updateUI() {
 
             // Gas (Assume fresh tank with currentPressure and currentVolume)
             // Use Actual Time (dive2Time) for bottom consumption
-            const gasUsed = calculateGasConsumption(dive2Depth, dive2Time, result2.profile);
+            const gasUsed = Planning.calculateGasConsumption(dive2Depth, dive2Time, result2.profile, sac);
             const pressureUsed = gasUsed / tankVolume;
             const remainingPressure = Math.round(initTankPressure - pressureUsed);
 
-            const reserveText = `${translations[currentLang].reserve} <strong>${remainingPressure}</strong> bar`;
+            const reserveText = `${window.translations[currentLang].reserve} <strong>${remainingPressure}</strong> bar`;
             let nitroxText2 = '';
             if (isNitrox) {
                 nitroxText2 = ` • ppO2 <strong>${ppo2_2.toFixed(2)}</strong>`;
             }
 
-            diveDetails2.innerHTML = `${translations[currentLang].dtr} <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText2}`;
+            diveDetails2.innerHTML = `${window.translations[currentLang].dtr} <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText2}`;
 
             if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > 1.6) {
                 diveDetails2.style.color = '#e53935';
@@ -930,89 +544,10 @@ function updateUI() {
                 diveDetails2.style.color = '#fff';
             }
         } else if (result2 && result2.error) {
-            diveDetails2.textContent = translations[currentLang].outOfTable;
+            diveDetails2.textContent = window.translations[currentLang].outOfTable;
         }
     }
 
-}
-
-// Logic for Successive Dive
-function calculateSuccessive(prevGroup, interval, depth) {
-    if (!prevGroup || !interval || !depth) return { error: "Missing parameters" };
-    if (!Table2_N2 || !Table3_Maj) return { error: "Data not loaded" };
-
-    // 1. Get Residual Nitrogen (Coeff)
-    // Find Interval Column: Largest interval in table <= actual interval
-    // Standard MN90: If interval > max table interval (12h), N2 is 0.8 (or reset).
-    // Actually, usually >12h means new dive (no residual).
-
-    if (interval > 720) { // > 12h
-        return { majoration: 0, n2: 0 };
-    }
-
-    const row = Table2_N2.data[prevGroup];
-    if (!row) return { error: "Invalid Group" };
-
-    // Find index
-    // Table intervals are e.g. 15, 30, 45.
-    // Logic: If I wait 20 min, I use 15 min column.
-    // If I wait 10 min, it's < 15. Consecutive logic applies (not handled here).
-    // We assume input > 15 min.
-
-    let intervalIndex = -1;
-    for (let i = Table2_N2.intervals.length - 1; i >= 0; i--) {
-        if (interval >= Table2_N2.intervals[i]) {
-            intervalIndex = i;
-            break;
-        }
-    }
-
-    if (intervalIndex === -1) {
-        // Interval < 15 mins.
-        return { error: "Interval too short (<15min)" };
-    }
-
-    const n2Coeff = row[intervalIndex];
-    if (!n2Coeff || isNaN(n2Coeff)) {
-        // If empty, usually means coefficient is back to baseline or specific rule.
-        // In CSV provided, trails are empty?
-        // CSV: "A, 0.84... 0.81,,,,,"
-        // If empty, it likely means saturated/no change or fully desaturated?
-        // Actually, looking at CSV, for A: after 6h00 (0.81), cells are empty.
-        // This implies 0.81 persists or resets?
-        // MN90: After 12h, desaturation complete.
-        // If empty, and > last value, assume desaturation continues or stays at min?
-        // Let's assume if we are off the chart to the right, N2 is minimal (or 0.8/0.79 i.e. pure air).
-        // Let's return 0 majoration.
-        return { majoration: 0, n2: "min" };
-    }
-
-    // 2. Get Majoration
-    // Find N2 Row: Smallest N2 in table >= actual N2
-    const majTable = Table3_Maj.data;
-    const targetN2Row = majTable.find(r => r.n2 >= n2Coeff);
-
-    if (!targetN2Row) {
-        // N2 too high? Should not happen if tables align.
-        return { error: "N2 out of range" };
-    }
-
-    // Find Depth Column: Smallest depth in table >= actual depth
-    // Depths: 12, 15...
-    const majDepths = Table3_Maj.depths;
-    const depthIndex = majDepths.findIndex(d => d >= depth);
-
-    if (depthIndex === -1) {
-        // Too deep (beyond 60m?)
-        return { error: "Too deep for table" };
-    }
-
-    const majoration = targetN2Row.majorations[depthIndex];
-
-    return {
-        majoration: majoration || 0,
-        n2: n2Coeff
-    };
 }
 
 // Start

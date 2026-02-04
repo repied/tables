@@ -129,4 +129,6 @@ function parseMajorationTable(csv) {
 window.dataManager = {
     loadAllData,
     getMN90: () => MN90_Tables,
+    getTable2: () => Table2_N2,
+    getTable3: () => Table3_Maj,
 };

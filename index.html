@@ -114,7 +114,7 @@
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="gf-low-display">30</div>
-                        <div class="gauge-unit" id="gf-low-unit" data-i18n="low">Low</div>
+                        <div class="gauge-unit" id="gf-low-unit" data-i18n="low"></div>
                     </div>
                 </div>
             </div>
@@ -131,7 +131,7 @@
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="gf-high-display">80</div>
-                        <div class="gauge-unit" id="gf-high-unit" data-i18n="high">High</div>
+                        <div class="gauge-unit" id="gf-high-unit" data-i18n="high"></div>
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
         <!-- First dive Area  -->
         <div class="results-container">
             <div class="successive-header" style="justify-content: center; margin-bottom: 10px;">
-                <span id="first-dive-header-text" data-i18n="firstDive">Première plongée</span>
+                <span id="first-dive-header-text" data-i18n="firstDive"></span>
             </div>
 
             <div class="gauges-row main-gauges">
@@ -180,7 +180,7 @@
             </div>
             <div class="stops-display" id="stops-display">
                 <!-- Stops will be inserted here -->
-                <div class="placeholder-text" data-i18n="configureDive">Configurez votre plongée</div>
+                <div class="placeholder-text" data-i18n="configureDive"></div>
             </div>
             <div class="dive-details" id="dive-details">
                 <!-- DTR, Group , reserve for dive 1-->
@@ -204,12 +204,12 @@
                         <div class="gauge-unit">h:mm</div>
                     </div>
                 </div>
-                <div class="gauge-label" data-i18n="interval">Intervalle</div>
+                <div class="gauge-label" data-i18n="interval"></div>
             </div>
         </div>
         <div class="successive-container glass-panel">
             <div class="successive-header" style="justify-content: center;">
-                <span id="successive-header-text" data-i18n="secondDive">Seconde plongée</span>
+                <span id="successive-header-text" data-i18n="secondDive"></span>
             </div>
 
             <div class="successive-controls" id="successive-controls">
@@ -257,7 +257,7 @@
 
                 <div class="stops-display" id="stops-display-2">
                     <!-- Stops will be inserted here -->
-                    <div class="placeholder-text" data-i18n="dive2Results">Résultats plongée 2</div>
+                    <div class="placeholder-text" data-i18n="dive2Results"></div>
                 </div>
                 <div class="dive-details" id="dive-details-2">
                     <!-- DTR, Reserve for Dive 2 -->
@@ -266,12 +266,11 @@
         </div>
 
         <div class="footer-links">
-            <a href="https://github.com/repied/tables" target="_blank" rel="noopener noreferrer"
-                data-i18n="source">Source</a>
+            <a href="https://github.com/repied/tables" target="_blank" rel="noopener noreferrer" data-i18n="source"></a>
             <!-- <a href="https://www.gsp-plongee.fr/" target="_blank" rel="noopener noreferrer" class="img-link">
                 <img src="./assets/gsp.avif" alt="GSP" style="height: 50px; vertical-align: middle;">
             </a> -->
-            <a href="#" id="help-link" data-i18n="help">Aide</a>
+            <a href="#" id="help-link" data-i18n="help"></a>
             <div class="lang-selector">
                 <img src="./assets/fr-flag-800.png" alt="FR" class="flag-icon">
                 <label class="switch">
@@ -286,38 +285,34 @@
         <div id="help-modal" class="modal">
             <div class="modal-content">
                 <span class="close-button">&times;</span>
-                <h2 data-i18n="helpTitle">Aide & Informations</h2>
-                <p data-i18n="helpIntro">Cette application permet de planifier des plongées simples et successives.</p>
+                <h2 data-i18n="helpTitle"></h2>
+                <p data-i18n="helpIntro"></p>
 
-                <h3 data-i18n="usageTitle">Utilisation</h3>
+                <h3 data-i18n="usageTitle"></h3>
                 <ul>
-                    <li data-i18n="usage1">Utilisez les jauges circulaires pour ajuster la profondeur, le temps, et les
-                        paramètres de gaz.
+                    <li data-i18n="usage1">
                     </li>
-                    <li data-i18n="usage2">Basculez entre le mode <strong>MN90</strong> (Tables) et <strong>GF</strong>
-                        (Bühlmann ZHL-16C).
+                    <li data-i18n="usage2">
                     </li>
-                    <li data-i18n="usage3">Pour les plongées successives, réglez l'intervalle de surface.</li>
+                    <li data-i18n="usage3"></li>
                 </ul>
 
-                <h3 data-i18n="calcTitle">Hypothèses de calcul</h3>
+                <h3 data-i18n="calcTitle"></h3>
                 <ul>
-                    <li data-i18n="calc1"><strong>Vitesse de descente :</strong> 20 m/min</li>
-                    <li data-i18n="calc2"><strong>Vitesse de remontée :</strong> 15 m/min (jusqu'au premier palier)</li>
-                    <li data-i18n="calc3"><strong>Vitesse entre paliers :</strong> 6 m/min</li>
-                    <li data-i18n="calc4"><strong>Modèle MN90 :</strong> Basé sur les tables officielles MN90.</li>
-                    <li data-i18n="calc5"><strong>Modèle GF :</strong> Algorithme de décompression Bühlmann ZHL-16C avec
-                        facteurs de
-                        gradient.</li>
+                    <li data-i18n="calc1"></li>
+                    <li data-i18n="calc2"></li>
+                    <li data-i18n="calc3"></li>
+                    <li data-i18n="calc4"></li>
+                    <li data-i18n="calc5"></li>
                 </ul>
-                <p><em data-i18n="warning">Attention : Cette application est fournie à titre indicatif et ne remplace
-                        pas une formation
-                        adéquate ni un ordinateur de plongée certifié.</em></p>
+                <p><em data-i18n="warning"></em></p>
             </div>
         </div>
     </div>
 
     <script src="./src/dataManager.js"></script>
+    <script src="./src/translations.js"></script>
+    <script src="./src/planning.js"></script>
     <script src="./src/script.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
