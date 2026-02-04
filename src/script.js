@@ -307,259 +307,177 @@ function renderStops(result, containerElement) {
 function updateUI() {
     document.body.classList.toggle('gf-mode', isGFMode);
 
-    // -------------------------
-    // DIVE 1 CALCULATION
-    // -------------------------
+    // Common Calcs
+    const length = timeProgress ? timeProgress.getTotalLength() : 0;
 
-    // Update Values
-    timeDisplay.textContent = formatTime(dive1Time);
-    depthDisplay.textContent = dive1Depth;
-    pressureDisplay.textContent = initTankPressure;
-    sacDisplay.textContent = sac;
-    volumeDisplay.textContent = tankVolume;
-    o2Display.textContent = gazO2pct;
+    // --- DIVE 1 UI ---
+    updateGaugeVisuals('time', dive1Time, MAX_TIME, true);
+    updateGaugeVisuals('depth', dive1Depth, MAX_DEPTH);
+    updateGaugeVisuals('pressure', initTankPressure, MAX_TANK_PRESSURE);
+    updateGaugeVisuals('sac', sac, MAX_SAC);
+    updateGaugeVisuals('volume', tankVolume, MAX_TANK_VOLUME);
+    updateGaugeVisuals('o2', gazO2pct, MAX_O2_pct);
 
-    // Update Gauges Progress
-    const length = timeProgress.getTotalLength();
-    timeProgress.style.strokeDashoffset = length * (1 - Math.min(dive1Time / MAX_TIME, 1));
-    depthProgress.style.strokeDashoffset = length * (1 - Math.min(dive1Depth / MAX_DEPTH, 1));
-    pressureProgress.style.strokeDashoffset = length * (1 - Math.min(initTankPressure / MAX_TANK_PRESSURE, 1));
-    sacProgress.style.strokeDashoffset = length * (1 - Math.min(sac / MAX_SAC, 1));
-    volumeProgress.style.strokeDashoffset = length * (1 - Math.min(tankVolume / MAX_TANK_VOLUME, 1));
-    o2Progress.style.strokeDashoffset = length * (1 - Math.min((gazO2pct) / MAX_O2_pct, 1));
+    if (gfLowDisplay) {
+        gfLowDisplay.textContent = currentGFLow;
+        gfHighDisplay.textContent = currentGFHigh;
+        if (gfLowProgress) gfLowProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFLow / 100, 1));
+        if (gfHighProgress) gfHighProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFHigh / 100, 1));
+    }
 
-    // Update GF Gauges
-    gfLowDisplay.textContent = currentGFLow;
-    gfHighDisplay.textContent = currentGFHigh;
-    gfLowProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFLow / 100, 1));
-    gfHighProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFHigh / 100, 1));
-
-    // Nitrox Calcs
-    const ead1 = Planning.calculateEAD(dive1Depth, gazO2pct);
+    // --- DIVE 1 CALCULATION ---
     const ppo2_1 = Planning.calculatePPO2(dive1Depth, gazO2pct);
-    const isNitrox = gazO2pct > 21;
-
-    // Update Depth Gauge Ticks (PPO2)
     const ppo2Ticks = calculatePPO2Tick(dive1Depth, gazO2pct);
+
     updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
     if (depthGauge2) updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
 
-    // Update Time Gauge Ticks (MN90 Stops)
-    // Dive 1: No majoration usually, unless previous dive exists but here dive 1 is fresh
-    // Actually Dive 1 is always fresh in this app logic (no prev dive entered before it)
     const timeTicks1 = calculateStopTicks(dive1Depth, 0);
     updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
 
-    let result1;
-    let dtr1;
-    let finalTensions1 = null;
-
+    let result1, finalTensions1;
     if (isGFMode) {
-        // Buehlmann Algo
-        const res_bu_1 = Planning.calculateBuehlmannPlan({
-            bottomTime: dive1Time,
-            maxDepth: dive1Depth,
-            gfLow: currentGFLow,
-            gfHigh: currentGFHigh,
+        const res = Planning.calculateBuehlmannPlan({
+            bottomTime: dive1Time, maxDepth: dive1Depth,
+            gfLow: currentGFLow, gfHigh: currentGFHigh,
             fN2: (100 - gazO2pct) / 100
         });
-        result1 = {
-            profile: { stops: res_bu_1.stops, group: 'GF_GPS' },
-            note: ''
-        };
-        dtr1_buhlmann = res_bu_1.dtr;
-        dtr1 = Planning.calculateDTR(dive1Depth, result1.profile.stops);
-        // console.log("Dive 1: Buehlmann DTR:", dtr1_buhlmann, "Calculated DTR:", dtr1);
-        finalTensions1 = res_bu_1.finalTensions;
+        result1 = { profile: { stops: res.stops, group: 'GF_GPS' }, note: '' };
+        finalTensions1 = res.finalTensions;
     } else {
-        // Calculate Profile (Use EAD for Dive 1)
+        const ead1 = Planning.calculateEAD(dive1Depth, gazO2pct);
         result1 = Planning.getMN90Profile(ead1, dive1Time);
-        if (result1 && !result1.error && result1.note !== "Surface") {
-            dtr1 = Planning.calculateDTR(dive1Depth, result1.profile.stops);
-        }
     }
 
-    // Render Dive 1 Stops
     renderStops(result1, stopsDisplay);
+    renderDiveDetails(diveDetails, result1, dive1Depth, dive1Time, initTankPressure, ppo2_1, gazO2pct > 21);
 
-    // Dive 1 Details
-    diveDetails.innerHTML = '';
-    let gps1 = null;
 
-    if (result1 && !result1.error && result1.note !== "Surface") {
-        gps1 = result1.profile.group;
-        const stops = result1.profile.stops;
+    // --- DIVE 2 UI ---
+    if (successiveHeaderText) successiveHeaderText.textContent = window.translations[currentLang].secondDive;
 
-        // DTR
-        // dtr is already calculated above
-        const dtrFormatted = formatTime(dtr1);
+    // Determine previous group / state
+    let prevGroup = (result1 && result1.profile && result1.profile.group) ? result1.profile.group : null;
 
-        // Gas
-        const gasUsed = Planning.calculateGasConsumption(dive1Depth, dive1Time, result1.profile, sac);
-        const pressureUsed = gasUsed / tankVolume;
-        const remainingPressure = Math.floor(initTankPressure - pressureUsed);
-
-        const gpsHtml = (gps1 === 'GF_GPS' || !gps1) ? '' : `<div class="gps-badge">${window.translations[currentLang].gps} ${gps1}</div>`;
-        const dtrHtml = `<div class="result-box important"><span class="result-label">${translations[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-        const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
-        let nitroxHtml = '';
-        if (isNitrox) {
-            nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2_1.toFixed(2)}</span></div>`;
-        }
-
-        diveDetails.innerHTML = `${gpsHtml}<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
-
-        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
-            const rb = diveDetails.querySelector('.reserve-box');
-            if (rb) rb.style.backgroundColor = '#e53935';
-        }
-        if (ppo2_1 > PPO2_THRESHOLD_ORANGE) {
-            diveDetails.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
-        }
-    } else if (result1 && result1.error) {
-        diveDetails.textContent = translations[currentLang].outOfTable;
-    }
-
-    // Update Successive Header Text with GPS
-    if (successiveHeaderText) {
-        successiveHeaderText.textContent = window.translations[currentLang].secondDive;
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------------------
-    // DIVE 2 CALCULATION
-    // -----------------------------------------------------------------------------------------------------------------------------
-
-    // Auto-update Group from Dive 1 if valid
-    if (gps1) {
-        prevGroup = gps1;
-    }
-
-    // Dive 2 Nitrox Calcs
-    // Assuming same mix for now
-    const ead2 = Planning.calculateEAD(dive2Depth, gazO2pct);
-    const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
-
-    // Calculate Majoration using EAD2
-    const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
-
-    // Update Dive 2 Time Ticks (MN90 Stops with Majoration)
-    // Majoration reduces the "margin" we have.
-    // If majoration is 10 min, we are "already" at 10 min table time when gauge says 0.
-    // So stops appear 10 min earlier on the gauge.
-    const currentMajorationVal = (succResult && !succResult.error) ? succResult.majoration : 0;
-    const timeTicks2 = calculateStopTicks(dive2Depth, currentMajorationVal);
-    if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
-
-    // Update Interval Gauge
-    if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
-    if (intervalProgress) intervalProgress.style.strokeDashoffset = length * (1 - Math.min(surfaceInterval / MAX_INTERVAL, 1));
-
-    // Update Dive 2 Values & Gauges
-    if (timeDisplay2) timeDisplay2.textContent = formatTime(dive2Time);
-    if (depthDisplay2) depthDisplay2.textContent = dive2Depth;
-
-    if (timeProgress2) timeProgress2.style.strokeDashoffset = length * (1 - Math.min(dive2Time / 60, 1));
-    if (depthProgress2) depthProgress2.style.strokeDashoffset = length * (1 - Math.min(dive2Depth / 60, 1));
-
-    // Calculate Dive 2 Profile
-    // Total Duration = Real Time + Majoration
-    // Use EAD2 for Profile Lookup
-    let result2;
-    let dtr2;
-
+    let result2, currentMajoration = 0;
 
     if (isGFMode) {
-        // Buehlmann Algo for Dive 2 with residual nitrogen
-
-        const sursaturationBeforePct = 100 * (Math.max(...finalTensions1) - Planning.AIR_FN2) / Planning.AIR_FN2;
-        // Surface interval evolution
+        // Tension evolution
+        const sursaturationBeforePct = finalTensions1 ? 100 * (Math.max(...finalTensions1) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
         let currentTensions = finalTensions1;
         if (currentTensions) {
-            const surfacePN2 = Planning.depthToPN2(0, Planning.SURFACE_PRESSURE, Planning.AIR_FN2); // Air at surface
+            const surfacePN2 = Planning.depthToPN2(0, Planning.SURFACE_PRESSURE, Planning.AIR_FN2);
             currentTensions = Planning.updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
         }
-        const sursaturationAfterPct = 100 * (Math.max(...currentTensions) - Planning.AIR_FN2) / Planning.AIR_FN2;
-        const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;
-        majorationDisplay.innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
+        const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
 
-        // Dive 2 Simulation
+        if (majorationDisplay) {
+            const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;
+            majorationDisplay.innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
+        }
+
         const res_bu_2 = Planning.calculateBuehlmannPlan({
-            bottomTime: dive2Time,
-            maxDepth: dive2Depth,
-            gfLow: currentGFLow,
-            gfHigh: currentGFHigh,
+            bottomTime: dive2Time, maxDepth: dive2Depth,
+            gfLow: currentGFLow, gfHigh: currentGFHigh,
             fN2: (100 - gazO2pct) / 100,
             initialTensions: currentTensions
         });
-
-        result2 = {
-            profile: { stops: res_bu_2.stops, group: '-' },
-            note: ''
-        };
-        dtr2_buhlmann = res_bu_2.dtr;
-        dtr2 = Planning.calculateDTR(dive2Depth, result2.profile.stops);
-        // console.log("Dive 2: Buehlmann DTR:", dtr2_buhlmann, "Calculated DTR:", dtr2);
+        result2 = { profile: { stops: res_bu_2.stops, group: '-' }, note: '' };
 
     } else {
-        let majText = "Err";
-        let currentMajoration = 0;
+        const ead2 = Planning.calculateEAD(dive2Depth, gazO2pct);
+        const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
 
-        if (succResult && !succResult.error) {
-            currentMajoration = succResult.majoration;
-            majText = `+${currentMajoration} min (${window.translations[currentLang].gps} ${gps1})`;
-        } else if (succResult && succResult.error) {
-            majText = window.translations[currentLang].secondDiveNotAuthorized; // e.g. interval too short
+        currentMajoration = (succResult && !succResult.error) ? succResult.majoration : 0;
+
+        if (majorationDisplay) {
+            let majText = "Err";
+            if (succResult && !succResult.error) {
+                majText = `+${currentMajoration} min (${window.translations[currentLang].gps} ${prevGroup})`;
+            } else if (succResult && succResult.error) {
+                majText = window.translations[currentLang].secondDiveNotAuthorized;
+            }
+            majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
         }
-
-        majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
 
         const effectiveTime2 = dive2Time + currentMajoration;
         result2 = Planning.getMN90Profile(ead2, effectiveTime2);
-        if (result2 && !result2.error && result2.note !== "Surface") {
-            dtr2 = Planning.calculateDTR(dive2Depth, result2.profile.stops);
-        }
     }
+
+    if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
+    if (intervalProgress) intervalProgress.style.strokeDashoffset = length * (1 - Math.min(surfaceInterval / MAX_INTERVAL, 1));
+
+    updateGaugeVisuals('time', dive2Time, 60, true, '-2');
+    updateGaugeVisuals('depth', dive2Depth, MAX_DEPTH, false, '-2');
+
+    const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
+    const timeTicks2 = calculateStopTicks(dive2Depth, currentMajoration);
+    if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
     renderStops(result2, stopsDisplay2);
+    renderDiveDetails(diveDetails2, result2, dive2Depth, dive2Time, initTankPressure, ppo2_2, gazO2pct > 21);
+}
 
-    // Dive 2 Details
-    if (diveDetails2) {
-        diveDetails2.innerHTML = '';
-        if (result2 && !result2.error && result2.note !== "Surface") {
-            const stops = result2.profile.stops;
+function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
+    const progressId = `${type}-progress${suffix}`;
+    const displayId = `${type}-display${suffix}`;
 
-            // DTR
-            const dtr = dtr2;
-            const dtrFormatted = formatTime(dtr);
-
-            // Gas (Assume fresh tank with currentPressure and currentVolume)
-            // Use Actual Time (dive2Time) for bottom consumption
-            const gasUsed = Planning.calculateGasConsumption(dive2Depth, dive2Time, result2.profile, sac);
-            const pressureUsed = gasUsed / tankVolume;
-            const remainingPressure = Math.round(initTankPressure - pressureUsed);
-
-            const dtrHtml = `<div class="result-box important"><span class="result-label">${window.translations[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-            const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${window.translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
-            let nitroxHtml = '';
-            if (isNitrox) {
-                nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2_2.toFixed(2)}</span></div>`;
-            }
-
-            diveDetails2.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
-
-            if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
-                const rb = diveDetails2.querySelector('.reserve-box');
-                if (rb) rb.style.backgroundColor = '#e53935';
-            }
-
-            if (ppo2_2 > PPO2_THRESHOLD_ORANGE) {
-                diveDetails2.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
-            }
-        } else if (result2 && result2.error) {
-            diveDetails2.textContent = window.translations[currentLang].outOfTable;
-        }
+    const progressEl = document.getElementById(progressId);
+    if (progressEl) {
+        const length = progressEl.getTotalLength();
+        progressEl.style.strokeDashoffset = length * (1 - Math.min(value / max, 1));
     }
 
+    const displayEl = document.getElementById(displayId);
+    if (displayEl) {
+        displayEl.textContent = isTime ? formatTime(value) : value;
+    }
+}
+
+function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, isNitrox) {
+    if (!container) return;
+    container.innerHTML = '';
+    const trans = window.translations;
+
+    if (!result) {
+        container.innerHTML = `<div class="placeholder-text">${trans[currentLang].maxDepthExceeded}</div>`;
+        return;
+    }
+    if (result.error) {
+        container.textContent = trans[currentLang].outOfTable;
+        return;
+    }
+    if (result.note === "Surface") {
+        container.innerHTML = `<div class="placeholder-text">${trans[currentLang].surface}</div>`;
+        return;
+    }
+
+    const gps = result.profile.group;
+    const dtr = Planning.calculateDTR(diveDepth, result.profile.stops);
+    const dtrFormatted = formatTime(dtr);
+
+    const gasUsed = Planning.calculateGasConsumption(diveDepth, diveTime, result.profile, sac);
+    const pressureUsed = gasUsed / tankVolume;
+    const remainingPressure = Math.floor(tankP - pressureUsed);
+
+    const gpsHtml = (gps === 'GF_GPS' || !gps) ? '' : `<div class="gps-badge">${trans[currentLang].gps} ${gps}</div>`;
+    const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
+    const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+
+    let nitroxHtml = '';
+    if (isNitrox) {
+        nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
+    }
+
+    container.innerHTML = `${gpsHtml}<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
+
+    if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+        const rb = container.querySelector('.reserve-box');
+        if (rb) rb.style.backgroundColor = '#e53935';
+    }
+    if (ppo2 > PPO2_THRESHOLD_ORANGE) {
+        container.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
+    }
 }
 
 // Start

@@ -239,11 +239,11 @@
         let targetDepth = tableDepths.find(d => d >= depth);
 
         if (!targetDepth && depth > 0) {
-            if (depth <= tableDepths[tableDepths.length - 1]) {
-                // Should have been found.
-            } else {
+            // Check if deeper than max table depth
+            if (depth > tableDepths[tableDepths.length - 1]) {
                 return null; // Too deep
             }
+            // If here, depth is within range but maybe not found? Should not happen with logic above.
         }
 
         if (depth <= 0) return { stops: {}, note: "Surface" };
@@ -267,16 +267,14 @@
     function calculateGasConsumption(depth, time, profile, sac) {
         if (depth <= 0) return 0;
 
-        // 1. Bottom Gas (Uses actual bottom time)
-        // Note: profile might be based on Time + Majoration, but gas is consumed based on Actual Time.
-        // However, stops are based on profile.
+        // Helper to get pressure at depth
+        const getP = (d) => depthToPressure(d, SURFACE_PRESSURE);
 
-        const bottomPressure = 1 + depth / 10;
-        const bottomGas = time * bottomPressure * sac;
+        // 1. Bottom Gas (Uses actual bottom time)
+        const bottomGas = time * getP(depth) * sac;
 
         // 2. Ascent Gas
         let ascentGas = 0;
-        const ascentSpeed = 15;
         const stops = profile ? profile.stops : {};
 
         const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
@@ -284,22 +282,19 @@
 
         // Ascent from bottom to first target
         if (depth > firstTargetDepth) {
-            const travelTime = (depth - firstTargetDepth) / ascentSpeed;
-            const avgPressure = 1 + (depth + firstTargetDepth) / 20;
+            const travelTime = (depth - firstTargetDepth) / ASCENT_RATE;
+            const avgPressure = (getP(depth) + getP(firstTargetDepth)) / 2;
             ascentGas += travelTime * avgPressure * sac;
         }
 
-
         stopDepths.forEach((d, i) => {
             const stopDuration = stops[d];
-            const stopPressure = 1 + d / 10;
-            ascentGas += stopDuration * stopPressure * sac;
+            ascentGas += stopDuration * getP(d) * sac;
 
             const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : 0;
-            const segmentSpeed = 6;
 
-            const travelTime = (d - nextTarget) / segmentSpeed;
-            const avgPressure = 1 + (d + nextTarget) / 20;
+            const travelTime = (d - nextTarget) / ASCENT_RATE_FROM_FIRST_STOP;
+            const avgPressure = (getP(d) + getP(nextTarget)) / 2;
             ascentGas += travelTime * avgPressure * sac;
         });
 
@@ -335,7 +330,7 @@
     }
 
     function calculatePPO2(depth, o2) {
-        return (1 + depth / 10) * (o2 / 100);
+        return depthToPressure(depth, SURFACE_PRESSURE) * (o2 / 100);
     }
 
     // Logic for Successive Dive
