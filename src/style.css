@@ -230,13 +230,13 @@ body.gf-mode .majoration-display {
 
 .stop-depth {
     font-size: 1rem;
-    color: #666;
+    color: #aaa;
     margin-bottom: 5px;
 }
 
 .stop-line {
     width: 1px;
-    background-color: #666;
+    background-color: #aaa;
 }
 
 .stop-value-container {
@@ -251,7 +251,7 @@ body.gf-mode .majoration-display {
 .stop-dot {
     width: 8px;
     height: 8px;
-    background-color: #666;
+    background-color: #aaa;
     border-radius: 50%;
 }
 
@@ -273,7 +273,7 @@ body.gf-mode .majoration-display {
 }
 
 .placeholder-text {
-    color: #666;
+    color: #aaa;
     font-style: italic;
     align-self: center;
 }
