@@ -347,13 +347,12 @@ function updateUI() {
 
     if (isGFMode) {
         // Buehlmann Algo
-        const fN2 = (100 - gazO2pct) / 100;
         const res_bu_1 = Planning.calculateBuehlmannPlan({
             bottomTime: dive1Time,
             maxDepth: dive1Depth,
             gfLow: currentGFLow,
             gfHigh: currentGFHigh,
-            fN2: fN2
+            fN2: (100 - gazO2pct) / 100
         });
         result1 = {
             profile: { stops: res_bu_1.stops, group: 'GF_GPS' },
@@ -451,47 +450,37 @@ function updateUI() {
 
 
     if (isGFMode) {
-
-        if (majorationDisplay) {
-            const avgTensionLabel = window.translations[currentLang].avgTension;
-            const avgTension = finalTensions1 ? (finalTensions1.reduce((a, b) => a + b, 0) / finalTensions1.length).toFixed(2) : '-';
-            const tensionsStr = finalTensions1 ? finalTensions1.map(t => t.toFixed(2)).join(', ') : '-';
-            majorationDisplay.innerHTML = `${avgTensionLabel}<br>${avgTension} bar -> `;
-        }
         // Buehlmann Algo for Dive 2 with residual nitrogen
-        const fN2 = (100 - gazO2pct) / 100;
 
+        const sursaturationBeforePct = 100 * (Math.max(...finalTensions1) - Planning.AIR_FN2) / Planning.AIR_FN2;
         // Surface interval evolution
         let currentTensions = finalTensions1;
         if (currentTensions) {
             const surfacePN2 = Planning.depthToPN2(0, Planning.SURFACE_PRESSURE, Planning.AIR_FN2); // Air at surface
             currentTensions = Planning.updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
         }
-
-        if (majorationDisplay) {
-            const displayTensions = currentTensions || finalTensions1;
-            const avgTension = displayTensions ? (displayTensions.reduce((a, b) => a + b, 0) / displayTensions.length).toFixed(2) : '-';
-            const tensionsStr = displayTensions ? displayTensions.map(t => t.toFixed(2)).join(', ') : '-';
-            majorationDisplay.innerHTML += `${avgTension} bar`;
-        }
+        const sursaturationAfterPct = 100 * (Math.max(...currentTensions) - Planning.AIR_FN2) / Planning.AIR_FN2;
+        const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;
+        majorationDisplay.innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
 
         // Dive 2 Simulation
-        const res2 = Planning.calculateBuehlmannPlan({
+        const res_bu_2 = Planning.calculateBuehlmannPlan({
             bottomTime: dive2Time,
             maxDepth: dive2Depth,
             gfLow: currentGFLow,
             gfHigh: currentGFHigh,
-            fN2: fN2,
+            fN2: (100 - gazO2pct) / 100,
             initialTensions: currentTensions
         });
 
         result2 = {
-            profile: { stops: res2.stops, group: '-' },
+            profile: { stops: res_bu_2.stops, group: '-' },
             note: ''
         };
-        dtr2_buhlmann = res2.dtr;
+        dtr2_buhlmann = res_bu_2.dtr;
         dtr2 = Planning.calculateDTR(dive2Depth, result2.profile.stops);
         // console.log("Dive 2: Buehlmann DTR:", dtr2_buhlmann, "Calculated DTR:", dtr2);
+
     } else {
         let majText = "Err";
         let currentMajoration = 0;
@@ -503,9 +492,7 @@ function updateUI() {
             majText = "Err"; // e.g. interval too short
         }
 
-        if (majorationDisplay) {
-            majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
-        }
+        majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
 
         const effectiveTime2 = dive2Time + currentMajoration;
         result2 = Planning.getMN90Profile(ead2, effectiveTime2);
@@ -541,7 +528,7 @@ function updateUI() {
 
             diveDetails2.innerHTML = `${dtrHtml}${reserveHtml}${nitroxHtml}`;
 
-            if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > 1.6) {
+            if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > PPO2_THRESHOLD_RED) {
                 diveDetails2.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#e53935');
             } else if (ppo2_2 > PPO2_THRESHOLD_ORANGE) {
                 diveDetails2.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
