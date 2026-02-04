@@ -339,6 +339,17 @@ function updateUI() {
     const ppo2_1 = Planning.calculatePPO2(dive1Depth, gazO2pct);
     const isNitrox = gazO2pct > 21;
 
+    // Update Depth Gauge Ticks (PPO2)
+    const ppo2Ticks = calculatePPO2Tick(dive1Depth, gazO2pct);
+    updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
+    if (depthGauge2) updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
+
+    // Update Time Gauge Ticks (MN90 Stops)
+    // Dive 1: No majoration usually, unless previous dive exists but here dive 1 is fresh
+    // Actually Dive 1 is always fresh in this app logic (no prev dive entered before it)
+    const timeTicks1 = calculateStopTicks(dive1Depth, 0);
+    updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
+
     let result1;
     let dtr1;
     let finalTensions1 = null;
@@ -393,7 +404,7 @@ function updateUI() {
         const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
         let nitroxHtml = '';
         if (isNitrox) {
-            nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2</span><span class="result-value">${ppo2_1.toFixed(2)}</span></div>`;
+            nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2_1.toFixed(2)}</span></div>`;
         }
 
         diveDetails.innerHTML = `${gpsHtml}<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
@@ -430,6 +441,14 @@ function updateUI() {
 
     // Calculate Majoration using EAD2
     const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
+
+    // Update Dive 2 Time Ticks (MN90 Stops with Majoration)
+    // Majoration reduces the "margin" we have.
+    // If majoration is 10 min, we are "already" at 10 min table time when gauge says 0.
+    // So stops appear 10 min earlier on the gauge.
+    const currentMajorationVal = (succResult && !succResult.error) ? succResult.majoration : 0;
+    const timeTicks2 = calculateStopTicks(dive2Depth, currentMajorationVal);
+    if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
     // Update Interval Gauge
     if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
@@ -523,7 +542,7 @@ function updateUI() {
             const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${window.translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
             let nitroxHtml = '';
             if (isNitrox) {
-                nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2</span><span class="result-value">${ppo2_2.toFixed(2)}</span></div>`;
+                nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2_2.toFixed(2)}</span></div>`;
             }
 
             diveDetails2.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
@@ -566,4 +585,139 @@ function setupModal() {
             localStorage.setItem('hasVisited', 'true');
         }
     }
+}
+
+// ----------------------------------------------------------------------------
+// Gauge Ticks Features
+// ----------------------------------------------------------------------------
+
+function updateGaugeTicks(gaugeContainerId, ticks, min, max) {
+    const container = document.getElementById(gaugeContainerId);
+    if (!container) return;
+    const svg = container.querySelector('svg');
+    if (!svg) return;
+
+    let ticksGroup = svg.querySelector('.gauge-ticks');
+    if (!ticksGroup) {
+        ticksGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        ticksGroup.classList.add('gauge-ticks');
+        // Insert before the last element (likely the text content) but after the ring
+        // Actually, just appending it puts it on top of paths, which is good.
+        svg.appendChild(ticksGroup);
+    }
+
+    ticksGroup.innerHTML = ''; // Clear existing
+
+    // Geometry Constants
+    const CENTER_X = 60;
+    const CENTER_Y = 60;
+    const RADIUS = 50;
+    const START_ANGLE = 2.2143; // ~126.87 deg
+    const SPAN_ANGLE = 4.996; // ~286 deg
+
+    ticks.forEach(tick => {
+        if (tick.value < min || tick.value > max) return;
+
+        const fraction = (tick.value - min) / (max - min);
+        const angle = START_ANGLE + fraction * SPAN_ANGLE;
+
+        // Tick Geometry
+        // Outward tick: from R to R+length
+        const r1 = RADIUS - 2; // Slightly inside
+        const r2 = RADIUS + 4; // Slightly outside
+
+        const x1 = CENTER_X + r1 * Math.cos(angle);
+        const y1 = CENTER_Y + r1 * Math.sin(angle);
+        const x2 = CENTER_X + r2 * Math.cos(angle);
+        const y2 = CENTER_Y + r2 * Math.sin(angle);
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+
+        // Label Geometry
+        const rText = RADIUS + 12;
+        const xText = CENTER_X + rText * Math.cos(angle);
+        const yText = CENTER_Y + rText * Math.sin(angle);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", xText);
+        text.setAttribute("y", yText + 2); // vertical align adjustment
+        text.textContent = tick.label;
+
+        // Group for specific tick style
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        if (tick.className) g.classList.add(tick.className);
+
+        g.appendChild(line);
+        g.appendChild(text);
+        ticksGroup.appendChild(g);
+    });
+}
+
+function calculatePPO2Tick(depth, o2Pct) {
+    // PPO2 = (1 + D/10) * (O2/100)
+    // D_max = ( (PPO2_max / (O2/100)) - 1 ) * 10
+    const limit = PPO2_THRESHOLD_ORANGE; // 1.6
+    const fractionO2 = o2Pct / 100;
+    const maxDepth = ((limit / fractionO2) - 1) * 10;
+
+    return [{
+        value: maxDepth,
+        label: Math.floor(maxDepth),
+        className: 'gauge-tick-warning'
+    }];
+}
+
+function calculateStopTicks(depth, majoration = 0) {
+    if (isGFMode) return []; // Only MN90 for now
+
+    // Find stops in table
+    // Iterate time entries to find when stops appear or change
+    const table = window.dataManager.getMN90();
+    if (!table) return [];
+
+    // Find closest depth in table >= actual depth
+    const depths = Object.keys(table).map(d => parseInt(d)).sort((a, b) => a - b);
+    const tableDepth = depths.find(d => d >= depth);
+    if (!tableDepth) return []; // Too deep
+
+    const rows = table[tableDepth];
+    if (!rows) return [];
+
+    const ticks = [];
+    let lastStop = 0; // 0 means no stop
+
+    // We assume rows are sorted by time? Actually rows is array of objects {time, stops, group}
+    // They are usually sorted in CSV.
+
+    for (const row of rows) {
+        // row.stops is { "3": 1, "6": 2 ... }
+        // Find deepest stop
+        const stopDepths = Object.keys(row.stops).map(k => parseInt(k)).sort((a, b) => b - a);
+        const currentDeepest = stopDepths.length > 0 ? stopDepths[0] : 0;
+
+        // If we transitioned from no stop to stop, or deeper stop
+        // User asked for "first 3m stop".
+        // Let's add tick for the *first appearance* of a specific stop depth.
+        // Or simply every time the required stop depth changes.
+
+        if (currentDeepest > lastStop) {
+            // Calculate Gauge Time
+            // Gauge Time = Table Time - Majoration
+            const gaugeTime = row.time - majoration;
+
+            if (gaugeTime > 0) {
+                ticks.push({
+                    value: gaugeTime,
+                    label: `${currentDeepest}`,
+                    className: 'gauge-tick-stop'
+                });
+            }
+            lastStop = currentDeepest;
+        }
+    }
+    return ticks;
 }

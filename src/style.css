@@ -91,6 +91,7 @@ body {
     border-radius: 50%;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     transition: opacity 0.3s ease, filter 0.3s ease;
+    overflow: visible;
 }
 
 body:not(.gf-mode) #gf-low-gauge-container,
@@ -107,6 +108,7 @@ body:not(.gf-mode) #gf-high-gauge-container {
     width: 100%;
     height: 100%;
     transform: rotate(0deg);
+    overflow: visible;
 }
 
 .ring-bg {
@@ -161,6 +163,38 @@ body.gf-mode .majoration-display {
     font-size: 0.9rem;
     color: #ccc;
     margin-top: 5px;
+}
+
+.gauge-ticks line {
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.gauge-ticks text {
+    font-size: 10px;
+    font-weight: bold;
+    text-anchor: middle;
+    fill: #fff;
+    /* dominant-baseline: middle; */
+}
+
+/* Specific overrides */
+.gauge-tick-warning line {
+    stroke: #ff9800;
+}
+
+.gauge-tick-warning text {
+    fill: #ff9800;
+}
+
+.gauge-tick-stop line {
+    stroke: #000;
+    stroke-width: 3;
+}
+
+.gauge-tick-stop text {
+    fill: #fff;
+    font-size: 9px;
 }
 
 .gauge-label {
