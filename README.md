@@ -1,5 +1,5 @@
 # Tables
-A [PWA](https://en.wikipedia.org/wiki/Progressive_web_app) for planning dives using either **French Navy MN90 tables** or **Bühlmann ZHL-16C with Gradient Factors**.
+A [Progressive Web App](https://en.wikipedia.org/wiki/Progressive_web_app) for planning dives using either **French Navy MN90 tables** or **Bühlmann ZHL-16C with Gradient Factors**.
 
 # Usage
 - Visit [https://repied.github.io/tables](https://repied.github.io/tables). 
