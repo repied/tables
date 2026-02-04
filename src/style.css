@@ -197,6 +197,12 @@ body.gf-mode .majoration-display {
     font-size: 9px;
 }
 
+.gauge-tick-max line {
+    stroke: #888;
+    stroke-width: 2;
+    stroke-dasharray: 2, 2;
+}
+
 .gauge-label {
     margin-top: 10px;
     font-size: 1.2rem;

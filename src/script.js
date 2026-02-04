@@ -712,12 +712,27 @@ function calculateStopTicks(depth, majoration = 0) {
             if (gaugeTime > 0) {
                 ticks.push({
                     value: gaugeTime,
-                    label: `${currentDeepest}`,
+                    label: `${currentDeepest}m`,
                     className: 'gauge-tick-stop'
                 });
             }
             lastStop = currentDeepest;
         }
     }
+
+    // Add Max Time Tick (Out of Table)
+    // The last row in `rows` is the maximum time for this depth.
+    if (rows.length > 0) {
+        const lastRow = rows[rows.length - 1];
+        const maxTime = lastRow.time - majoration;
+        if (maxTime > 0) {
+            ticks.push({
+                value: maxTime,
+                label: '', // No label requested
+                className: 'gauge-tick-max'
+            });
+        }
+    }
+
     return ticks;
 }
