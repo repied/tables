@@ -319,7 +319,7 @@ body.gf-mode .majoration-display {
 }
 
 .dive-details {
-    margin-top: 20px;
+    /* margin-top: 20px; */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -371,10 +371,18 @@ body.gf-mode .majoration-display {
 
 .gps-badge {
     background: var(--accent-color);
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: 4px;
     font-weight: bold;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+}
+
+.gps-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 40px;
+    z-index: 10;
 }
 
 .disclaimer-box {

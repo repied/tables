@@ -77,6 +77,7 @@ const gfHighProgress = document.getElementById('gf-high-progress');
 
 const stopsDisplay = document.getElementById('stops-display');
 const diveDetails = document.getElementById('dive-details');
+const gpsDisplay1 = document.getElementById('gps-display-1');
 
 // Successive Elements
 const successiveControls = document.getElementById('successive-controls');
@@ -350,6 +351,17 @@ function updateUI() {
     }
 
     renderStops(result1, stopsDisplay);
+
+    if (gpsDisplay1) {
+        if (result1 && result1.profile && result1.profile.group && result1.profile.group !== 'GF_GPS') {
+            gpsDisplay1.innerHTML = `<div class="gps-badge">${window.translations[currentLang].gps} ${result1.profile.group}</div>`;
+            gpsDisplay1.style.visibility = 'visible';
+        } else {
+            gpsDisplay1.innerHTML = '';
+            gpsDisplay1.style.visibility = 'hidden';
+        }
+    }
+
     renderDiveDetails(diveDetails, result1, dive1Depth, dive1Time, initTankPressure, ppo2_1, false);
 
 
@@ -460,17 +472,13 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
     const pressureUsed = gasUsed / tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
 
-    let gpsHtml = (gps === 'GF_GPS' || !gps) ? '' : `<div class="gps-badge">${trans[currentLang].gps} ${gps}</div>`;;
-    if (isSecondDive) {
-        gpsHtml = '';
-    }
     const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
     const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
 
     let nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
 
 
-    container.innerHTML = `${gpsHtml}<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
+    container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
 
     if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
         const rb = container.querySelector('.reserve-box');
