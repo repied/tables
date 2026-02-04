@@ -37,7 +37,7 @@ const MIN_GF_pct = 10;
 const MAX_INTERVAL = 60 * 12; // after 12 hours MN90 assumes a fresh dive
 const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
-const PPO2_THRESHOLD_ORANGE = 1.6; // Maximum safe ppO2
+const PPO2_THRESHOLD_ORANGE = 1.5; // Maximum safe ppO2
 
 // Language State
 let currentLang = localStorage.getItem('selectedLang') || 'fr';
@@ -202,7 +202,7 @@ function setupInteractions() {
     }
 
     if (intervalGauge) {
-        setupGaugeInteraction(intervalGauge, () => surfaceInterval, (val) => surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 1);
+        setupGaugeInteraction(intervalGauge, () => surfaceInterval, (val) => surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 10);
     }
 }
 
@@ -396,7 +396,7 @@ function updateUI() {
             nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2</span><span class="result-value">${ppo2_1.toFixed(2)}</span></div>`;
         }
 
-        diveDetails.innerHTML = `${gpsHtml}${dtrHtml}${reserveHtml}${nitroxHtml}`;
+        diveDetails.innerHTML = `${gpsHtml}<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
 
         if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
             const rb = diveDetails.querySelector('.reserve-box');
@@ -489,7 +489,7 @@ function updateUI() {
             currentMajoration = succResult.majoration;
             majText = `+${currentMajoration} min (${window.translations[currentLang].gps} ${gps1})`;
         } else if (succResult && succResult.error) {
-            majText = "Err"; // e.g. interval too short
+            majText = window.translations[currentLang].secondDiveNotAuthorized; // e.g. interval too short
         }
 
         majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
@@ -526,7 +526,7 @@ function updateUI() {
                 nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2</span><span class="result-value">${ppo2_2.toFixed(2)}</span></div>`;
             }
 
-            diveDetails2.innerHTML = `${dtrHtml}${reserveHtml}${nitroxHtml}`;
+            diveDetails2.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
 
             if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
                 const rb = diveDetails2.querySelector('.reserve-box');

@@ -12,7 +12,7 @@ window.translations = {
         usage4: "L'application calcule la Durée Totale de Remontée (DTR) et la pression restante en bouteille (RESERVE) à la fin de chaque plongée.",
         usage5: "Le Groupe de plongées successives (GPS, en mode <strong>MN90</strong>) ou la sursaturation résiduelle des compartiments (en mode <strong>GF</strong>) est utilisé pour la seconde plongée.",
         usage6: "La reserve s'affiche en rouge si elle est inférieure à 50 bars.",
-        usage7: "Un avertissement s'affiche au Nitrox si la ppO2 devient trop grande (orange si > 1.6 bar)",
+        usage7: "Un avertissement s'affiche au Nitrox si la ppO2 devient trop grande (orange si > 1.5 bar)",
         calcTitle: "Hypothèses de calcul",
         calc1: "<strong>Altitude :</strong> niveau de la mer",
         calc2: "<strong>Profil :</strong> plongée carrée",
@@ -31,7 +31,8 @@ window.translations = {
         low: "Bas",
         high: "Haut",
         disclaimerTitle: "AVERTISSEMENT DE SÉCURITÉ",
-        disclaimerText: "Cette application est un outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un ordinateur de plongée certifié et suivez les règles de sécurité."
+        disclaimerText: "Cette application est un outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un ordinateur de plongée certifié et suivez les règles de sécurité.",
+        secondDiveNotAuthorized: "Seconde plongée non autorisée"
     },
     en: {
         firstDive: "First dive",
@@ -46,7 +47,7 @@ window.translations = {
         usage4: "The application calculates the Time TO Surface (TTS) and the remaining tank pressure (RESERVE) at the end of each dive.",
         usage5: "The Pressure Group (PG, in <strong>MN90</strong> mode) or the residual supersaturation of the compartments (in <strong>GF</strong> mode) is used for the second dive.",
         usage6: "The reserve is displayed in red if it is lower than 50 bars.",
-        usage7: "A warning is displayed for Nitrox if ppO2 becomes too high (orange if > 1.6 bar)",
+        usage7: "A warning is displayed for Nitrox if ppO2 becomes too high (orange if > 1.5 bar)",
         calcTitle: "Calculation assumptions",
         calc1: "<strong>Altitude:</strong> sea level",
         calc2: "<strong>Profile:</strong> square dive",
@@ -65,6 +66,7 @@ window.translations = {
         low: "Low",
         high: "High",
         disclaimerTitle: "SAFETY WARNING",
-        disclaimerText: "This application is an educational tool. The results presented may be wrong. Use a certified dive computer and follow safety rules."
+        disclaimerText: "This application is an educational tool. The results presented may be wrong. Use a certified dive computer and follow safety rules.",
+        secondDiveNotAuthorized: "Second dive not authorized"
     }
 };
