@@ -350,7 +350,7 @@ function updateUI() {
     }
 
     renderStops(result1, stopsDisplay);
-    renderDiveDetails(diveDetails, result1, dive1Depth, dive1Time, initTankPressure, ppo2_1, gazO2pct > 21);
+    renderDiveDetails(diveDetails, result1, dive1Depth, dive1Time, initTankPressure, ppo2_1, false);
 
 
     // --- DIVE 2 UI ---
@@ -415,7 +415,7 @@ function updateUI() {
     if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
     renderStops(result2, stopsDisplay2);
-    renderDiveDetails(diveDetails2, result2, dive2Depth, dive2Time, initTankPressure, ppo2_2, gazO2pct > 21);
+    renderDiveDetails(diveDetails2, result2, dive2Depth, dive2Time, initTankPressure, ppo2_2, true);
 }
 
 function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
@@ -434,7 +434,7 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
     }
 }
 
-function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, isNitrox) {
+function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, isSecondDive) {
     if (!container) return;
     container.innerHTML = '';
     const trans = window.translations;
@@ -460,14 +460,15 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
     const pressureUsed = gasUsed / tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
 
-    const gpsHtml = (gps === 'GF_GPS' || !gps) ? '' : `<div class="gps-badge">${trans[currentLang].gps} ${gps}</div>`;
+    let gpsHtml = (gps === 'GF_GPS' || !gps) ? '' : `<div class="gps-badge">${trans[currentLang].gps} ${gps}</div>`;;
+    if (isSecondDive) {
+        gpsHtml = '';
+    }
     const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
     const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
 
-    let nitroxHtml = '';
-    if (isNitrox) {
-        nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
-    }
+    let nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
+
 
     container.innerHTML = `${gpsHtml}<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
 
