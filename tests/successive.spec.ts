@@ -7,6 +7,10 @@ declare global {
 }
 
 test('Successive dive calculation flow', async ({ page }) => {
+    // Disable help modal for tests
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
     // Go to app
     await page.goto('/');
 

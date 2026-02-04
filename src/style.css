@@ -280,13 +280,65 @@ body.gf-mode .majoration-display {
 
 .dive-details {
     margin-top: 20px;
-    text-align: center;
-    font-size: 1.1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 1rem;
     color: #fff;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 12px;
-    font-weight: 500;
+}
+
+.result-box {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+}
+
+.result-box.important {
+    background: rgba(33, 150, 243, 0.2);
+    border-color: rgba(33, 150, 243, 0.4);
+}
+
+.result-box .result-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+.result-box .result-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.gps-badge {
+    background: var(--accent-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.disclaimer-box {
+    background: rgba(229, 57, 53, 0.1);
+    border: 1px solid rgba(229, 57, 53, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.disclaimer-box strong {
+    color: var(--accent-color);
+    display: block;
+    margin-bottom: 5px;
 }
 
 /* Successive dive section */

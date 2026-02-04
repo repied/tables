@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test('GF Mode Calculation', async ({ page }) => {
+    // Disable help modal for tests
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
     await page.goto('/');
 
     // Switch to GF Mode
@@ -14,7 +18,7 @@ test('GF Mode Calculation', async ({ page }) => {
 
     // Default values: Depth 40, Time 25, GF 30/80
     // Check DTR is calculated and not the fake 98
-    const dtrLocator = page.locator('#dive-details strong').first();
+    const dtrLocator = page.locator('#dive-details .result-value').first();
     await expect(dtrLocator).not.toHaveText('98');
 
     // Get DTR value
@@ -33,7 +37,7 @@ test('GF Mode Calculation', async ({ page }) => {
     // But let's just check the initial calculation first.
 
     // Verify Dive 2 calculation
-    const dtr2Locator = page.locator('#dive-details-2 strong').first();
+    const dtr2Locator = page.locator('#dive-details-2 .result-value').first();
     await expect(dtr2Locator).not.toHaveText('33'); // Fake value was 33
     const dtr2Text = await dtr2Locator.innerText();
     console.log('DTR2 GF:', dtr2Text);

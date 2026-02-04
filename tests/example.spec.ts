@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test('app loads and shows main elements', async ({ page }) => {
+    // Disable help modal for tests
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
     await page.goto('/');
 
     // Check title

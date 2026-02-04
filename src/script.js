@@ -25,12 +25,12 @@ const MIN_DEPTH = 0;
 const MAX_TIME = 240;
 const MIN_TIME = 0;
 
-const MAX_TANK_PRESSURE = 250;
+const MAX_TANK_PRESSURE = 300;
 const MIN_TANK_PRESSURE = 50;
-const MAX_SAC = 30;
+const MAX_SAC = 40;
 const MIN_SAC = 10;
 const MAX_TANK_VOLUME = 30;
-const MIN_TANK_VOLUME = 6;
+const MIN_TANK_VOLUME = 5;
 const MAX_O2_pct = 50;
 const MIN_O2_pct = 21;
 const MAX_GF_pct = 100;
@@ -38,10 +38,11 @@ const MIN_GF_pct = 10;
 const MAX_INTERVAL = 60 * 12; // after 12 hours MN90 assumes a fresh dive
 const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
-const PPO2_THRESHOLD = 1.4; // Maximum safe ppO2
+const PPO2_THRESHOLD_ORANGE = 1.4; // Maximum safe ppO2
+const PPO2_THRESHOLD_RED = 1.6; // Maximum safe ppO2
 
 // Language State
-let currentLang = 'fr';
+let currentLang = localStorage.getItem('selectedLang') || 'fr';
 
 // UI Elements
 const timeGauge = document.getElementById('time-gauge-container');
@@ -113,8 +114,12 @@ async function init() {
 
     const langToggle = document.getElementById('lang-toggle');
     if (langToggle) {
+        // Set initial state from localStorage
+        langToggle.checked = (currentLang === 'en');
+
         langToggle.addEventListener('change', () => {
             currentLang = langToggle.checked ? 'en' : 'fr';
+            localStorage.setItem('selectedLang', currentLang);
             translateUI();
             updateUI();
         });
@@ -386,21 +391,20 @@ function updateUI() {
         const pressureUsed = gasUsed / tankVolume;
         const remainingPressure = Math.floor(initTankPressure - pressureUsed);
 
-        const gpsText = (gps1 === 'GF_GPS') ? '' : (gps1 ? `${window.translations[currentLang].gps} ${gps1}` : `${window.translations[currentLang].gps} -`);
-        const reserveText = `${translations[currentLang].reserve} <strong>${remainingPressure}</strong> bar`;
-        let nitroxText = '';
+        const gpsHtml = (gps1 === 'GF_GPS' || !gps1) ? '' : `<div class="gps-badge">${window.translations[currentLang].gps} ${gps1}</div>`;
+        const dtrHtml = `<div class="result-box important"><span class="result-label">${translations[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
+        const reserveHtml = `<div class="result-box important"><span class="result-label">${translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+        let nitroxHtml = '';
         if (isNitrox) {
-            nitroxText = ` • ppO2 <strong>${ppo2_1.toFixed(2)}</strong>`;
+            nitroxHtml = `<div class="result-box"><span class="result-label">ppO2</span><span class="result-value">${ppo2_1.toFixed(2)}</span></div>`;
         }
 
-        diveDetails.innerHTML = `${gpsText ? gpsText + ' • ' : ''}${translations[currentLang].dtr} <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText}`;
+        diveDetails.innerHTML = `${gpsHtml}${dtrHtml}${reserveHtml}${nitroxHtml}`;
 
-        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_1 > 1.6) {
-            diveDetails.style.color = '#e53935';
-        } else if (ppo2_1 > PPO2_THRESHOLD) {
-            diveDetails.style.color = '#ff9800'; // Orange warning
-        } else {
-            diveDetails.style.color = '#fff';
+        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_1 > PPO2_THRESHOLD_RED) {
+            diveDetails.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#e53935');
+        } else if (ppo2_1 > PPO2_THRESHOLD_ORANGE) {
+            diveDetails.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
         }
     } else if (result1 && result1.error) {
         diveDetails.textContent = translations[currentLang].outOfTable;
@@ -528,20 +532,19 @@ function updateUI() {
             const pressureUsed = gasUsed / tankVolume;
             const remainingPressure = Math.round(initTankPressure - pressureUsed);
 
-            const reserveText = `${window.translations[currentLang].reserve} <strong>${remainingPressure}</strong> bar`;
-            let nitroxText2 = '';
+            const dtrHtml = `<div class="result-box important"><span class="result-label">${window.translations[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
+            const reserveHtml = `<div class="result-box important"><span class="result-label">${window.translations[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+            let nitroxHtml = '';
             if (isNitrox) {
-                nitroxText2 = ` • ppO2 <strong>${ppo2_2.toFixed(2)}</strong>`;
+                nitroxHtml = `<div class="result-box"><span class="result-label">ppO2</span><span class="result-value">${ppo2_2.toFixed(2)}</span></div>`;
             }
 
-            diveDetails2.innerHTML = `${window.translations[currentLang].dtr} <strong>${dtrFormatted}</strong> • ${reserveText}${nitroxText2}`;
+            diveDetails2.innerHTML = `${dtrHtml}${reserveHtml}${nitroxHtml}`;
 
             if (remainingPressure < RESERVE_PRESSURE_THRESHOLD || ppo2_2 > 1.6) {
-                diveDetails2.style.color = '#e53935';
-            } else if (ppo2_2 > PPO2_THRESHOLD) {
-                diveDetails2.style.color = '#ff9800';
-            } else {
-                diveDetails2.style.color = '#fff';
+                diveDetails2.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#e53935');
+            } else if (ppo2_2 > PPO2_THRESHOLD_ORANGE) {
+                diveDetails2.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
             }
         } else if (result2 && result2.error) {
             diveDetails2.textContent = window.translations[currentLang].outOfTable;
@@ -572,6 +575,12 @@ function setupModal() {
             if (event.target == modal) {
                 modal.style.display = "none";
             }
+        }
+
+        // Show modal on first visit
+        if (!localStorage.getItem('hasVisited')) {
+            modal.style.display = "block";
+            localStorage.setItem('hasVisited', 'true');
         }
     }
 }

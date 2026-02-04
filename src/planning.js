@@ -2,10 +2,10 @@
 
     // Constant dive parameters
     const AIR_FN2 = 0.79;
-    const SURFACE_PRESSURE = 1; // bar TODO: cahnge for altitude diving?
+    const SURFACE_PRESSURE = 1; // bar TODO: change for altitude diving?
+    const DESCENT_RATE = 20; // m/min
     const ASCENT_RATE = 15; // m/min  15m/min is recommended
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
-    const DESCENT_RATE = 20; // m/min
 
     // --- BUEHLMANN ALGORITHM ---
     const BUEHLMANN = [
