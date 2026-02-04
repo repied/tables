@@ -444,7 +444,7 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
         return;
     }
     if (result.error) {
-        container.textContent = trans[currentLang].outOfTable;
+        container.innerHTML = `<div class="placeholder-text">${trans[currentLang].outOfTable}</div>`;
         return;
     }
     if (result.note === "Surface") {
@@ -585,7 +585,7 @@ function calculatePPO2Tick(depth, o2Pct) {
 
     return [{
         value: maxDepth,
-        label: Math.floor(maxDepth),
+        label: `${Math.floor(maxDepth)}'`,
         className: 'gauge-tick-warning'
     }];
 }

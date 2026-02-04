@@ -325,6 +325,8 @@ body.gf-mode .majoration-display {
     align-items: center;
     gap: 10px;
     width: 100%;
+    min-height: 100px;
+    justify-content: center;
 }
 
 .results-row {
