@@ -277,7 +277,23 @@ function renderStops(result, containerElement) {
     }
 
     const { stops } = result.profile;
-    const depths = [15, 12, 9, 6, 3];
+
+    // Determine depths to display
+    const stopDepths = Object.keys(stops).map(Number);
+    const maxStopDepth = stopDepths.length > 0 ? Math.max(...stopDepths) : 0;
+    // Default max is 15m, but if we have deeper stops, use the deepest stop (rounded to 3m)
+    const maxDisplayDepth = Math.max(15, Math.ceil(maxStopDepth / 3) * 3);
+
+    const depths = [];
+    for (let d = maxDisplayDepth; d >= 3; d -= 3) {
+        depths.push(d);
+    }
+
+    if (depths.length > 5) {
+        containerElement.classList.add('compact-stops');
+    } else {
+        containerElement.classList.remove('compact-stops');
+    }
 
     depths.forEach(d => {
         const stopEl = document.createElement('div');

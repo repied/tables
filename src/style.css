@@ -278,6 +278,7 @@ body.gf-mode .majoration-display {
     min-height: 160px;
     height: auto;
     margin-top: 10px;
+    width: 100%;
 }
 
 .stop-item {
@@ -286,6 +287,26 @@ body.gf-mode .majoration-display {
     align-items: center;
     position: relative;
     width: 40px;
+}
+
+.stops-display.compact-stops {
+    gap: 2px;
+    padding: 0 5px;
+}
+
+.stops-display.compact-stops .stop-item {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 40px;
+}
+
+.stops-display.compact-stops .stop-time {
+    font-size: 1.2rem;
+}
+
+.stops-display.compact-stops .stop-depth {
+    font-size: 0.8rem;
 }
 
 .stop-depth {
