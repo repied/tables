@@ -568,8 +568,8 @@ function updateGaugeTicks(gaugeContainerId, ticks, min, max) {
 
         // Tick Geometry
         // Outward tick: from R to R+length
-        const r1 = RADIUS - 2; // Slightly inside
-        const r2 = RADIUS + 4; // Slightly outside
+        const r1 = RADIUS - 3; // Slightly inside
+        const r2 = RADIUS + 3; // Slightly outside
 
         const x1 = CENTER_X + r1 * Math.cos(angle);
         const y1 = CENTER_Y + r1 * Math.sin(angle);
@@ -583,7 +583,7 @@ function updateGaugeTicks(gaugeContainerId, ticks, min, max) {
         line.setAttribute("y2", y2);
 
         // Label Geometry
-        const rText = RADIUS + 12;
+        const rText = RADIUS + 18;
         const xText = CENTER_X + rText * Math.cos(angle);
         const yText = CENTER_Y + rText * Math.sin(angle);
 
