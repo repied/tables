@@ -5,12 +5,18 @@ const urlsToCache = [
     './src/style.css',
     './src/script.js',
     './src/dataManager.js',
+    './src/planning.js',
+    './src/translations.js',
     './data/mn90_stops.csv',
     './data/mn90-n2.csv',
     './data/mn90-majoration.csv',
     './manifest.json',
     './assets/favicon.png',
-    './assets/background.png'
+    './assets/background.png',
+    './assets/background-table.png',
+    './assets/fr-flag-800.png',
+    './assets/uk-flag-800.png',
+    './assets/gsp.avif'
 ];
 
 self.addEventListener('install', event => {
@@ -25,6 +31,11 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+    // Skip cache for local development to allow live reload to work
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then(response => {
