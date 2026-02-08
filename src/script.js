@@ -37,7 +37,7 @@ const MIN_GF_pct = 10;
 const MAX_INTERVAL = 60 * 12; // after 12 hours MN90 assumes a fresh dive
 const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
 const RESERVE_PRESSURE_THRESHOLD = 50; // bar
-const PPO2_THRESHOLD_ORANGE = 1.5; // Maximum safe ppO2
+const PPO2_THRESHOLD_ORANGE = 1.5; // Maximum safe ppO2 (update translations if you change it)
 
 // Language State
 let currentLang = localStorage.getItem('selectedLang') || 'fr';
@@ -475,7 +475,7 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
     const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
     const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
 
-    let nitroxHtml = `<div class="result-box important"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
+    let nitroxHtml = `<div class="result-box important nitroxBox"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
 
 
     container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
@@ -485,7 +485,9 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
         if (rb) rb.style.backgroundColor = '#e53935';
     }
     if (ppo2 > PPO2_THRESHOLD_ORANGE) {
-        container.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
+        const rb = container.querySelector('.nitroxBox');
+        if (rb) rb.style.backgroundColor = '#ff9800';
+        // container.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
     }
 }
 
