@@ -595,7 +595,7 @@ function calculatePPO2Tick(depth, o2Pct) {
 
     return [{
         value: maxDepth,
-        label: `${Math.floor(maxDepth)}'`,
+        label: `${Math.floor(maxDepth)}m`,
         className: 'gauge-tick-warning'
     }];
 }
