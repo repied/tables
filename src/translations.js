@@ -32,7 +32,18 @@ window.translations = {
         high: "Haut",
         disclaimerTitle: "AVERTISSEMENT DE SÉCURITÉ",
         disclaimerText: "Cette application est un outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un ordinateur de plongée certifié et suivez les règles de sécurité.",
-        secondDiveNotAuthorized: "Seconde plongée non autorisée"
+        secondDiveNotAuthorized: "Seconde plongée non autorisée",
+        aboutTitle: "À propos",
+        aboutText: "Une application web progressive (PWA) gratuite et open source pour la planification de plongées loisirs utilisant soit les tables MN90 de la Marine Nationale, soit l'algorithme Bühlmann ZHL-16C avec Facteurs de Gradient (GF).",
+        installationTitle: "Installation",
+        installationText: "Peut être installée sur mobile/tablette/ordinateur et utilisée hors ligne. Installation directe depuis le navigateur (pas de PlayStore, pas d'AppStore).",
+        installationAndroid: "<strong>Android/Ordinateur :</strong> Utilisez l'invite d'installation ou l'icône '+' dans la barre d'adresse.",
+        installationIOS: "<strong>iOS :</strong> Dans Safari, appuyez sur Partager -> 'Sur l'écran d'accueil'.",
+        referencesTitle: "Références",
+        refDesign: "Design inspiré de <a href='https://oliviernemoz.wixsite.com/site/mn90' target='_blank'>mn•90</a>",
+        refMN90: "Tables MN90 : <a href='https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/' target='_blank'>eppeplongee</a>",
+        refZHL16C: "Paramètres ZH-L16C : <a href='https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm' target='_blank'>Wikipedia</a>",
+        refAI: "Scaffolding et UX réalisés avec Gemini 3 Pro/Fast, logique métier écrite manuellement."
     },
     en: {
         firstDive: "First dive",
@@ -67,6 +78,17 @@ window.translations = {
         high: "High",
         disclaimerTitle: "SAFETY WARNING",
         disclaimerText: "This application is an educational tool. The results presented may be wrong. Use a certified dive computer and follow safety rules.",
-        secondDiveNotAuthorized: "Second dive not authorized"
+        secondDiveNotAuthorized: "Second dive not authorized",
+        aboutTitle: "About",
+        aboutText: "A free and open source Progressive Web App (PWA) for planning non-technical dives using either French Navy MN90 tables or Bühlmann ZHL-16C with Gradient Factors.",
+        installationTitle: "Installation",
+        installationText: "Can be installed on mobile/laptop/desktop and used offline. Direct installation from the browsers (no PlayStore, no AppStore).",
+        installationAndroid: "<strong>Android/Desktop:</strong> Use the install prompt or '+' icon in the address bar.",
+        installationIOS: "<strong>iOS:</strong> In Safari, tap Share -> 'Add to Home Screen'.",
+        referencesTitle: "References",
+        refDesign: "Design inspired by <a href='https://oliviernemoz.wixsite.com/site/mn90' target='_blank'>mn•90</a>",
+        refMN90: "MN90 tables: <a href='https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/' target='_blank'>eppeplongee</a>",
+        refZHL16C: "ZH-L16C parameters: <a href='https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm' target='_blank'>Wikipedia</a>",
+        refAI: "Scaffolding and UX with Gemini 3 Pro/Fast, business logic manually written."
     }
 };
