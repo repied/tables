@@ -22,7 +22,7 @@ test('app loads and shows main elements', async ({ page }) => {
     await expect(page.locator('#depth-display')).toHaveText('40');
 
     // Check footer contains expected text structure (gps, dtr, réserve)
-    await expect(page.locator('#dive-details')).toContainText('gps');
+    await expect(page.locator('#gps-display-1')).toContainText('gps');
     await expect(page.locator('#dive-details')).toContainText('dtr');
     await expect(page.locator('#dive-details')).toContainText('réserve');
 });
