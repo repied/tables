@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mn90+GF-v4.3.7';
+const CACHE_NAME = 'mn90+GF-v5';
 const urlsToCache = [
     './',
     './index.html',
