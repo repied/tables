@@ -21,7 +21,7 @@ let surfaceInterval = 60 * 3; // minutes
 // Constants
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 0;
-const MAX_TIME = 60 * 3;
+const MAX_TIME = 60 * 2;
 const MIN_TIME = 0;
 
 const MAX_TANK_PRESSURE = 300;
