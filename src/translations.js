@@ -1,7 +1,7 @@
 window.translations = {
     fr: {
         firstDive: "Première plongée",
-        interval: "Intervalle",
+        interval: "Intervalle de surface",
         secondDive: "Seconde plongée",
         source: "Source",
         help: "Aide",
@@ -47,7 +47,7 @@ window.translations = {
     },
     en: {
         firstDive: "First dive",
-        interval: "Interval",
+        interval: "Surface interval",
         secondDive: "Second dive",
         source: "Source",
         help: "Help",
