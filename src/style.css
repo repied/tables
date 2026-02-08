@@ -54,7 +54,8 @@ body {
 }
 
 .gauges-row.main-gauges {
-    /* Removed flex: 1 to allow natural height */
+    justify-content: center;
+    gap: 10px;
     margin-bottom: 10px;
 }
 
@@ -416,13 +417,16 @@ body.gf-mode .majoration-display {
     border-radius: 4px;
     font-weight: bold;
     font-size: 0.8rem;
+    width: 50px;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .gps-center {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-width: 40px;
+    min-width: 60px;
     z-index: 10;
 }
 
