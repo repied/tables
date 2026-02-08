@@ -310,7 +310,7 @@ function renderStops(result, containerElement) {
         const lineHeight = (d * 5);
 
         stopEl.innerHTML = `
-            <div class="stop-depth">${d}m</div>
+            <div class="stop-depth">${d}${maxStopDepth >= 30 ? '' : 'm'}</div>
             <div class="stop-line" style="height: ${lineHeight}px"></div>
             <div class="stop-value-container">
                 ${visualContent}
