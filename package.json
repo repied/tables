@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "http-server -p 5500",
+    "dev": "live-server --port=5500",
     "test": "playwright test",
     "test:unit": "node tests/unit_planning.js",
     "test:headed": "playwright test --headed",
@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
-    "http-server": "^14.1.1"
+    "live-server": "^1.2.0"
   }
 }

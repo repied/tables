@@ -29,7 +29,8 @@ First read ./README.md file. Remember that your are most likely developing in a 
 *   **Internationalization (i18n)**: Implementing a custom translation system that handles both text content and HTML-rich segments (like safety disclaimers).
 
 ### 4. Testing & Debugging
-*   **Simple browser**: use http://127.0.0.1 instead of http://localhost if you want to check a url
+*   **Live Reload**: Using `npm run dev` (via `live-server`) for real-time UI updates.
+*   **Service Worker Cache Bypass**: The `sw.js` is configured to bypass the cache on `localhost`/`127.0.0.1` to ensure `live-server` refreshes show the latest code changes.
 *   **Playwright E2E**:
     *   Writing tests to verify UI element visibility and initial state.
     *   Simulating user interactions (mouse drag/move) to test gauge responsiveness.

@@ -15,7 +15,6 @@
             },
             "extensions": [
                 "ms-playwright.playwright",
-                "ritwickdey.liveserver",
                 "usernamehw.errorlens",
                 "wayou.vscode-todo-highlight",
                 "streetsidesoftware.code-spell-checker-french",
