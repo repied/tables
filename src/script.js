@@ -349,7 +349,7 @@ function updateUI() {
     updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
     if (depthGauge2) updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
 
-    const timeTicks1 = calculateStopTicks(dive1Depth, 0);
+    const timeTicks1 = calculateStopTicks(dive1Depth, gazO2pct, 0);
     updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
 
     let result1, finalTensions1;
@@ -439,7 +439,7 @@ function updateUI() {
     updateGaugeVisuals('depth', dive2Depth, MAX_DEPTH, false, '-2');
 
     const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
-    const timeTicks2 = calculateStopTicks(dive2Depth, currentMajoration);
+    const timeTicks2 = calculateStopTicks(dive2Depth, gazO2pct, currentMajoration);
     if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
     renderStops(result2, stopsDisplay2);
@@ -616,8 +616,10 @@ function calculatePPO2Tick(depth, o2Pct) {
     }];
 }
 
-function calculateStopTicks(depth, majoration = 0) {
+function calculateStopTicks(depth, o2Pct, majoration = 0) {
     if (isGFMode) return []; // Only MN90 for now
+
+    const ead = Planning.calculateEAD(depth, o2Pct);
 
     // Find stops in table
     // Iterate time entries to find when stops appear or change
@@ -626,7 +628,7 @@ function calculateStopTicks(depth, majoration = 0) {
 
     // Find closest depth in table >= actual depth
     const depths = Object.keys(table).map(d => parseInt(d)).sort((a, b) => a - b);
-    const tableDepth = depths.find(d => d >= depth);
+    const tableDepth = depths.find(d => d >= ead);
     if (!tableDepth) return []; // Too deep
 
     const rows = table[tableDepth];
