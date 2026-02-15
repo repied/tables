@@ -241,13 +241,14 @@
         if (!targetDepth && depth > 0) {
             // Check if deeper than max table depth
             if (depth > tableDepths[tableDepths.length - 1]) {
-                return null; // Too deep
+                return { out_of_table: "too deep" };
             }
             // If here, depth is within range but maybe not found? Should not happen with logic above.
+            console.log("WEIRD: Depth is within range but maybe not found?", depth, tableDepths);
         }
 
         if (depth <= 0) return { stops: {}, note: "Surface" };
-        if (!targetDepth) return null;
+        if (!targetDepth) return { out_of_table: "Out of table" };
 
         const profiles = MN90[targetDepth];
 
@@ -255,7 +256,7 @@
         let profile = profiles.find(p => p.time >= time);
 
         if (!profile) {
-            return { error: "Hors table" };
+            return { out_of_table: "too long" };
         }
 
         return {

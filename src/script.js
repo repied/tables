@@ -261,12 +261,8 @@ function renderStops(result, containerElement) {
     containerElement.innerHTML = '';
     const trans = window.translations;
 
-    if (!result) {
-        containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].maxDepthExceeded}</div>`;
-        return;
-    }
 
-    if (result.error) {
+    if (result.out_of_table) {
         containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].outOfTable}</div>`;
         return;
     }
@@ -467,16 +463,12 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
     container.innerHTML = '';
     const trans = window.translations;
 
-    if (!result) {
-        container.innerHTML = `<div class="placeholder-text">${trans[currentLang].maxDepthExceeded}</div>`;
-        return;
-    }
-    if (result.error) {
-        container.innerHTML = `<div class="placeholder-text">${trans[currentLang].outOfTable}</div>`;
+    if (result.out_of_table) {
+        container.innerHTML = '';
         return;
     }
     if (result.note === "Surface") {
-        container.innerHTML = `<div class="placeholder-text">${trans[currentLang].surface}</div>`;
+        container.innerHTML = '';
         return;
     }
 
