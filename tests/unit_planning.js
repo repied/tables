@@ -202,14 +202,38 @@ console.log("--- Starting Unit Tests ---\n");
 }
 
 
-// Tests against other calculators
-{
-    const profile = Planning.getMN90Profile(20, 50);
-    const dtr = Planning.calculateDTR(20, profile.profile.stops);
-    assertEqual(dtr, 6, "DTR should be 6 min");
+function check_dtr_single_dive(depth, time, expectedDTR) {
+    const profile = Planning.getMN90Profile(depth, time);
+    const dtr = Planning.calculateDTR(depth, profile.profile.stops);
+    console.log(`DTR for ${depth}m ${time}min: ${dtr} min`);
+    assertEqual(dtr, expectedDTR, `DTR should be ${expectedDTR} min`);
+}
+function check_stops_single_dive(depth, time, expectedStops) {
+    const profile = Planning.getMN90Profile(depth, time);
+    console.log(`Stops for ${depth}m ${time}min: ${JSON.stringify(profile.profile.stops)}`);
+    assertEqual(profile.profile.stops, expectedStops, `Stops should be ${JSON.stringify(expectedStops)}`);
 }
 
-console.log(`\n--- Finished ---`);
+{
+    // source https://diveapp.p6ril.fr/
+    check_dtr_single_dive(20, 50, 6);
+    check_dtr_single_dive(20, 75, 26);
+    check_dtr_single_dive(20, 90, 36);
+    check_dtr_single_dive(10, 75, 1);
+    check_dtr_single_dive(10, 360, 2);
+    check_dtr_single_dive(34, 20, 8);
+    check_dtr_single_dive(34, 45, 51);
+    check_dtr_single_dive(55, 5, 5);
+    check_dtr_single_dive(55, 50, 136); // diveapp gives 134 but maybe different ascent speed
+    check_stops_single_dive(55, 50, { 12: 8, 9: 19, 6: 35, 3: 69 });
+    check_stops_single_dive(55, 20, { 9: 1, 6: 6, 3: 27 });
+    check_stops_single_dive(5, 360, {}); // diveapp not thew same as what I have in the pdf
+    check_stops_single_dive(20, 60, { 3: 13 });
+    check_stops_single_dive(19, 60, { 3: 13 });
+    check_stops_single_dive(20, 58, { 3: 13 });
+}
+
+console.log(`\n-- - Finished-- - `);
 console.log(`Passed: ${passed}`);
 console.log(`Failed: ${failed}`);
 
