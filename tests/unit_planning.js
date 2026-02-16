@@ -214,6 +214,18 @@ function check_stops_single_dive(depth, time, expectedStops) {
     assertEqual(profile.profile.stops, expectedStops, `Stops should be ${JSON.stringify(expectedStops)}`);
 }
 
+function check_gps_single_dive(depth, time, expectedGPS) {
+    const profile = Planning.getMN90Profile(depth, time);
+    console.log(`GPS for ${depth}m ${time}min: ${JSON.stringify(profile.profile.group)}`);
+    assertEqual(profile.profile.group, expectedGPS, `GPS should be ${JSON.stringify(expectedGPS)}`);
+}
+
+function check_successive_dive(group, interval, depth, expectedMaj) {
+    const result = Planning.calculateSuccessive(group, interval, depth);
+    console.log(`Successive for group ${group}, interval ${interval}min, depth ${depth}m: N2=${result.n2}, Maj=${result.majoration}`);
+    assertEqual(result.majoration, expectedMaj, `Majoration should be ${expectedMaj}`);
+}
+
 {
     // source https://diveapp.p6ril.fr/
     check_dtr_single_dive(20, 50, 6);
@@ -227,10 +239,20 @@ function check_stops_single_dive(depth, time, expectedStops) {
     check_dtr_single_dive(55, 50, 136); // diveapp gives 134 but maybe different ascent speed
     check_stops_single_dive(55, 50, { 12: 8, 9: 19, 6: 35, 3: 69 });
     check_stops_single_dive(55, 20, { 9: 1, 6: 6, 3: 27 });
-    check_stops_single_dive(5, 360, {}); // diveapp not thew same as what I have in the pdf
+    check_stops_single_dive(5, 360, {}); // diveapp not thew same as MN90-Mode-Emploi-2020.pdf
     check_stops_single_dive(20, 60, { 3: 13 });
     check_stops_single_dive(19, 60, { 3: 13 });
     check_stops_single_dive(20, 58, { 3: 13 });
+    check_gps_single_dive(19, 26, 'F'); // groundtruth from MN90-Mode-Emploi-2020.pdf
+    check_gps_single_dive(29, 46, 'M'); // groundtruth from MN90-Mode-Emploi-2020.pdf
+    check_gps_single_dive(60, 55, '*'); //groundtruth from MN90-Mode-Emploi-2020.pdf
+}
+
+{
+    // Successive dive tests
+    check_successive_dive('H', 60, 15, 44);
+    check_successive_dive('I', 30, 20, 44);
+    check_successive_dive('D', 121, 12, 17);
 }
 
 console.log(`\n-- - Finished-- - `);
