@@ -67,14 +67,14 @@
     }
 
     function getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh) {
+        if (depth <= 0) {
+            return gfHigh;
+        }
         if (firstStopDepth === null) {
             return gfLow;
         }
         if (depth >= firstStopDepth) {
             return gfLow;
-        }
-        if (depth <= 0) {
-            return gfHigh;
         }
         const deepRatio = depth / firstStopDepth;
         return gfLow * deepRatio + gfHigh * (1 - deepRatio);

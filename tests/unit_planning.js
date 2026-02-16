@@ -333,6 +333,112 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     }
 }
 
+// Test 7: Bühlmann GF Mode Corner Cases
+{
+    console.log("Testing Bühlmann GF Mode Corner Cases...");
+
+    // 1. Zero Depth
+    // Should return 0 DTR and empty stops
+    const planZeroDepth = Planning.calculateBuhlmannPlan({
+        bottomTime: 20,
+        maxDepth: 0,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.79
+    });
+    // Check DTR and stops
+    if (planZeroDepth.dtr !== 0 || Object.keys(planZeroDepth.profile.stops).length > 0) {
+        console.error(`❌ Zero Depth (0m) should have 0 DTR and no stops. Got DTR: ${planZeroDepth.dtr}`);
+        failed++;
+    } else {
+        console.log("✅ Zero Depth handled correctly");
+        passed++;
+    }
+
+    // 2. Zero Time
+    // Should return 0 DTR and empty stops
+    const planZeroTime = Planning.calculateBuhlmannPlan({
+        bottomTime: 0,
+        maxDepth: 30,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.79
+    });
+    if (planZeroTime.dtr !== 0 || Object.keys(planZeroTime.profile.stops).length > 0) {
+        console.error(`❌ Zero Time (0min) should have 0 DTR. Got DTR: ${planZeroTime.dtr}`);
+        failed++;
+    } else {
+        console.log("✅ Zero Time handled correctly");
+        passed++;
+    }
+
+    // 3. Extreme Depth (100m)
+    // 100m for 10min on Air.
+    // Should definitely have deco stops.
+    const planDeep = Planning.calculateBuhlmannPlan({
+        bottomTime: 10,
+        maxDepth: 100,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.79
+    });
+    // Verify we got some stops
+    const stopsDeep = Object.keys(planDeep.profile.stops);
+    if (stopsDeep.length === 0 || planDeep.dtr <= 10) {
+        console.error(`❌ 100m dive should have significant deco. Got DTR: ${planDeep.dtr}, Stops: ${JSON.stringify(planDeep.profile.stops)}`);
+        failed++;
+    } else {
+        console.log("✅ Extreme depth (100m) generated deco stops");
+        passed++;
+    }
+
+    // 4. Shallow No-Deco Dive
+    // 10m for 30min on Air (NDL is huge).
+    const planShallow = Planning.calculateBuhlmannPlan({
+        bottomTime: 30,
+        maxDepth: 10,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.79
+    });
+    if (Object.keys(planShallow.profile.stops).length > 0) {
+        console.error(`❌ Shallow dive (10m 30min) should have no stops. Got: ${JSON.stringify(planShallow.profile.stops)}`);
+        failed++;
+    } else {
+        console.log("✅ Shallow dive handled correctly (no stops)");
+        passed++;
+    }
+
+    // 5. High GF (Risk Factor)
+    // GF 100/100 (pure M-value) vs GF 30/70.
+    // 30m 30min on Air.
+    const planAggressive = Planning.calculateBuhlmannPlan({
+        bottomTime: 30,
+        maxDepth: 30,
+        gfLow: 100,
+        gfHigh: 100,
+        fN2: 0.79
+    });
+    const planConservative = Planning.calculateBuhlmannPlan({
+        bottomTime: 30,
+        maxDepth: 30,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.79
+    });
+
+    // Conservative should have equal or more deco (DTR) than aggressive.
+    // Actually, 30m 30min might be close to NDL on GF 100/100.
+    // Let's check if DTR conservative >= DTR aggressive.
+    if (planConservative.dtr < planAggressive.dtr) {
+        console.error(`❌ Conservative plan (GF 30/70) should not be shorter than aggressive (GF 100/100). Cons: ${planConservative.dtr}, Aggr: ${planAggressive.dtr}`);
+        failed++;
+    } else {
+        console.log("✅ GF Sensitivity check passed (Conservative >= Aggressive)");
+        passed++;
+    }
+}
+
 console.log(`\n-- - Finished-- - `);
 console.log(`Passed: ${passed}`);
 console.log(`Failed: ${failed}`);
