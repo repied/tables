@@ -467,14 +467,12 @@ function renderUI() {
     let result2, currentMajoration = 0;
     if (isGFMode) {
         // Tension evolution
-        let finalTensions1 = result1 ? result1.finalTensions : null;
-        const sursaturationBeforePct = finalTensions1 ? 100 * (Math.max(...finalTensions1) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
-        let currentTensions = finalTensions1;
+        let currentTensions = result1 ? result1.finalTensions : null;
+        const sursaturationBeforePct = currentTensions ? 100 * (Math.max(...currentTensions) - Planning.SURFACE_AIR_PPN2) / Planning.SURFACE_AIR_PPN2 : 0;
         if (currentTensions) {
-            const surfacePN2 = Planning.depthToPN2(0, Planning.SURFACE_PRESSURE, Planning.AIR_FN2);
-            currentTensions = Planning.updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
+            currentTensions = Planning.updateAllTensions(currentTensions, Planning.SURFACE_AIR_PPN2, surfaceInterval);
         }
-        const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
+        const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - Planning.SURFACE_AIR_PPN2) / Planning.SURFACE_AIR_PPN2 : 0;
 
         if (majorationDisplay) {
             const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;

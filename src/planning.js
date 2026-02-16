@@ -1,22 +1,22 @@
 (function (window) {
 
     // Constant dive parameters
-    const SURFACE_DEPTH = 0;
+    const SURFACE_DEPTH = 0; // meters
     const SURFACE_PRESSURE = 1; // bar TODO: change for altitude diving?
-    const AIR_FN2 = 0.79;
-    const SURFACE_AIR_PPN2 = AIR_FN2 * SURFACE_PRESSURE;
-    const DESCENT_RATE = 20; // m/min
+    const AIR_FN2 = 0.79; // fraction of N2 in AIR, ie 79% of the air is N2
+    const SURFACE_AIR_PPN2 = AIR_FN2 * SURFACE_PRESSURE; // partial pressure of N2 at surface (bar)
+    const DESCENT_RATE = 20; // m/min 20m/min is recommended
     const ASCENT_RATE = 15; // m/min  15m/min is recommended
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
 
 
 
     // --- BUEHLMANN ALGORITHM ---
-    const BUEHLMANN_stopInterval = 3
-    const BUEHLMANN_lastStopDepth = 3;
-    const BUEHLMANN_timeStep = 10 / 60; // minutes
+    const BUEHLMANN_stopInterval = 3; // meters
+    const BUEHLMANN_lastStopDepth = 3; // meters
+    const BUEHLMANN_timeStep = 10 / 60; // minutes: 10 seconds is good
 
-    const BUEHLMANN = [
+    const BUEHLMANN = [ // from Wikipedia
         { t12: 5.0, A: 1.1696, B: 0.5578 },
         { t12: 8.0, A: 1.0, B: 0.6514 },
         { t12: 12.5, A: 0.8618, B: 0.7222 },
@@ -110,7 +110,7 @@
             ascentRate = ASCENT_RATE,
             descentRate = DESCENT_RATE
         } = diveParams;
-        const surfaceTensions = Array(N_COMPARTMENTS).fill(depthToPN2(SURFACE_DEPTH, surfacePressure, SURFACE_AIR_PPN2))
+        const surfaceTensions = Array(N_COMPARTMENTS).fill(SURFACE_AIR_PPN2)
 
         if (bottomTime <= 0 || maxDepth <= 0) {
             return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions, dtr: 0 };
@@ -408,7 +408,7 @@
 
     // Expose Planning API
     window.Planning = {
-        AIR_FN2: SURFACE_AIR_PPN2,
+        SURFACE_AIR_PPN2,
         SURFACE_PRESSURE,
         ASCENT_RATE,
         getMN90Profile,
