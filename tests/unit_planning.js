@@ -479,6 +479,155 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     checkConsistency(20, 100, 30, 70); // Long shallow dive
 }
 
+// Test 9: Nitrox Logic
+{
+    console.log("Testing Nitrox Logic...");
+
+    // 1. PPO2 Calculation
+    const ppo2Air = Planning.calculatePPO2(20, 21); // 3 bar * 0.21 = 0.63
+    if (Math.abs(ppo2Air - 0.63) > 0.01) {
+         console.error(`❌ PPO2 Air 20m failed. Expected 0.63, got ${ppo2Air}`);
+         failed++;
+    } else {
+         console.log("✅ PPO2 Air 20m correct");
+         passed++;
+    }
+
+    const ppo2Nx32 = Planning.calculatePPO2(30, 32); // 4 bar * 0.32 = 1.28
+    if (Math.abs(ppo2Nx32 - 1.28) > 0.01) {
+         console.error(`❌ PPO2 EAN32 30m failed. Expected 1.28, got ${ppo2Nx32}`);
+         failed++;
+    } else {
+         console.log("✅ PPO2 EAN32 30m correct");
+         passed++;
+    }
+
+    // 2. EAD Calculation
+    const eadAir = Planning.calculateEquivalentAirDepth(30, 21);
+    if (Math.abs(eadAir - 30) > 0.1) {
+         console.error(`❌ EAD Air 30m failed. Expected 30, got ${eadAir}`);
+         failed++;
+    } else {
+         console.log("✅ EAD Air 30m correct");
+         passed++;
+    }
+
+    const eadNx32 = Planning.calculateEquivalentAirDepth(30, 32);
+    // (4 * 0.68 / 0.79 - 1) * 10 = (3.443 - 1) * 10 = 24.43
+    if (Math.abs(eadNx32 - 24.43) > 0.1) {
+         console.error(`❌ EAD EAN32 30m failed. Expected ~24.43, got ${eadNx32}`);
+         failed++;
+    } else {
+         console.log("✅ EAD EAN32 30m correct");
+         passed++;
+    }
+    
+    // 3. MN90 with Nitrox (Indirectly via EAD)
+    // 35m for 40min
+    const depth = 35;
+    const time = 40;
+    
+    const profileAir = Planning.getMN90Profile(depth, time); 
+    
+    const ead = Planning.calculateEquivalentAirDepth(depth, 32); // ~28.7m
+    // MN90 table lookup will use 30m for EAD 28.7m
+    const profileNx = Planning.getMN90Profile(ead, time);
+    
+    let stopsAir = 0;
+    if (profileAir.profile && profileAir.profile.stops) {
+        for(let d in profileAir.profile.stops) stopsAir += profileAir.profile.stops[d];
+    }
+    
+    let stopsNx = 0;
+    if (profileNx.profile && profileNx.profile.stops) {
+        for(let d in profileNx.profile.stops) stopsNx += profileNx.profile.stops[d];
+    }
+    
+    if (stopsNx >= stopsAir && stopsAir > 0) {
+         console.error(`❌ MN90 Nitrox Advantage failed. Air Stops: ${stopsAir}, Nx Stops: ${stopsNx}`);
+         failed++;
+    } else {
+         console.log(`✅ MN90 Nitrox Advantage verified (Air stops: ${stopsAir}, Nx stops: ${stopsNx})`);
+         passed++;
+    }
+
+    // 4. Buhlmann with Nitrox
+    // 40m, 20min
+    const planAir = Planning.calculateBuhlmannPlan({
+        bottomTime: 20,
+        maxDepth: 40,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.79
+    });
+    
+    const planNx32 = Planning.calculateBuhlmannPlan({
+        bottomTime: 20,
+        maxDepth: 40,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.68 // EAN32
+    });
+    
+    if (planNx32.dtr >= planAir.dtr && planAir.dtr > 10) { // Ensure there is actual deco on air to reduce
+         console.error(`❌ Buhlmann Nitrox Advantage failed. Air DTR: ${planAir.dtr}, Nx DTR: ${planNx32.dtr}`);
+         failed++;
+    } else {
+         console.log(`✅ Buhlmann Nitrox Advantage verified (Air DTR: ${planAir.dtr}, Nx DTR: ${planNx32.dtr})`);
+         passed++;
+    }
+
+    // 5. Pure O2 (Theory check)
+    const planO2 = Planning.calculateBuhlmannPlan({
+        bottomTime: 60,
+        maxDepth: 6,
+        gfLow: 30,
+        gfHigh: 70,
+        fN2: 0.0
+    });
+    if (planO2.profile.stops && Object.keys(planO2.profile.stops).length > 0) {
+          console.error(`❌ Pure O2 at 6m should have no N2 deco stops. Got: ${JSON.stringify(planO2.profile.stops)}`);
+          failed++;
+    } else {
+          console.log("✅ Pure O2 dive handled correctly");
+          passed++;
+    }
+
+    // 6. Buhlmann Repetitive Nitrox Dive
+    // Dive 1: 40m 20min EAN32.
+    const dive1 = Planning.calculateBuhlmannPlan({
+        bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.68
+    });
+    // Interval: 60 min.
+    // Decay tensions. Surface PPN2 = 0.79 * 1 = 0.79.
+    const interval = 60;
+    const surfaceTensions = Planning.updateAllTensions(dive1.finalTensions, 0.79, interval);
+    
+    // Dive 2: 30m 20min EAN32.
+    const dive2 = Planning.calculateBuhlmannPlan({
+        bottomTime: 20, maxDepth: 30, gfLow: 30, gfHigh: 70, fN2: 0.68,
+        initialTensions: surfaceTensions
+    });
+    
+    // Compare with Air repetitive
+    const dive1Air = Planning.calculateBuhlmannPlan({
+        bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.79
+    });
+    const surfaceTensionsAir = Planning.updateAllTensions(dive1Air.finalTensions, 0.79, interval);
+    const dive2Air = Planning.calculateBuhlmannPlan({
+        bottomTime: 20, maxDepth: 30, gfLow: 30, gfHigh: 70, fN2: 0.79,
+        initialTensions: surfaceTensionsAir
+    });
+    
+    if (dive2.dtr >= dive2Air.dtr && dive2Air.dtr > 0) {
+        console.error(`❌ Repetitive Nitrox should be better than Air. Nx DTR: ${dive2.dtr}, Air DTR: ${dive2Air.dtr}`);
+        failed++;
+    } else {
+        console.log(`✅ Repetitive Nitrox verified (Nx DTR: ${dive2.dtr} < Air DTR: ${dive2Air.dtr})`);
+        passed++;
+    }
+}
+
 console.log(`\n-- - Finished-- - `);
 console.log(`Passed: ${passed}`);
 console.log(`Failed: ${failed}`);
