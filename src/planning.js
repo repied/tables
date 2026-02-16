@@ -113,7 +113,7 @@
         const surfaceTensions = Array(N_COMPARTMENTS).fill(depthToPN2(SURFACE_DEPTH, surfacePressure, SURFACE_AIR_PPN2))
 
         if (bottomTime <= 0 || maxDepth <= 0) {
-            return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions };
+            return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions, dtr: 0 };
         }
         // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
         let tensions = initialTensions ? [...initialTensions] : [...surfaceTensions]; // deep copy
@@ -225,7 +225,7 @@
         });
 
         // format output for the app
-        return { profile: { stops: stopsObj }, finalTensions: tensions };
+        return { profile: { stops: stopsObj }, finalTensions: tensions, dtr: Math.ceil(dtr) };
     }
     // --- END BUEHLMANN ---
 

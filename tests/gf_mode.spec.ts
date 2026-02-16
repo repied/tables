@@ -7,6 +7,9 @@ test('GF Mode Calculation', async ({ page }) => {
     });
     await page.goto('/');
 
+    // Wait for app initialization (data loading)
+    await page.waitForTimeout(1000);
+
     // Switch to GF Mode
     await page.click('label[for="mode-gf"]');
 

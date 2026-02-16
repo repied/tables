@@ -187,7 +187,7 @@ console.log("--- Starting Unit Tests ---\n");
 // Test 5: Buehlmann Simple Plan
 // 30m, 20min, GF 30/70, Air
 {
-    const plan = Planning.calculateBuehlmannPlan({
+    const plan = Planning.calculateBuhlmannPlan({
         bottomTime: 20,
         maxDepth: 30,
         gfLow: 30,
@@ -196,9 +196,17 @@ console.log("--- Starting Unit Tests ---\n");
     });
 
     assert(plan.dtr > 0, "Buehlmann plan has DTR");
-    assert(plan.stops, "Buehlmann plan has stops object");
+    assert(plan.profile.stops, "Buehlmann plan has stops object");
     // 30m 20min on Air usually requires no Deco or very little.
     // With GF 30/70 it might trigger something small or safety stop logic isn't explicit but algo runs.
+}
+
+
+// Tests against other calculators
+{
+    const profile = Planning.getMN90Profile(20, 50);
+    const dtr = Planning.calculateDTR(20, profile.profile.stops);
+    assertEqual(dtr, 6, "DTR should be 6 min");
 }
 
 console.log(`\n--- Finished ---`);
