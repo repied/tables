@@ -255,6 +255,84 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     check_successive_dive('D', 121, 12, 17);
 }
 
+{
+    console.log("Testing Corner Cases...");
+
+    // 1. Depth > Max Depth (65m for MN90)
+    // MN90 tables usually go up to 60m or 65m. If we check stop table, max is 65.
+    // If we request 70m, it should be out of table.
+    const profileDeep = Planning.getMN90Profile(70, 10);
+    // getMN90Profile returns { is_out_of_table: true }
+    if (profileDeep.is_out_of_table !== true) {
+        console.error("❌ Depth 70m should be out of table");
+        failed++;
+    } else {
+        console.log("✅ Depth 70m detected as out of table");
+        passed++;
+    }
+
+    // 2. Time > Max Time for Depth
+    // At 60m, max time is 55min.
+    const profileLong = Planning.getMN90Profile(60, 200);
+    if (profileLong.is_out_of_table !== true) {
+        console.error("❌ Time 200min at 60m should be out of table");
+        failed++;
+    } else {
+        console.log("✅ Time 200min at 60m detected as out of table");
+        passed++;
+    }
+
+    // 3. Surface Dive (Depth 0)
+    const profileSurface = Planning.getMN90Profile(0, 30);
+    if (profileSurface.is_surface_dive !== true) {
+        console.error("❌ Depth 0 should be surface dive");
+        failed++;
+    } else {
+        console.log("✅ Depth 0 detected as surface dive");
+        passed++;
+    }
+
+    // 4. Successive Dive - Interval too short (<15min)
+    const resultShort = Planning.calculateSuccessive('A', 10, 20);
+    if (resultShort.error !== "Interval too short (<15min)") { // Assuming this is the message
+        console.error(`❌ Interval < 15min should be error. Got: ${JSON.stringify(resultShort)}`);
+        failed++;
+    } else {
+        console.log("✅ Interval < 15min detected correctly");
+        passed++;
+    }
+
+    // 5. Successive Dive - Interval > 12h
+    const resultLong = Planning.calculateSuccessive('A', 721, 20);
+    if (resultLong.majoration !== 0 || resultLong.n2 !== 0) {
+        console.error(`❌ Interval > 12h should give 0 majoration/n2. Got: ${JSON.stringify(resultLong)}`);
+        failed++;
+    } else {
+        console.log("✅ Interval > 12h handled correctly");
+        passed++;
+    }
+
+    // 6. Successive Dive - Depth too deep for Majoration Table (>60m)
+    const resultDeepSucc = Planning.calculateSuccessive('A', 60, 65);
+    if (resultDeepSucc.error !== "Too deep for table") {
+        console.error(`❌ Depth 65m should be too deep for majoration table. Got: ${JSON.stringify(resultDeepSucc)}`);
+        failed++;
+    } else {
+        console.log("✅ Depth 65m detected as too deep for majoration table");
+        passed++;
+    }
+
+    // 7. Successive Dive - Invalid Group
+    const resultInvalidGroup = Planning.calculateSuccessive('Z', 60, 20);
+    if (resultInvalidGroup.error !== "Invalid Group") {
+        console.error(`❌ Group 'Z' should be invalid. Got: ${JSON.stringify(resultInvalidGroup)}`);
+        failed++;
+    } else {
+        console.log("✅ Group 'Z' detected as invalid");
+        passed++;
+    }
+}
+
 console.log(`\n-- - Finished-- - `);
 console.log(`Passed: ${passed}`);
 console.log(`Failed: ${failed}`);
