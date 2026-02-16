@@ -81,6 +81,7 @@
     }
 
     function simulAtDepth(depth, tensions, firstStopDepth, gfLow, gfHigh, surfacePressure) {
+        // simulate tensions at depth with given GF and check if any compartment exceeds its M-value
         const gf = getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh);
         const p = depthToPressure(depth, surfacePressure);
         let isSafe = true;
