@@ -13,7 +13,11 @@ First read ./README.md file. Remember that your are most likely developing in a 
 ### 2. Vanilla Web Development (No Framework)
 *   **Interactive SVG Gauges**:
     *   Using SVG `<path>` with `stroke-dasharray` and `stroke-dashoffset` to create fillable ring gauges.
-    *   Implementing custom touch/drag interactions using the **Pointer Events API** (`pointerdown`, `pointermove`, `setPointerCapture`) to control values.
+    *   **Advanced Input Handling**: Implementing a custom gesture system using **Pointer Events API** to distinguish between:
+        *   **Drag**: Continuous value adjustment (`pointermove`).
+        *   **Single Tap**: Opens a custom DOM-based dropdown for precise selection (debounced).
+        *   **Double Tap**: Resets value to default (detected via timestamp deltas).
+    *   **Custom UI Controls**: Dynamically creating/removing DOM elements for the value selection dropdown overlay (`document.createElement`, `scrollIntoView`).
 *   **State Management & Persistence**: 
     *   Managing app state in global variables with centralized `updateUI()`.
     *   Using `localStorage` to persist user preferences (language) and onboarding state (first-visit modal).
@@ -30,6 +34,7 @@ First read ./README.md file. Remember that your are most likely developing in a 
 
 ### 4. Testing & Debugging
 *   **Live Reload**: Using `npm run dev` (via `live-server`) for real-time UI updates.
+*   **Run All Tests**: `npm run test` executes both unit tests (`test:unit`) and E2E tests (`test:e2e`).
 *   **Service Worker Cache Bypass**: The `sw.js` is configured to bypass the cache on `localhost`/`127.0.0.1` to ensure `live-server` refreshes show the latest code changes.
 *   **Playwright E2E**:
     *   Writing tests to verify UI element visibility and initial state.

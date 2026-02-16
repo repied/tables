@@ -212,40 +212,170 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
     let startY = 0;
     let startValue = 0;
     let isDragging = false;
+    let hasMoved = false;
+
+    // Default value capture
+    const defaultValue = getValue();
+
+    // Interaction state
+    let lastTapTime = 0;
+    const DOUBLE_TAP_DELAY = 300; // ms
+    let singleTapTimer = null;
 
     gaugeElement.addEventListener('pointerdown', (e) => {
-        // console.log('pointerdown on', gaugeElement.id);
+        const currentTime = new Date().getTime();
+        const timeSinceLastTap = currentTime - lastTapTime;
+
+        // Double Tap Detection
+        if (timeSinceLastTap < DOUBLE_TAP_DELAY && timeSinceLastTap > 0) {
+            // It is a double tap
+            if (singleTapTimer) clearTimeout(singleTapTimer);
+
+            // Reset to default
+            setValue(defaultValue);
+            renderUI();
+
+            // Reset state
+            lastTapTime = 0;
+            isDragging = false;
+            e.preventDefault();
+            return;
+        }
+
+        // Potential start of single tap or drag
         isDragging = true;
+        hasMoved = false;
         startY = e.clientY;
         startValue = getValue();
+        lastTapTime = currentTime;
+
         gaugeElement.setPointerCapture(e.pointerId);
         gaugeElement.style.cursor = 'ns-resize';
     });
 
     gaugeElement.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
-        // console.log('pointermove', gaugeElement.id);
-        const deltaY = startY - e.clientY;
-        const change = Math.round(deltaY * sensitivity);
-        let newValue = startValue + change;
-        if (newValue < min) newValue = min;
-        if (newValue > max) newValue = max;
-        if (newValue !== getValue()) {
-            setValue(newValue);
-            renderUI();
+
+        // Threshold for drag detection
+        if (Math.abs(e.clientY - startY) > 5) {
+            hasMoved = true;
+            if (singleTapTimer) clearTimeout(singleTapTimer);
+        }
+
+        if (hasMoved) {
+            const deltaY = startY - e.clientY;
+            const change = Math.round(deltaY * sensitivity);
+            let newValue = startValue + change;
+            if (newValue < min) newValue = min;
+            if (newValue > max) newValue = max;
+            if (newValue !== getValue()) {
+                setValue(newValue);
+                renderUI();
+            }
         }
     });
 
     gaugeElement.addEventListener('pointerup', (e) => {
+        if (!isDragging) return; // double tap case
+
+        const pressDuration = new Date().getTime() - lastTapTime;
         isDragging = false;
         gaugeElement.style.cursor = 'default';
         gaugeElement.releasePointerCapture(e.pointerId);
+
+        if (!hasMoved && pressDuration < 300) {
+            // It was a short tap
+            // Schedule single tap action
+            singleTapTimer = setTimeout(() => {
+                showGaugeValueDropdown(gaugeElement, getValue(), setValue, min, max);
+            }, DOUBLE_TAP_DELAY);
+        }
     });
 
     gaugeElement.addEventListener('pointercancel', (e) => {
         isDragging = false;
+        hasMoved = false;
         gaugeElement.style.cursor = 'default';
+        if (singleTapTimer) clearTimeout(singleTapTimer);
     });
+}
+
+function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) {
+    // Remove existing if any
+    const existing = document.querySelector('.gauge-dropdown-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'gauge-dropdown-overlay';
+
+    const content = document.createElement('div');
+    content.className = 'gauge-dropdown-content';
+
+    // Header
+    const gaugeName = gaugeElement.id.replace('-gauge-container', '').replace(/-/g, ' ').toUpperCase();
+    const header = document.createElement('div');
+    header.className = 'gauge-dropdown-header';
+    header.innerHTML = `
+        <span style="flex-grow:1">${gaugeName}</span>
+        <span class="close-btn" style="cursor:pointer; font-size:1.5rem;">&times;</span>
+    `;
+    // Close button logic
+    header.querySelector('.close-btn').onclick = closeDropdown;
+
+    content.appendChild(header);
+
+    // List Container
+    const listContainer = document.createElement('div');
+    listContainer.style.overflowY = 'auto';
+    listContainer.style.flexGrow = '1';
+
+    // Step Logic
+    let step = 1;
+    if (max - min < 60 && (min % 1 !== 0 || max % 1 !== 0 || currentValue % 1 !== 0)) {
+        step = 0.5;
+    }
+
+    for (let val = min; val <= max; val += step) {
+        const item = document.createElement('div');
+        item.className = 'gauge-dropdown-item';
+        item.textContent = val;
+        if (Math.abs(val - currentValue) < 0.1) {
+            item.classList.add('selected');
+        }
+        item.onclick = () => {
+            setValue(val);
+            renderUI();
+            closeDropdown();
+        };
+        listContainer.appendChild(item);
+    }
+    content.appendChild(listContainer);
+
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+
+    // Scroll to selected
+    setTimeout(() => {
+        const selected = content.querySelector('.selected');
+        if (selected) {
+            selected.scrollIntoView({ block: 'center' });
+        }
+        overlay.classList.add('visible');
+    }, 10);
+
+    // Close on overlay click
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            closeDropdown();
+        }
+    };
+
+    function closeDropdown() {
+        overlay.classList.remove('visible');
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 200);
+    }
 }
 
 function formatTime(minutes) {
