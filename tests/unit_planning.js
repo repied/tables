@@ -628,6 +628,75 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     }
 }
 
+// Test 10: Advanced Gas Consumption
+{
+    console.log("Testing Advanced Gas Consumption...");
+    const SAC = 20; // L/min
+
+    // 1. No Stops, Simple ascent
+    // 20m, 10min.
+    // Bottom: 10 * 3bar * 20 = 600 L.
+    // Ascent: 20m to 0m at 15m/min = 1.333 min.
+    // Avg Pressure: (3+1)/2 = 2 bar.
+    // Ascent Gas: 1.333 * 2 * 20 = 53.33 L.
+    // Total: 653.33 -> 654 L.
+    const profileNoStops = { stops: {} };
+    const gasNoStops = Planning.calculateGasConsumption(20, 10, profileNoStops, SAC);
+    if (Math.abs(gasNoStops - 654) > 2) {
+        console.error(`❌ Simple ascent gas failed. Expected ~654, got ${gasNoStops}`);
+        failed++;
+    } else {
+        console.log(`✅ Simple ascent gas correct (${gasNoStops})`);
+        passed++;
+    }
+
+    // 2. With Stops
+    // 30m, Bottom time 20min.
+    // Fake Profile: Stop at 3m for 5min.
+    // Bottom: 20 * 4bar * 20 = 1600 L.
+    // Ascent 30 -> 3: 27m / 15m/min = 1.8 min.
+    // Avg P (30->3): (4 + 1.3)/2 = 2.65 bar.
+    // Gas Travel 1: 1.8 * 2.65 * 20 = 95.4 L.
+    // Stop 3m: 5min * 1.3bar * 20 = 130 L.
+    // Ascent 3 -> 0: 3m / 6m/min = 0.5 min.
+    // Avg P (3->0): (1.3 + 1)/2 = 1.15 bar.
+    // Gas Travel 2: 0.5 * 1.15 * 20 = 11.5 L.
+    // Total: 1600 + 95.4 + 130 + 11.5 = 1836.9 -> 1837 L.
+    const profileWithStops = { stops: { 3: 5 } };
+    const gasWithStops = Planning.calculateGasConsumption(30, 20, profileWithStops, SAC);
+    
+    // Allow small margin for floating point
+    if (Math.abs(gasWithStops - 1837) > 5) {
+        console.error(`❌ Gas with stops failed. Expected ~1837, got ${gasWithStops}`);
+        failed++;
+    } else {
+        console.log(`✅ Gas with stops correct (${gasWithStops})`);
+        passed++;
+    }
+
+    // 3. Nitrox Saving (Real Calculation)
+    // 35m 40min.
+    // Air: 35m 40min.
+    const d35 = 35; 
+    const t40 = 40;
+    const pAir35 = Planning.getMN90Profile(d35, t40);
+    const ead35 = Planning.calculateEquivalentAirDepth(d35, 32); // EAN32
+    const pNx35 = Planning.getMN90Profile(ead35, t40);
+    
+    const gAir = Planning.calculateGasConsumption(d35, t40, pAir35.profile, SAC);
+    const gNx = Planning.calculateGasConsumption(d35, t40, pNx35.profile, SAC);
+
+    if (gNx < gAir) {
+        console.log(`✅ Nitrox gas saving verified (Air: ${gAir} L, Nx: ${gNx} L)`);
+        passed++;
+    } else {
+        console.error(`❌ Nitrox gas should be less than Air. Air: ${gAir}, Nx: ${gNx}`);
+        console.log(`   Air stops: ${JSON.stringify(pAir35.profile.stops)}`);
+        console.log(`   Nx stops: ${JSON.stringify(pNx35.profile.stops)}`);
+        failed++;
+    }
+}
+
 console.log(`\n-- - Finished-- - `);
 console.log(`Passed: ${passed}`);
 console.log(`Failed: ${failed}`);
