@@ -330,10 +330,15 @@
     }
 
     // Nitrox Helpers
-    function calculateEAD(depth, o2) {
+    function calculateEquivalentAirDepth(depth, o2) {
         if (o2 <= 21) return depth;
         const fN2 = (100 - o2) / 100;
-        const ead = ((depth + 10) * fN2 / 0.79) - 10;
+        // Generalized EAD Formula:
+        // EAD = [ ( (P_surf + D/10) * fN2 / 0.79 ) - P_surf ] * 10
+        const pAmb = depthToPressure(depth, SURFACE_PRESSURE);
+        const pN2 = pAmb * fN2;
+        const pAmbEquiv = pN2 / 0.79;
+        const ead = (pAmbEquiv - SURFACE_PRESSURE) * 10;
         return Math.max(0, ead);
     }
 
@@ -424,7 +429,7 @@
         getMN90Profile,
         calculateGasConsumption,
         calculateDTR,
-        calculateEAD,
+        calculateEquivalentAirDepth,
         calculatePPO2,
         calculateSuccessive,
         calculateBuhlmannPlan,

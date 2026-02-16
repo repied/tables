@@ -180,7 +180,7 @@ console.log("--- Starting Unit Tests ---\n");
 // 40 * 0.68 / 0.79 = 34.43
 // 34.43 - 10 = 24.43 -> 24.4m
 {
-    const ead = Planning.calculateEAD(30, 32);
+    const ead = Planning.calculateEquivalentAirDepth(30, 32);
     assert(Math.abs(ead - 24.43) < 0.1, `EAD calculation for 30m 32% (got ${ead.toFixed(2)})`);
 }
 

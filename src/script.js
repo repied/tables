@@ -440,7 +440,7 @@ function renderUI() {
             fN2: (100 - gazO2pct) / 100
         });
     } else {
-        const ead1 = Planning.calculateEAD(dive1Depth, gazO2pct);
+        const ead1 = Planning.calculateEquivalentAirDepth(dive1Depth, gazO2pct);
         result1 = Planning.getMN90Profile(ead1, dive1Time);
     }
 
@@ -487,7 +487,7 @@ function renderUI() {
 
     } else {
         const prevGroup = (result1 && result1.profile && result1.profile.group) ? result1.profile.group : null;
-        const ead2 = Planning.calculateEAD(dive2Depth, gazO2pct);
+        const ead2 = Planning.calculateEquivalentAirDepth(dive2Depth, gazO2pct);
         const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
 
         currentMajoration = (succResult && !succResult.error) ? succResult.majoration : 0;
@@ -726,7 +726,7 @@ function calculatePPO2Tick(depth, o2Pct) {
 function calculateStopTicks(depth, o2Pct, majoration = 0) {
     if (isGFMode) return []; // Only MN90 for now
 
-    const ead = Planning.calculateEAD(depth, o2Pct);
+    const ead = Planning.calculateEquivalentAirDepth(depth, o2Pct);
 
     // Find stops in table
     // Iterate time entries to find when stops appear or change
