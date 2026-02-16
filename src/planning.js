@@ -123,6 +123,7 @@
         const _gfHigh = gfHigh > 1 ? gfHigh / 100 : gfHigh;
 
         let firstStopDepth = null;
+        let hasCompletedFirstStop = false;
 
         let stopsArr = [];
         let dtr = 0;
@@ -170,7 +171,10 @@
                 nextDepth = SURFACE_DEPTH;
             }
 
-            const t_ascend = (currentDepth - nextDepth) / ascentRate;
+            // Use slower ascent rate only after completing the first stop
+            // Ascent to first stop uses normal rate, ascent from first stop uses slower rate
+            const currentAscentRate = hasCompletedFirstStop ? ASCENT_RATE_FROM_FIRST_STOP : ascentRate;
+            const t_ascend = (currentDepth - nextDepth) / currentAscentRate;
             const depth_ascend = (nextDepth + currentDepth) / 2;
             const PN2_ascend = depthToPN2(depth_ascend, surfacePressure, gaz_fN2);
 
@@ -197,6 +201,10 @@
                     if (stopTime > MAX_STOP_TIME_BEFORE_INFTY) break;
                 }
                 stopsArr.push({ depth: currentDepth, time: stopTime });
+                // Mark that we've completed the first stop
+                if (!hasCompletedFirstStop && firstStopDepth === currentDepth) {
+                    hasCompletedFirstStop = true;
+                }
             }
 
             // Ascend
@@ -208,7 +216,9 @@
 
         // Final ascent to surface from last stop or if no stops
         if (currentDepth > 0) {
-            const t_final = currentDepth / ascentRate;
+            // Use slower ascent rate if we've completed stops
+            const finalAscentRate = hasCompletedFirstStop ? ASCENT_RATE_FROM_FIRST_STOP : ascentRate;
+            const t_final = currentDepth / finalAscentRate;
             const depth_final = currentDepth / 2;
             tensions = updateAllTensions(tensions, depthToPN2(depth_final, surfacePressure, gaz_fN2), t_final);
             dtr += t_final;
