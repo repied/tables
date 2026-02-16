@@ -1,4 +1,4 @@
-// Dives Parameters
+// Dives Parameters set in UI
 let dive1Depth = 40; // meters
 let dive1Time = 15; // minutes
 let dive2Depth = 40;
@@ -15,7 +15,6 @@ let currentGFLow = 85;
 let currentGFHigh = 85;
 
 // Successive Dive State
-let prevGroup = null;
 let surfaceInterval = 60 * 3; // minutes
 
 // Constants

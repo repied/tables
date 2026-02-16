@@ -439,6 +439,46 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     }
 }
 
+// Test 8: Consistency check between calculateBuhlmannPlan and calculateDTR
+{
+    console.log("Testing Consistency between calculateBuhlmannPlan and calculateDTR...");
+
+    function checkConsistency(depth, time, gfLow, gfHigh) {
+        const plan = Planning.calculateBuhlmannPlan({
+            bottomTime: time,
+            maxDepth: depth,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+            fN2: 0.79
+        });
+
+        const dtr_Buhlmann = plan.dtr;
+        const dtr_ceiled = Planning.calculateDTR(depth, plan.profile.stops);
+
+        if (dtr_Buhlmann > dtr_ceiled) {
+            console.error(`❌ Consistency check failed for ${depth}m ${time}min GF ${gfLow}/${gfHigh}. dtr_Buhlmann: ${dtr_Buhlmann} >  DTR ceiled: ${dtr_ceiled}`);
+            console.log(`Stops: ${JSON.stringify(plan.profile.stops)}`);
+            failed++;
+        } else {
+            let n_stops = Object.keys(plan.profile.stops).length;
+            if (dtr_Buhlmann < dtr_ceiled - 1 - n_stops) { // ceiling will be done for ascent rates  + one time per stop
+                console.error(`❌ Consistency check failed for ${depth}m ${time}min GF ${gfLow}/${gfHigh}. dtr_Buhlmann: ${dtr_Buhlmann} too small compared to DTR ceiled: ${dtr_ceiled}`);
+                failed++;
+            } else {
+                console.log(`✅ Consistency check passed for ${depth}m ${time}min GF ${gfLow}/${gfHigh}. dtr_Buhlmann: ${dtr_Buhlmann} <= DTR ceiled: ${dtr_ceiled}`);
+                passed++;
+            }
+        }
+    }
+
+    checkConsistency(30, 20, 30, 70);
+    checkConsistency(40, 20, 30, 70);
+    checkConsistency(50, 20, 30, 70);
+    checkConsistency(60, 30, 30, 70);
+    checkConsistency(100, 10, 30, 70);
+    checkConsistency(20, 100, 30, 70); // Long shallow dive
+}
+
 console.log(`\n-- - Finished-- - `);
 console.log(`Passed: ${passed}`);
 console.log(`Failed: ${failed}`);

@@ -1,6 +1,6 @@
 (function (window) {
 
-    // Constant dive parameters
+    // Dive parameters
     const SURFACE_DEPTH = 0; // meters
     const SURFACE_PRESSURE = 1; // bar TODO: change for altitude diving?
     const AIR_FN2 = 0.79; // fraction of N2 in AIR, ie 79% of the air is N2
@@ -14,7 +14,7 @@
     // --- BUEHLMANN ALGORITHM ---
     const BUEHLMANN_stopInterval = 3; // meters
     const BUEHLMANN_lastStopDepth = 3; // meters
-    const BUEHLMANN_timeStep = 10 / 60; // minutes: 10 seconds is good
+    const BUEHLMANN_timeStep = 1;//10 / 60; // minutes: 10 seconds is good
 
     const BUEHLMANN = [ // from Wikipedia
         { t12: 5.0, A: 1.1696, B: 0.5578 },
@@ -126,7 +126,7 @@
         let hasCompletedFirstStop = false;
 
         let stopsArr = [];
-        let dtr = 0;
+        let dtr_Buhlmann = 0; // will be a float, not ceiled, and will depend on simulation step
         let t_dive_total = 0;
 
         // 1. Descent
@@ -190,7 +190,7 @@
 
                 while (!isSafe) {
                     stopTime += timeStep;
-                    dtr += timeStep;
+                    dtr_Buhlmann += timeStep;
                     t_dive_total += timeStep;
                     tensions = updateAllTensions(tensions, PN2_stop, timeStep);
 
@@ -210,7 +210,7 @@
             // Ascend
             currentDepth = nextDepth;
             tensions = updateAllTensions(tensions, PN2_ascend, t_ascend);
-            dtr += t_ascend;
+            dtr_Buhlmann += t_ascend;
             t_dive_total += t_ascend;
         }
 
@@ -221,7 +221,7 @@
             const t_final = currentDepth / finalAscentRate;
             const depth_final = currentDepth / 2;
             tensions = updateAllTensions(tensions, depthToPN2(depth_final, surfacePressure, gaz_fN2), t_final);
-            dtr += t_final;
+            dtr_Buhlmann += t_final;
             currentDepth = 0;
         }
 
@@ -233,9 +233,8 @@
             if (stopsObj[d]) stopsObj[d] += t;
             else stopsObj[d] = t;
         });
-
         // format output for the app
-        return { profile: { stops: stopsObj }, finalTensions: tensions, dtr: Math.ceil(dtr) };
+        return { profile: { stops: stopsObj }, finalTensions: tensions, dtr: dtr_Buhlmann };
     }
     // --- END BUEHLMANN ---
 
@@ -309,24 +308,24 @@
         return Math.ceil(bottomGas + ascentGas);
     }
 
-    function calculateDTR(depth, stops) {
-        let dtr = 0;
+    function calculateDTR(depth, stops) { // Use ceiling for stops and ascent times (safer)
+        let dtr_ceil = 0;
         const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
         let hasStops = stopDepths.length > 0;
         let totalStopTime = 0;
-        for (let d in stops) totalStopTime += stops[d];
+        for (let d in stops) totalStopTime += Math.ceil(stops[d]);
 
         if (!hasStops) {
             const ascentTime = depth / ASCENT_RATE;
-            dtr = Math.ceil(ascentTime);
+            dtr_ceil = Math.ceil(ascentTime);
         } else {
             const firstStopDepth = stopDepths[0];
             const ascentToFirst = (depth - firstStopDepth) / ASCENT_RATE;
             const ascentFromFirst = firstStopDepth / ASCENT_RATE_FROM_FIRST_STOP;
-            const totalAscentAndStops = ascentToFirst + totalStopTime + ascentFromFirst;
-            dtr = Math.ceil(totalAscentAndStops);
+            // dtr_ceil = Math.ceil(ascentToFirst) + totalStopTime + Math.ceil(ascentFromFirst);
+            dtr_ceil = Math.ceil(ascentToFirst + totalStopTime + ascentFromFirst);
         }
-        return dtr;
+        return dtr_ceil;
     }
 
     // Nitrox Helpers
