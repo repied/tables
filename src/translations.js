@@ -56,7 +56,7 @@ window.translations = {
         usage1: "Use the circular gauges to set 2 successive dives.",
         usage2: "Duration = descent time + time at depth. Depth = depth at the bottom.",
         usage3: "Switch between <strong>MN90</strong> (Tables) and <strong>GF</strong> (Bühlmann ZHL-16C) mode.",
-        usage4: "The application calculates the Time TO Surface (TTS) and the remaining tank pressure (RESERVE) at the end of each dive.",
+        usage4: "The application calculates the Time To Surface (TTS) and the remaining tank pressure (RESERVE) at the end of each dive.",
         usage5: "The Pressure Group (PG, in <strong>MN90</strong> mode) or the residual supersaturation of the compartments (in <strong>GF</strong> mode) is used for the second dive.",
         usage6: "The reserve is displayed in red if it is lower than 50 bars.",
         usage7: "A warning is displayed for Nitrox if ppO2 becomes too high (orange if > 1.5 bar)",
