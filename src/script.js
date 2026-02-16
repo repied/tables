@@ -20,7 +20,7 @@ let surfaceInterval = 60 * 3; // minutes
 
 // Constants
 const MAX_DEPTH = 65;
-const MIN_DEPTH = 0;
+const MIN_DEPTH = 1; // do not put 0, makes no sense
 const MAX_TIME = 60 * 2;
 const MIN_TIME = 0;
 
@@ -120,7 +120,7 @@ async function init() {
             currentLang = langToggle.checked ? 'en' : 'fr';
             localStorage.setItem('selectedLang', currentLang);
             translateUI();
-            updateUI();
+            renderUI();
         });
     }
     translateUI();
@@ -170,7 +170,7 @@ function initGauges() {
         intervalProgress.style.strokeDashoffset = length;
     }
 
-    updateUI();
+    renderUI();
 }
 
 function setupInteractions() {
@@ -189,11 +189,11 @@ function setupInteractions() {
     if (mn90Toggle && gfToggle) {
         mn90Toggle.addEventListener('change', () => {
             isGFMode = false;
-            updateUI();
+            renderUI();
         });
         gfToggle.addEventListener('change', () => {
             isGFMode = true;
-            updateUI();
+            renderUI();
         });
     }
 
@@ -208,7 +208,6 @@ function setupInteractions() {
 }
 
 
-// Interaction Logic
 function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5) {
     let startY = 0;
     let startValue = 0;
@@ -233,7 +232,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
         if (newValue > max) newValue = max;
         if (newValue !== getValue()) {
             setValue(newValue);
-            updateUI();
+            renderUI();
         }
     });
 
@@ -249,26 +248,162 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
     });
 }
 
-// Formatting
 function formatTime(minutes) {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     return `${h}:${m.toString().padStart(2, '0')}`;
 }
 
-// Helper to render stops
+function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
+    const progressId = `${type}-progress${suffix}`;
+    const displayId = `${type}-display${suffix}`;
+
+    const progressEl = document.getElementById(progressId);
+    if (progressEl) {
+        const length = progressEl.getTotalLength();
+        progressEl.style.strokeDashoffset = length * (1 - Math.min(value / max, 1));
+    }
+
+    const displayEl = document.getElementById(displayId);
+    if (displayEl) {
+        displayEl.textContent = isTime ? formatTime(value) : value;
+    }
+}
+
+function renderUI() {
+    document.body.classList.toggle('gf-mode', isGFMode);
+
+    // Common Calcs
+    const length = timeProgress ? timeProgress.getTotalLength() : 0;
+
+    // --- DIVE 1 UI ---
+    updateGaugeVisuals('time', dive1Time, MAX_TIME, true);
+    updateGaugeVisuals('depth', dive1Depth, MAX_DEPTH);
+    updateGaugeVisuals('pressure', initTankPressure, MAX_TANK_PRESSURE);
+    updateGaugeVisuals('sac', sac, MAX_SAC);
+    updateGaugeVisuals('volume', tankVolume, MAX_TANK_VOLUME);
+    updateGaugeVisuals('o2', gazO2pct, MAX_O2_pct);
+
+    if (gfLowDisplay) {
+        gfLowDisplay.textContent = currentGFLow;
+        gfHighDisplay.textContent = currentGFHigh;
+        if (gfLowProgress) gfLowProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFLow / 100, 1));
+        if (gfHighProgress) gfHighProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFHigh / 100, 1));
+    }
+
+    // --- DIVE 1 CALCULATION ---
+    const ppo2_1 = Planning.calculatePPO2(dive1Depth, gazO2pct);
+    const ppo2Ticks = calculatePPO2Tick(dive1Depth, gazO2pct);
+
+    updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
+    if (depthGauge2) updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
+
+    const timeTicks1 = calculateStopTicks(dive1Depth, gazO2pct, 0);
+    updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
+
+    let result1;
+    if (isGFMode) {
+        result1 = Planning.calculateBuhlmannPlan({
+            bottomTime: dive1Time, maxDepth: dive1Depth,
+            gfLow: currentGFLow, gfHigh: currentGFHigh,
+            fN2: (100 - gazO2pct) / 100
+        });
+    } else {
+        const ead1 = Planning.calculateEAD(dive1Depth, gazO2pct);
+        result1 = Planning.getMN90Profile(ead1, dive1Time);
+    }
+
+    renderStops(result1, stopsDisplay);
+
+    if (gpsDisplay1) {
+        if (result1 && result1.profile && result1.profile.group && result1.profile.group !== 'GF_GPS') {
+            gpsDisplay1.innerHTML = `<div class="gps-badge">${window.translations[currentLang].gps} ${result1.profile.group}</div>`;
+            gpsDisplay1.style.visibility = 'visible';
+        } else {
+            gpsDisplay1.innerHTML = '';
+            gpsDisplay1.style.visibility = 'hidden';
+        }
+    }
+
+    renderDiveDetails(diveDetails, result1, dive1Depth, dive1Time, initTankPressure, ppo2_1);
+
+
+    // --- DIVE 2 UI ---
+    if (successiveHeaderText) successiveHeaderText.textContent = window.translations[currentLang].secondDive;
+
+
+    let result2, currentMajoration = 0;
+    if (isGFMode) {
+        // Tension evolution
+        let finalTensions1 = result1 ? result1.finalTensions : null;
+        const sursaturationBeforePct = finalTensions1 ? 100 * (Math.max(...finalTensions1) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
+        let currentTensions = finalTensions1;
+        if (currentTensions) {
+            const surfacePN2 = Planning.depthToPN2(0, Planning.SURFACE_PRESSURE, Planning.AIR_FN2);
+            currentTensions = Planning.updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
+        }
+        const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
+
+        if (majorationDisplay) {
+            const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;
+            majorationDisplay.innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
+        }
+
+        result2 = Planning.calculateBuhlmannPlan({
+            bottomTime: dive2Time, maxDepth: dive2Depth,
+            gfLow: currentGFLow, gfHigh: currentGFHigh,
+            fN2: (100 - gazO2pct) / 100,
+            initialTensions: currentTensions
+        });
+
+    } else {
+        const prevGroup = (result1 && result1.profile && result1.profile.group) ? result1.profile.group : null;
+        const ead2 = Planning.calculateEAD(dive2Depth, gazO2pct);
+        const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
+
+        currentMajoration = (succResult && !succResult.error) ? succResult.majoration : 0;
+        const effectiveTime2 = dive2Time + currentMajoration;
+        result2 = Planning.getMN90Profile(ead2, effectiveTime2);
+
+        if (majorationDisplay) {
+            let majText = "Error";
+            if (succResult && !succResult.error) {
+                majText = `+${currentMajoration} min`;
+                majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
+            } else if (succResult && succResult.error) {
+                majText = window.translations[currentLang].secondDiveNotAuthorized;
+                majorationDisplay.textContent = `${majText} `;
+                result2.second_dive_not_authorized = true;
+            }
+        }
+    }
+
+    if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
+    if (intervalProgress) intervalProgress.style.strokeDashoffset = length * (1 - Math.min(surfaceInterval / MAX_INTERVAL, 1));
+
+    updateGaugeVisuals('time', dive2Time, MAX_TIME, true, '-2');
+    updateGaugeVisuals('depth', dive2Depth, MAX_DEPTH, false, '-2');
+
+    const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
+    const timeTicks2 = calculateStopTicks(dive2Depth, gazO2pct, currentMajoration);
+    if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
+
+    renderStops(result2, stopsDisplay2);
+    renderDiveDetails(diveDetails2, result2, dive2Depth, dive2Time, initTankPressure, ppo2_2);
+}
+
+
+
 function renderStops(result, containerElement) {
     containerElement.innerHTML = '';
     const trans = window.translations;
 
-
-    if (result.out_of_table) {
+    if (result.is_out_of_table || result.is_surface_dive) {
         containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].outOfTable}</div>`;
         return;
     }
-
-    if (result.note === "Surface") {
-        containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].surface}</div>`;
+    if (result.second_dive_not_authorized) {
+        container.innerHTML = '';
         return;
     }
 
@@ -316,163 +451,17 @@ function renderStops(result, containerElement) {
     });
 }
 
-// Update UI
-function updateUI() {
-    document.body.classList.toggle('gf-mode', isGFMode);
 
-    // Common Calcs
-    const length = timeProgress ? timeProgress.getTotalLength() : 0;
-
-    // --- DIVE 1 UI ---
-    updateGaugeVisuals('time', dive1Time, MAX_TIME, true);
-    updateGaugeVisuals('depth', dive1Depth, MAX_DEPTH);
-    updateGaugeVisuals('pressure', initTankPressure, MAX_TANK_PRESSURE);
-    updateGaugeVisuals('sac', sac, MAX_SAC);
-    updateGaugeVisuals('volume', tankVolume, MAX_TANK_VOLUME);
-    updateGaugeVisuals('o2', gazO2pct, MAX_O2_pct);
-
-    if (gfLowDisplay) {
-        gfLowDisplay.textContent = currentGFLow;
-        gfHighDisplay.textContent = currentGFHigh;
-        if (gfLowProgress) gfLowProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFLow / 100, 1));
-        if (gfHighProgress) gfHighProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFHigh / 100, 1));
-    }
-
-    // --- DIVE 1 CALCULATION ---
-    const ppo2_1 = Planning.calculatePPO2(dive1Depth, gazO2pct);
-    const ppo2Ticks = calculatePPO2Tick(dive1Depth, gazO2pct);
-
-    updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
-    if (depthGauge2) updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
-
-    const timeTicks1 = calculateStopTicks(dive1Depth, gazO2pct, 0);
-    updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
-
-    let result1, finalTensions1;
-    if (isGFMode) {
-        const res = Planning.calculateBuehlmannPlan({
-            bottomTime: dive1Time, maxDepth: dive1Depth,
-            gfLow: currentGFLow, gfHigh: currentGFHigh,
-            fN2: (100 - gazO2pct) / 100
-        });
-        result1 = { profile: { stops: res.stops, group: 'GF_GPS' }, note: '' };
-        finalTensions1 = res.finalTensions;
-    } else {
-        const ead1 = Planning.calculateEAD(dive1Depth, gazO2pct);
-        result1 = Planning.getMN90Profile(ead1, dive1Time);
-    }
-
-    renderStops(result1, stopsDisplay);
-
-    if (gpsDisplay1) {
-        if (result1 && result1.profile && result1.profile.group && result1.profile.group !== 'GF_GPS') {
-            gpsDisplay1.innerHTML = `<div class="gps-badge">${window.translations[currentLang].gps} ${result1.profile.group}</div>`;
-            gpsDisplay1.style.visibility = 'visible';
-        } else {
-            gpsDisplay1.innerHTML = '';
-            gpsDisplay1.style.visibility = 'hidden';
-        }
-    }
-
-    renderDiveDetails(diveDetails, result1, dive1Depth, dive1Time, initTankPressure, ppo2_1, false);
-
-
-    // --- DIVE 2 UI ---
-    if (successiveHeaderText) successiveHeaderText.textContent = window.translations[currentLang].secondDive;
-
-    // Determine previous group / state
-    let prevGroup = (result1 && result1.profile && result1.profile.group) ? result1.profile.group : null;
-
-    let result2, currentMajoration = 0;
-
-    if (isGFMode) {
-        // Tension evolution
-        const sursaturationBeforePct = finalTensions1 ? 100 * (Math.max(...finalTensions1) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
-        let currentTensions = finalTensions1;
-        if (currentTensions) {
-            const surfacePN2 = Planning.depthToPN2(0, Planning.SURFACE_PRESSURE, Planning.AIR_FN2);
-            currentTensions = Planning.updateAllTensions(currentTensions, surfacePN2, surfaceInterval);
-        }
-        const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - Planning.AIR_FN2) / Planning.AIR_FN2 : 0;
-
-        if (majorationDisplay) {
-            const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;
-            majorationDisplay.innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
-        }
-
-        const res_bu_2 = Planning.calculateBuehlmannPlan({
-            bottomTime: dive2Time, maxDepth: dive2Depth,
-            gfLow: currentGFLow, gfHigh: currentGFHigh,
-            fN2: (100 - gazO2pct) / 100,
-            initialTensions: currentTensions
-        });
-        result2 = { profile: { stops: res_bu_2.stops, group: '-' }, note: '' };
-
-    } else {
-        const ead2 = Planning.calculateEAD(dive2Depth, gazO2pct);
-        const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
-
-        currentMajoration = (succResult && !succResult.error) ? succResult.majoration : 0;
-
-        if (majorationDisplay) {
-            let majText = "Err";
-            if (succResult && !succResult.error) {
-                majText = `+${currentMajoration} min (${window.translations[currentLang].gps} ${prevGroup})`;
-            } else if (succResult && succResult.error) {
-                majText = window.translations[currentLang].secondDiveNotAuthorized;
-            }
-            majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
-        }
-
-        const effectiveTime2 = dive2Time + currentMajoration;
-        result2 = Planning.getMN90Profile(ead2, effectiveTime2);
-    }
-
-    if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
-    if (intervalProgress) intervalProgress.style.strokeDashoffset = length * (1 - Math.min(surfaceInterval / MAX_INTERVAL, 1));
-
-    updateGaugeVisuals('time', dive2Time, 60, true, '-2');
-    updateGaugeVisuals('depth', dive2Depth, MAX_DEPTH, false, '-2');
-
-    const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
-    const timeTicks2 = calculateStopTicks(dive2Depth, gazO2pct, currentMajoration);
-    if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
-
-    renderStops(result2, stopsDisplay2);
-    renderDiveDetails(diveDetails2, result2, dive2Depth, dive2Time, initTankPressure, ppo2_2, true);
-}
-
-function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
-    const progressId = `${type}-progress${suffix}`;
-    const displayId = `${type}-display${suffix}`;
-
-    const progressEl = document.getElementById(progressId);
-    if (progressEl) {
-        const length = progressEl.getTotalLength();
-        progressEl.style.strokeDashoffset = length * (1 - Math.min(value / max, 1));
-    }
-
-    const displayEl = document.getElementById(displayId);
-    if (displayEl) {
-        displayEl.textContent = isTime ? formatTime(value) : value;
-    }
-}
-
-function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, isSecondDive) {
+function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) {
     if (!container) return;
     container.innerHTML = '';
     const trans = window.translations;
 
-    if (result.out_of_table) {
-        container.innerHTML = '';
-        return;
-    }
-    if (result.note === "Surface") {
+    if (result.is_out_of_table || result.is_surface_dive || result.second_dive_not_authorized) {
         container.innerHTML = '';
         return;
     }
 
-    const gps = result.profile.group;
     const dtr = Planning.calculateDTR(diveDepth, result.profile.stops);
     const dtrFormatted = formatTime(dtr);
 
@@ -484,8 +473,6 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
     const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
 
     let nitroxHtml = `<div class="result-box important nitroxBox"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
-
-
     container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
 
     if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
@@ -495,7 +482,6 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2, 
     if (ppo2 > PPO2_THRESHOLD_ORANGE) {
         const rb = container.querySelector('.nitroxBox');
         if (rb) rb.style.backgroundColor = '#ff9800';
-        // container.querySelectorAll('.result-box.important').forEach(el => el.style.borderColor = '#ff9800');
     }
 }
 

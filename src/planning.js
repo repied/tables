@@ -95,7 +95,7 @@
         return { isSafe, satsCompIdx };
     }
 
-    function calculateBuehlmannPlan(diveParams) {
+    function calculateBuhlmannPlan(diveParams) {
         const {
             bottomTime,
             maxDepth,
@@ -113,7 +113,7 @@
         const surfaceTensions = Array(N_COMPARTMENTS).fill(depthToPN2(SURFACE_DEPTH, surfacePressure, SURFACE_AIR_PPN2))
 
         if (bottomTime <= 0 || maxDepth <= 0) {
-            return { dtr: 0, stops: {}, finalTensions: initialTensions || surfaceTensions };
+            return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions };
         }
         // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
         let tensions = initialTensions ? [...initialTensions] : [...surfaceTensions]; // deep copy
@@ -224,11 +224,8 @@
             else stopsObj[d] = t;
         });
 
-        return {
-            dtr: Math.ceil(dtr),
-            stops: stopsObj,
-            finalTensions: tensions
-        };
+        // format output for the app
+        return { profile: { stops: stopsObj }, finalTensions: tensions };
     }
     // --- END BUEHLMANN ---
 
@@ -241,14 +238,14 @@
         if (!targetDepth && depth > 0) {
             // Check if deeper than max table depth
             if (depth > tableDepths[tableDepths.length - 1]) {
-                return { out_of_table: "too deep" };
+                return { is_out_of_table: true };
             }
             // If here, depth is within range but maybe not found? Should not happen with logic above.
             console.log("WEIRD: Depth is within range but maybe not found?", depth, tableDepths);
         }
 
-        if (depth <= 0) return { stops: {}, note: "Surface" };
-        if (!targetDepth) return { out_of_table: "Out of table" };
+        if (depth <= 0) return { stops: {}, is_surface_dive: true };
+        if (!targetDepth) return { is_out_of_table: true };
 
         const profiles = MN90[targetDepth];
 
@@ -256,7 +253,7 @@
         let profile = profiles.find(p => p.time >= time);
 
         if (!profile) {
-            return { out_of_table: "too long" };
+            return { is_out_of_table: true };
         }
 
         return {
@@ -420,7 +417,7 @@
         calculateEAD,
         calculatePPO2,
         calculateSuccessive,
-        calculateBuehlmannPlan,
+        calculateBuhlmannPlan,
         depthToPN2,
         updateAllTensions
     };
