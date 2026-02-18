@@ -314,7 +314,8 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
     // Header
     const baseKey = gaugeElement.id.replace('-gauge-container', '').replace('-2', '');
     const trans = window.translations?.[currentLang];
-    const gaugeName = (trans?.[baseKey] || baseKey.replace(/-/g, ' ')).toUpperCase();
+    const titleKey = `${baseKey}-title`;
+    const gaugeName = (trans?.[titleKey] || trans?.[baseKey] || baseKey.replace(/-/g, ' ')).toUpperCase();
     const header = document.createElement('div');
     header.className = 'gauge-dropdown-header';
     header.innerHTML = `
