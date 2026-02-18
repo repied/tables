@@ -1,6 +1,6 @@
 // Dives Parameters set in UI
-let dive1Depth = 40; // meters
-let dive1Time = 15; // minutes
+let dive1Depth = 40; // meters, bottom depth of the "square" dive
+let dive1Time = 15; // minutes, diveTime = time for descent + time at bottom depth
 let dive2Depth = 40;
 let dive2Time = 15;
 
@@ -17,12 +17,15 @@ let currentGFHigh = 85;
 // Successive Dive State
 let surfaceInterval = 60 * 3; // minutes
 
-// Constants
+// App Constant values
+const RESERVE_PRESSURE_THRESHOLD = 50; // bar
+const PPO2_THRESHOLD_ORANGE = 1.5; // Maximum safe ppO2 (update translations if you change it)
+
+// Gauge definitions
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 1; // do not put 0, makes no sense
 const MAX_TIME = 60 * 2;
 const MIN_TIME = 0;
-
 const MAX_TANK_PRESSURE = 300;
 const MIN_TANK_PRESSURE = 50;
 const MAX_SAC = 40;
@@ -35,8 +38,6 @@ const MAX_GF_pct = 100;
 const MIN_GF_pct = 10;
 const MAX_INTERVAL = 60 * 12; // after 12 hours MN90 assumes a fresh dive
 const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
-const RESERVE_PRESSURE_THRESHOLD = 50; // bar
-const PPO2_THRESHOLD_ORANGE = 1.5; // Maximum safe ppO2 (update translations if you change it)
 
 // Language State
 let currentLang = localStorage.getItem('selectedLang') || 'fr';

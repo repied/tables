@@ -155,7 +155,7 @@ console.log("--- Starting Unit Tests ---\n");
     const profile = Planning.getMN90Profile(20, 50);
     const sac = 20;
     const gas = Planning.calculateGasConsumption(20, 50, profile.profile, sac);
-    const expected = 3145;
+    const expected = 3170;
     assert(Math.abs(gas - expected) <= 5, `Gas consumption close to ${expected} (got ${gas})`);
 }
 
@@ -644,8 +644,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Total: 40 + 540 + 53.33 = 633.33 -> 634 L.
     const profileNoStops = { stops: {} };
     const gasNoStops = Planning.calculateGasConsumption(20, 10, profileNoStops, SAC);
-    if (Math.abs(gasNoStops - 634) > 2) {
-        console.error(`❌ Simple ascent gas failed. Expected ~634, got ${gasNoStops}`);
+    if (Math.abs(gasNoStops - 639) > 2) {
+        console.error(`❌ Simple ascent gas failed. Expected ~639, got ${gasNoStops}`);
         failed++;
     } else {
         console.log(`✅ Simple ascent gas correct (${gasNoStops})`);
@@ -669,8 +669,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     const gasWithStops = Planning.calculateGasConsumption(30, 20, profileWithStops, SAC);
 
     // Allow small margin for floating point
-    if (Math.abs(gasWithStops - 1792) > 5) {
-        console.error(`❌ Gas with stops failed. Expected ~1792, got ${gasWithStops}`);
+    if (Math.abs(gasWithStops - 1806) > 5) {
+        console.error(`❌ Gas with stops failed. Expected ~1806, got ${gasWithStops}`);
         failed++;
     } else {
         console.log(`✅ Gas with stops correct (${gasWithStops})`);

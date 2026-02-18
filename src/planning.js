@@ -1,8 +1,12 @@
 (function (window) {
 
     // Dive parameters
-    const SURFACE_DEPTH = 0; // meters
-    const SURFACE_PRESSURE = 1; // bar TODO: change for altitude diving?
+    const SURFACE_DEPTH = 0; // meters (not really useful to use a variable as it’s always 0)
+    const SURFACE_PRESSURE = 1.01325; // bar at sea level
+    const FRESHWATER_DENSITY = 1000; // kg/m^3
+    const SEAWATER_DENSITY = 1025; // kg/m^3
+    const WATER_DENSITY = SEAWATER_DENSITY; // default to seawater, can be changed if needed
+    const GRAVITY = 9.80665; // m/s^2
     const AIR_FN2 = 0.79; // fraction of N2 in AIR, ie 79% of the air is N2
     const SURFACE_AIR_PPN2 = AIR_FN2 * SURFACE_PRESSURE; // partial pressure of N2 at surface (bar)
     const DESCENT_RATE = 20; // m/min 20m/min is recommended
@@ -16,7 +20,7 @@
     const BUEHLMANN_lastStopDepth = 3; // meters
     const BUEHLMANN_timeStep = 10 / 60; // minutes: 10 seconds is good
 
-    const BUEHLMANN = [ // from Wikipedia
+    const BUEHLMANN = [ // from Wikipedia and Subsurface https://github.com/torvalds/subsurface-for-dirk/blob/724527bc3b660a9d54aab8e4dff50430450f1643/core/deco.c#L84
         { t12: 5.0, A: 1.1696, B: 0.5578 },
         { t12: 8.0, A: 1.0, B: 0.6514 },
         { t12: 12.5, A: 0.8618, B: 0.7222 },
@@ -41,7 +45,7 @@
     const MAX_STOP_TIME_BEFORE_INFTY = 720;
 
     function depthToPressure(depth, surfacePressure) {
-        return surfacePressure + depth / 10;
+        return surfacePressure + depth * WATER_DENSITY * GRAVITY / 100_000; // convert Pa to bar
     }
 
     function depthToPN2(depth, surfacePressure, fN2) {
@@ -341,11 +345,11 @@
         if (o2 <= 21) return depth;
         const fN2 = (100 - o2) / 100;
         // Generalized EAD Formula:
-        // EAD = [ ( (P_surf + D/10) * fN2 / 0.79 ) - P_surf ] * 10
+        // EAD = [ ( (P_surf + P_hydro) * fN2 / 0.79 ) - P_surf ] * 10^5 / (density * g)
         const pAmb = depthToPressure(depth, SURFACE_PRESSURE);
         const pN2 = pAmb * fN2;
         const pAmbEquiv = pN2 / 0.79;
-        const ead = (pAmbEquiv - SURFACE_PRESSURE) * 10;
+        const ead = (pAmbEquiv - SURFACE_PRESSURE) * 100_000 / (WATER_DENSITY * GRAVITY);
         return Math.max(0, ead);
     }
 
