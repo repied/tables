@@ -1,8 +1,6 @@
 # `Tables`
 A free and open source [Progressive Web App](https://en.wikipedia.org/wiki/Progressive_web_app) for planning non-technical dives using either **French Navy MN90 tables** or **Bühlmann ZHL-16C with Gradient Factors**.
 
-[![Buy Me a Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=repied&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/repied)
-
 # Usage
 - Visit [https://repied.github.io/tables](https://repied.github.io/tables). 
 - Toggle between MN90 and GF modes. 
@@ -24,3 +22,9 @@ Can be installed on mobile/laptop/desktop and used offline. Direct installation 
 - Install dependencies locally `npm install && npx playwright install` or use [devcontainer](https://containers.dev/) or GitHub Codespace.
 - Start server: `npm run dev` and http://127.0.0.1:5500 live refreshes.
 - Run tests: `npm test`.
+
+# Donations
+
+Donations welcomed to support development costs.
+
+[![Buy Me a Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=repied&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/repied)
