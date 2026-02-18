@@ -800,6 +800,15 @@ input:checked+.slider:before {
     color: #ddd;
 }
 
+.modal-content a {
+    color: #64b5f6;
+    text-decoration: underline;
+}
+
+.modal-content a:hover {
+    color: #90caf9;
+}
+
 .modal p {
     line-height: 1.6;
     font-size: 0.95rem;
