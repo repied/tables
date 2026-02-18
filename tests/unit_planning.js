@@ -697,6 +697,38 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     }
 }
 
+// Test 11: getFirstStopDepth Accuracy
+{
+    console.log("Testing getFirstStopDepth Accuracy...");
+
+    function checkFirstStop(depth, time, gfLow, gfHigh) {
+        const params = {
+            bottomTime: time,
+            maxDepth: depth,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+            fN2: 0.79
+        };
+        const plan = Planning.calculateBuhlmannPlan(params);
+        const firstStopFull = Object.keys(plan.profile.stops).length > 0 ? Math.max(...Object.keys(plan.profile.stops).map(Number)) : 0;
+        const firstStopFast = Planning.getFirstStopDepth(params);
+
+        if (firstStopFull !== firstStopFast) {
+            console.error(`❌ getFirstStopDepth mismatch for ${depth}m ${time}min GF ${gfLow}/${gfHigh}. Full: ${firstStopFull}, Fast: ${firstStopFast}`);
+            failed++;
+        } else {
+            console.log(`✅ getFirstStopDepth match for ${depth}m ${time}min GF ${gfLow}/${gfHigh}: ${firstStopFast}m`);
+            passed++;
+        }
+    }
+
+    checkFirstStop(30, 20, 30, 70);
+    checkFirstStop(40, 20, 30, 70);
+    checkFirstStop(50, 20, 30, 70);
+    checkFirstStop(60, 30, 30, 70);
+    checkFirstStop(20, 100, 30, 70);
+}
+
 console.log(`\n-- - Finished-- - `);
 console.log(`Passed: ${passed}`);
 console.log(`Failed: ${failed}`);

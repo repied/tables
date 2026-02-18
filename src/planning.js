@@ -421,6 +421,78 @@
         };
     }
 
+    function getFirstStopDepth(diveParams) {
+        const {
+            bottomTime,
+            maxDepth,
+            gfLow,
+            gfHigh,
+            surfacePressure = SURFACE_PRESSURE,
+            stopInterval = BUEHLMANN_stopInterval,
+            lastStopDepth = BUEHLMANN_lastStopDepth,
+            timeStep = BUEHLMANN_timeStep,
+            fN2: gaz_fN2,
+            initialTensions,
+            ascentRate = ASCENT_RATE,
+            descentRate = DESCENT_RATE
+        } = diveParams;
+
+        const surfaceTensions = Array(N_COMPARTMENTS).fill(SURFACE_AIR_PPN2);
+        let tensions = initialTensions ? [...initialTensions] : [...surfaceTensions];
+
+        const _gfLow = gfLow > 1 ? gfLow / 100 : gfLow;
+        const _gfHigh = gfHigh > 1 ? gfHigh / 100 : gfHigh;
+
+        // 1. Descent (consistent with calculateBuhlmannPlan)
+        let currentDepth = 0;
+        let nextDepth = currentDepth + descentRate * timeStep;
+        while (nextDepth < maxDepth) {
+            const depthStep = (currentDepth + nextDepth) / 2;
+            const PN2Step = depthToPN2(depthStep, surfacePressure, gaz_fN2);
+            tensions = updateAllTensions(tensions, PN2Step, timeStep);
+            currentDepth = nextDepth;
+            nextDepth = currentDepth + descentRate * timeStep;
+        }
+        let t_last = (maxDepth - currentDepth) / descentRate;
+        if (t_last > 0) {
+            tensions = updateAllTensions(tensions, depthToPN2((currentDepth + maxDepth) / 2, surfacePressure, gaz_fN2), t_last);
+            currentDepth = maxDepth;
+        }
+
+        // 2. Bottom
+        const t_descent = (maxDepth / descentRate);
+        const t_at_bottom = Math.max(0, bottomTime - t_descent);
+        if (t_at_bottom > 0) {
+            tensions = updateAllTensions(tensions, depthToPN2(currentDepth, surfacePressure, gaz_fN2), t_at_bottom);
+        }
+
+        // 3. Ascent to find first stop
+        while (currentDepth >= lastStopDepth) {
+            const remaining_to_laststop = currentDepth - lastStopDepth;
+            const n_full_intervals = Math.floor((remaining_to_laststop - 0.00001) / stopInterval);
+            let nextDepth = lastStopDepth + stopInterval * n_full_intervals;
+            if (currentDepth == lastStopDepth) {
+                nextDepth = SURFACE_DEPTH;
+            }
+
+            const t_ascend = (currentDepth - nextDepth) / ascentRate;
+            const depth_ascend = (nextDepth + currentDepth) / 2;
+            const PN2_ascend = depthToPN2(depth_ascend, surfacePressure, gaz_fN2);
+
+            let tensions_next = updateAllTensions(tensions, PN2_ascend, t_ascend);
+            let { isSafe } = simulAtDepth(nextDepth, tensions_next, null, _gfLow, _gfHigh, surfacePressure);
+
+            if (!isSafe) {
+                return currentDepth;
+            }
+
+            currentDepth = nextDepth;
+            tensions = tensions_next;
+        }
+
+        return 0;
+    }
+
     // Expose Planning API
     window.Planning = {
         SURFACE_AIR_PPN2,
@@ -433,6 +505,7 @@
         calculatePPO2,
         calculateSuccessive,
         calculateBuhlmannPlan,
+        getFirstStopDepth,
         depthToPN2,
         updateAllTensions
     };

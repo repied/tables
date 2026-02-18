@@ -429,7 +429,7 @@ function renderUI() {
     updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
     if (depthGauge2) updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
 
-    const timeTicks1 = calculateStopTicks(dive1Depth, gazO2pct, 0);
+    const timeTicks1 = calculateStopTicks(dive1Depth, gazO2pct, 0, null);
     updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
 
     let result1;
@@ -464,6 +464,7 @@ function renderUI() {
 
 
     let result2, currentMajoration = 0;
+    let dive2InitialTensions = null;
     if (isGFMode) {
         // Tension evolution
         let currentTensions = result1 ? result1.finalTensions : null;
@@ -472,6 +473,7 @@ function renderUI() {
             currentTensions = Planning.updateAllTensions(currentTensions, Planning.SURFACE_AIR_PPN2, surfaceInterval);
         }
         const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - Planning.SURFACE_AIR_PPN2) / Planning.SURFACE_AIR_PPN2 : 0;
+        dive2InitialTensions = currentTensions;
 
         if (majorationDisplay) {
             const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;
@@ -514,7 +516,7 @@ function renderUI() {
     updateGaugeVisuals('depth', dive2Depth, MAX_DEPTH, false, '-2');
 
     const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
-    const timeTicks2 = calculateStopTicks(dive2Depth, gazO2pct, currentMajoration);
+    const timeTicks2 = calculateStopTicks(dive2Depth, gazO2pct, currentMajoration, dive2InitialTensions);
     if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
     renderStops(result2, stopsDisplay2);
@@ -723,8 +725,32 @@ function calculatePPO2Tick(depth, o2Pct) {
     }];
 }
 
-function calculateStopTicks(depth, o2Pct, majoration = 0) {
-    if (isGFMode) return []; // Only MN90 for now
+function calculateStopTicks(depth, o2Pct, majoration = 0, initialTensions = null) {
+    if (isGFMode) {
+        const ticks = [];
+        let lastStop = 0;
+        for (let t = 1; t <= MAX_TIME; t++) {
+            const currentDeepest = Planning.getFirstStopDepth({
+                bottomTime: t,
+                maxDepth: depth,
+                gfLow: currentGFLow,
+                gfHigh: currentGFHigh,
+                fN2: (100 - o2Pct) / 100,
+                initialTensions: initialTensions
+            });
+
+            if (currentDeepest > lastStop) {
+                ticks.push({
+                    value: t,
+                    label: `${currentDeepest}m`,
+                    className: 'gauge-tick-stop'
+                });
+                lastStop = currentDeepest;
+                if (currentDeepest >= 15) break;
+            }
+        }
+        return ticks;
+    }
 
     const ead = Planning.calculateEquivalentAirDepth(depth, o2Pct);
 
