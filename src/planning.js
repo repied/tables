@@ -14,7 +14,7 @@
     // --- BUEHLMANN ALGORITHM ---
     const BUEHLMANN_stopInterval = 3; // meters
     const BUEHLMANN_lastStopDepth = 3; // meters
-    const BUEHLMANN_timeStep = 1;//10 / 60; // minutes: 10 seconds is good
+    const BUEHLMANN_timeStep = 10 / 60; // minutes: 10 seconds is good
 
     const BUEHLMANN = [ // from Wikipedia
         { t12: 5.0, A: 1.1696, B: 0.5578 },
@@ -278,8 +278,15 @@
         // Helper to get pressure at depth
         const getP = (d) => depthToPressure(d, SURFACE_PRESSURE);
 
-        // 1. Bottom Gas (Uses actual bottom time)
-        const bottomGas = time * getP(depth) * sac;
+        // 1. Bottom Gas (split into descent and time at bottom)
+        const t_descent = depth / DESCENT_RATE;
+        const avg_p_descent = (getP(SURFACE_DEPTH) + getP(depth)) / 2;
+        const descentGas = t_descent * avg_p_descent * sac;
+
+        const t_at_depth = Math.max(0, time - t_descent);
+        const bottomGasAtDepth = t_at_depth * getP(depth) * sac;
+
+        const bottomGas = descentGas + bottomGasAtDepth;
 
         // 2. Ascent Gas
         let ascentGas = 0;
@@ -299,7 +306,7 @@
             const stopDuration = stops[d];
             ascentGas += stopDuration * getP(d) * sac;
 
-            const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : 0;
+            const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : SURFACE_DEPTH;
 
             const travelTime = (d - nextTarget) / ASCENT_RATE_FROM_FIRST_STOP;
             const avgPressure = (getP(d) + getP(nextTarget)) / 2;

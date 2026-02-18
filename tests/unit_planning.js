@@ -147,14 +147,15 @@ console.log("--- Starting Unit Tests ---\n");
 
 // Test 2: Gas Consumption
 // 20m 50min. SAC 20 L/min. Tank 15L.
-// Bottom: 50 * 3 * 20 = 3000 L
+// Descent: 1 min * 2 bar * 20 = 40 L
+// Bottom: 49 min * 3 bar * 20 = 2940 L
 // Ascent: ~164.2 L
-// Total = 3165 L (approx)
+// Total = 3145 L (approx)
 {
     const profile = Planning.getMN90Profile(20, 50);
     const sac = 20;
     const gas = Planning.calculateGasConsumption(20, 50, profile.profile, sac);
-    const expected = 3165;
+    const expected = 3145;
     assert(Math.abs(gas - expected) <= 5, `Gas consumption close to ${expected} (got ${gas})`);
 }
 
@@ -486,69 +487,69 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // 1. PPO2 Calculation
     const ppo2Air = Planning.calculatePPO2(20, 21); // 3 bar * 0.21 = 0.63
     if (Math.abs(ppo2Air - 0.63) > 0.01) {
-         console.error(`❌ PPO2 Air 20m failed. Expected 0.63, got ${ppo2Air}`);
-         failed++;
+        console.error(`❌ PPO2 Air 20m failed. Expected 0.63, got ${ppo2Air}`);
+        failed++;
     } else {
-         console.log("✅ PPO2 Air 20m correct");
-         passed++;
+        console.log("✅ PPO2 Air 20m correct");
+        passed++;
     }
 
     const ppo2Nx32 = Planning.calculatePPO2(30, 32); // 4 bar * 0.32 = 1.28
     if (Math.abs(ppo2Nx32 - 1.28) > 0.01) {
-         console.error(`❌ PPO2 EAN32 30m failed. Expected 1.28, got ${ppo2Nx32}`);
-         failed++;
+        console.error(`❌ PPO2 EAN32 30m failed. Expected 1.28, got ${ppo2Nx32}`);
+        failed++;
     } else {
-         console.log("✅ PPO2 EAN32 30m correct");
-         passed++;
+        console.log("✅ PPO2 EAN32 30m correct");
+        passed++;
     }
 
     // 2. EAD Calculation
     const eadAir = Planning.calculateEquivalentAirDepth(30, 21);
     if (Math.abs(eadAir - 30) > 0.1) {
-         console.error(`❌ EAD Air 30m failed. Expected 30, got ${eadAir}`);
-         failed++;
+        console.error(`❌ EAD Air 30m failed. Expected 30, got ${eadAir}`);
+        failed++;
     } else {
-         console.log("✅ EAD Air 30m correct");
-         passed++;
+        console.log("✅ EAD Air 30m correct");
+        passed++;
     }
 
     const eadNx32 = Planning.calculateEquivalentAirDepth(30, 32);
     // (4 * 0.68 / 0.79 - 1) * 10 = (3.443 - 1) * 10 = 24.43
     if (Math.abs(eadNx32 - 24.43) > 0.1) {
-         console.error(`❌ EAD EAN32 30m failed. Expected ~24.43, got ${eadNx32}`);
-         failed++;
+        console.error(`❌ EAD EAN32 30m failed. Expected ~24.43, got ${eadNx32}`);
+        failed++;
     } else {
-         console.log("✅ EAD EAN32 30m correct");
-         passed++;
+        console.log("✅ EAD EAN32 30m correct");
+        passed++;
     }
-    
+
     // 3. MN90 with Nitrox (Indirectly via EAD)
     // 35m for 40min
     const depth = 35;
     const time = 40;
-    
-    const profileAir = Planning.getMN90Profile(depth, time); 
-    
+
+    const profileAir = Planning.getMN90Profile(depth, time);
+
     const ead = Planning.calculateEquivalentAirDepth(depth, 32); // ~28.7m
     // MN90 table lookup will use 30m for EAD 28.7m
     const profileNx = Planning.getMN90Profile(ead, time);
-    
+
     let stopsAir = 0;
     if (profileAir.profile && profileAir.profile.stops) {
-        for(let d in profileAir.profile.stops) stopsAir += profileAir.profile.stops[d];
+        for (let d in profileAir.profile.stops) stopsAir += profileAir.profile.stops[d];
     }
-    
+
     let stopsNx = 0;
     if (profileNx.profile && profileNx.profile.stops) {
-        for(let d in profileNx.profile.stops) stopsNx += profileNx.profile.stops[d];
+        for (let d in profileNx.profile.stops) stopsNx += profileNx.profile.stops[d];
     }
-    
+
     if (stopsNx >= stopsAir && stopsAir > 0) {
-         console.error(`❌ MN90 Nitrox Advantage failed. Air Stops: ${stopsAir}, Nx Stops: ${stopsNx}`);
-         failed++;
+        console.error(`❌ MN90 Nitrox Advantage failed. Air Stops: ${stopsAir}, Nx Stops: ${stopsNx}`);
+        failed++;
     } else {
-         console.log(`✅ MN90 Nitrox Advantage verified (Air stops: ${stopsAir}, Nx stops: ${stopsNx})`);
-         passed++;
+        console.log(`✅ MN90 Nitrox Advantage verified (Air stops: ${stopsAir}, Nx stops: ${stopsNx})`);
+        passed++;
     }
 
     // 4. Buhlmann with Nitrox
@@ -560,7 +561,7 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         gfHigh: 70,
         fN2: 0.79
     });
-    
+
     const planNx32 = Planning.calculateBuhlmannPlan({
         bottomTime: 20,
         maxDepth: 40,
@@ -568,13 +569,13 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         gfHigh: 70,
         fN2: 0.68 // EAN32
     });
-    
+
     if (planNx32.dtr >= planAir.dtr && planAir.dtr > 10) { // Ensure there is actual deco on air to reduce
-         console.error(`❌ Buhlmann Nitrox Advantage failed. Air DTR: ${planAir.dtr}, Nx DTR: ${planNx32.dtr}`);
-         failed++;
+        console.error(`❌ Buhlmann Nitrox Advantage failed. Air DTR: ${planAir.dtr}, Nx DTR: ${planNx32.dtr}`);
+        failed++;
     } else {
-         console.log(`✅ Buhlmann Nitrox Advantage verified (Air DTR: ${planAir.dtr}, Nx DTR: ${planNx32.dtr})`);
-         passed++;
+        console.log(`✅ Buhlmann Nitrox Advantage verified (Air DTR: ${planAir.dtr}, Nx DTR: ${planNx32.dtr})`);
+        passed++;
     }
 
     // 5. Pure O2 (Theory check)
@@ -586,11 +587,11 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         fN2: 0.0
     });
     if (planO2.profile.stops && Object.keys(planO2.profile.stops).length > 0) {
-          console.error(`❌ Pure O2 at 6m should have no N2 deco stops. Got: ${JSON.stringify(planO2.profile.stops)}`);
-          failed++;
+        console.error(`❌ Pure O2 at 6m should have no N2 deco stops. Got: ${JSON.stringify(planO2.profile.stops)}`);
+        failed++;
     } else {
-          console.log("✅ Pure O2 dive handled correctly");
-          passed++;
+        console.log("✅ Pure O2 dive handled correctly");
+        passed++;
     }
 
     // 6. Buhlmann Repetitive Nitrox Dive
@@ -602,13 +603,13 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Decay tensions. Surface PPN2 = 0.79 * 1 = 0.79.
     const interval = 60;
     const surfaceTensions = Planning.updateAllTensions(dive1.finalTensions, 0.79, interval);
-    
+
     // Dive 2: 30m 20min EAN32.
     const dive2 = Planning.calculateBuhlmannPlan({
         bottomTime: 20, maxDepth: 30, gfLow: 30, gfHigh: 70, fN2: 0.68,
         initialTensions: surfaceTensions
     });
-    
+
     // Compare with Air repetitive
     const dive1Air = Planning.calculateBuhlmannPlan({
         bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.79
@@ -618,7 +619,7 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         bottomTime: 20, maxDepth: 30, gfLow: 30, gfHigh: 70, fN2: 0.79,
         initialTensions: surfaceTensionsAir
     });
-    
+
     if (dive2.dtr >= dive2Air.dtr && dive2Air.dtr > 0) {
         console.error(`❌ Repetitive Nitrox should be better than Air. Nx DTR: ${dive2.dtr}, Air DTR: ${dive2Air.dtr}`);
         failed++;
@@ -635,15 +636,16 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
 
     // 1. No Stops, Simple ascent
     // 20m, 10min.
-    // Bottom: 10 * 3bar * 20 = 600 L.
+    // Descent: 1 min * 2 bar * 20 = 40 L
+    // Bottom: 9 min * 3 bar * 20 = 540 L
     // Ascent: 20m to 0m at 15m/min = 1.333 min.
     // Avg Pressure: (3+1)/2 = 2 bar.
     // Ascent Gas: 1.333 * 2 * 20 = 53.33 L.
-    // Total: 653.33 -> 654 L.
+    // Total: 40 + 540 + 53.33 = 633.33 -> 634 L.
     const profileNoStops = { stops: {} };
     const gasNoStops = Planning.calculateGasConsumption(20, 10, profileNoStops, SAC);
-    if (Math.abs(gasNoStops - 654) > 2) {
-        console.error(`❌ Simple ascent gas failed. Expected ~654, got ${gasNoStops}`);
+    if (Math.abs(gasNoStops - 634) > 2) {
+        console.error(`❌ Simple ascent gas failed. Expected ~634, got ${gasNoStops}`);
         failed++;
     } else {
         console.log(`✅ Simple ascent gas correct (${gasNoStops})`);
@@ -653,7 +655,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // 2. With Stops
     // 30m, Bottom time 20min.
     // Fake Profile: Stop at 3m for 5min.
-    // Bottom: 20 * 4bar * 20 = 1600 L.
+    // Descent: 1.5 min * 2.5 bar * 20 = 75 L
+    // Bottom: 18.5 min * 4 bar * 20 = 1480 L
     // Ascent 30 -> 3: 27m / 15m/min = 1.8 min.
     // Avg P (30->3): (4 + 1.3)/2 = 2.65 bar.
     // Gas Travel 1: 1.8 * 2.65 * 20 = 95.4 L.
@@ -661,13 +664,13 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Ascent 3 -> 0: 3m / 6m/min = 0.5 min.
     // Avg P (3->0): (1.3 + 1)/2 = 1.15 bar.
     // Gas Travel 2: 0.5 * 1.15 * 20 = 11.5 L.
-    // Total: 1600 + 95.4 + 130 + 11.5 = 1836.9 -> 1837 L.
+    // Total: 75 + 1480 + 95.4 + 130 + 11.5 = 1791.9 -> 1792 L.
     const profileWithStops = { stops: { 3: 5 } };
     const gasWithStops = Planning.calculateGasConsumption(30, 20, profileWithStops, SAC);
-    
+
     // Allow small margin for floating point
-    if (Math.abs(gasWithStops - 1837) > 5) {
-        console.error(`❌ Gas with stops failed. Expected ~1837, got ${gasWithStops}`);
+    if (Math.abs(gasWithStops - 1792) > 5) {
+        console.error(`❌ Gas with stops failed. Expected ~1792, got ${gasWithStops}`);
         failed++;
     } else {
         console.log(`✅ Gas with stops correct (${gasWithStops})`);
@@ -677,12 +680,12 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // 3. Nitrox Saving (Real Calculation)
     // 35m 40min.
     // Air: 35m 40min.
-    const d35 = 35; 
+    const d35 = 35;
     const t40 = 40;
     const pAir35 = Planning.getMN90Profile(d35, t40);
     const ead35 = Planning.calculateEquivalentAirDepth(d35, 32); // EAN32
     const pNx35 = Planning.getMN90Profile(ead35, t40);
-    
+
     const gAir = Planning.calculateGasConsumption(d35, t40, pAir35.profile, SAC);
     const gNx = Planning.calculateGasConsumption(d35, t40, pNx35.profile, SAC);
 
