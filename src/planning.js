@@ -3,11 +3,13 @@
     // Dive parameters
     const SURFACE_DEPTH = 0; // meters (not really useful to use a variable as it’s always 0)
     const SURFACE_PRESSURE = 1.01325; // bar at sea level could be adjusted for altitude
+    const WATER_VAPOR_PRESSURE = 0.0627; // bar, partial pressure of water vapor in lungs at 37°C
     const FRESHWATER_DENSITY = 1000; // kg/m^3  unused in the app currently
     const SEAWATER_DENSITY = 1025; // kg/m^3
     const WATER_DENSITY = SEAWATER_DENSITY; // default to seawater, can be changed if needed
     const GRAVITY = 9.80665; // m/s^2
     const AIR_FN2 = 0.79; // fraction of N2 in AIR, ie 79% of the air is N2
+    const SURFACE_AIR_ALV_PPN2 = AIR_FN2 * (SURFACE_PRESSURE - WATER_VAPOR_PRESSURE); // alveolar partial pressure of N2 at surface (bar)
     const DESCENT_RATE = 20; // m/min 20m/min is recommended
     const ASCENT_RATE = 15; // m/min  15m/min is recommended
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
@@ -47,8 +49,8 @@
         return surfacePressure + depth * WATER_DENSITY * GRAVITY / 100_000; // convert Pa to bar
     }
 
-    function depthToPN2(depth, surfacePressure, fN2) {
-        return depthToPressure(depth, surfacePressure) * fN2;
+    function depthToPalvN2(depth, surfacePressure, fN2) {
+        return (depthToPressure(depth, surfacePressure) - WATER_VAPOR_PRESSURE) * fN2;
     }
 
     function updateTension(t0, pn2, t, compartment_t12) {
@@ -114,7 +116,7 @@
             ascentRate = ASCENT_RATE,
             descentRate = DESCENT_RATE
         } = diveParams;
-        const surfaceTensions = Array(N_COMPARTMENTS).fill(AIR_FN2 * SURFACE_PRESSURE)
+        const surfaceTensions = Array(N_COMPARTMENTS).fill(SURFACE_AIR_ALV_PPN2)
 
         if (bottomTime <= 0 || maxDepth <= 0) {
             return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions, dtr: 0 };
@@ -139,7 +141,7 @@
         while (nextDepth < maxDepth) {
             t_dive_total += timeStep;
             const depthStep = (currentDepth + nextDepth) / 2;
-            const PN2Step = depthToPN2(depthStep, surfacePressure, gaz_fN2);
+            const PN2Step = depthToPalvN2(depthStep, surfacePressure, gaz_fN2);
             tensions = updateAllTensions(tensions, PN2Step, timeStep);
             currentDepth = nextDepth;
             nextDepth = currentDepth + descentRate * timeStep;
@@ -149,7 +151,7 @@
         if (t_last > 0) {
             t_dive_total += t_last;
             const depthLast = (currentDepth + maxDepth) / 2;
-            tensions = updateAllTensions(tensions, depthToPN2(depthLast, surfacePressure, gaz_fN2), t_last);
+            tensions = updateAllTensions(tensions, depthToPalvN2(depthLast, surfacePressure, gaz_fN2), t_last);
             currentDepth = maxDepth;
         }
 
@@ -161,7 +163,7 @@
         let t_elapsed_bottom = 0;
         while (t_elapsed_bottom < t_at_bottom) {
             let step = Math.min(timeStep, t_at_bottom - t_elapsed_bottom);
-            tensions = updateAllTensions(tensions, depthToPN2(currentDepth, surfacePressure, gaz_fN2), step);
+            tensions = updateAllTensions(tensions, depthToPalvN2(currentDepth, surfacePressure, gaz_fN2), step);
             t_dive_total += step;
             t_elapsed_bottom += step;
         }
@@ -180,7 +182,7 @@
             const currentAscentRate = hasCompletedFirstStop ? ASCENT_RATE_FROM_FIRST_STOP : ascentRate;
             const t_ascend = (currentDepth - nextDepth) / currentAscentRate;
             const depth_ascend = (nextDepth + currentDepth) / 2;
-            const PN2_ascend = depthToPN2(depth_ascend, surfacePressure, gaz_fN2);
+            const PN2_ascend = depthToPalvN2(depth_ascend, surfacePressure, gaz_fN2);
 
             let tensions_next = updateAllTensions(tensions, PN2_ascend, t_ascend);
 
@@ -190,7 +192,7 @@
                 if (firstStopDepth === null) firstStopDepth = currentDepth;
 
                 let stopTime = 0;
-                const PN2_stop = depthToPN2(currentDepth, surfacePressure, gaz_fN2);
+                const PN2_stop = depthToPalvN2(currentDepth, surfacePressure, gaz_fN2);
 
                 while (!isSafe) {
                     stopTime += timeStep;
@@ -224,7 +226,7 @@
             const finalAscentRate = hasCompletedFirstStop ? ASCENT_RATE_FROM_FIRST_STOP : ascentRate;
             const t_final = currentDepth / finalAscentRate;
             const depth_final = currentDepth / 2;
-            tensions = updateAllTensions(tensions, depthToPN2(depth_final, surfacePressure, gaz_fN2), t_final);
+            tensions = updateAllTensions(tensions, depthToPalvN2(depth_final, surfacePressure, gaz_fN2), t_final);
             dtr_Buhlmann += t_final;
             currentDepth = 0;
         }
@@ -433,10 +435,7 @@
 
     // Expose Planning API
     window.Planning = {
-        AIR_FN2,
-        SURFACE_PRESSURE,
-        SURFACE_PRESSURE,
-        ASCENT_RATE,
+        SURFACE_AIR_ALV_PPN2,
         getMN90Profile,
         calculateGasConsumption,
         calculateDTR,
@@ -444,7 +443,6 @@
         calculatePPO2,
         calculateSuccessive,
         calculateBuhlmannPlan,
-        depthToPN2,
         updateAllTensions
     };
 

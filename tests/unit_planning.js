@@ -600,9 +600,9 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.68
     });
     // Interval: 60 min.
-    // Decay tensions. Surface PPN2 = 0.79 * 1 = 0.79.
+    // Decay tensions.
     const interval = 60;
-    const surfaceTensions = Planning.updateAllTensions(dive1.finalTensions, 0.79, interval);
+    const surfaceTensions = Planning.updateAllTensions(dive1.finalTensions, Planning.SURFACE_AIR_ALV_PPN2, interval);
 
     // Dive 2: 30m 20min EAN32.
     const dive2 = Planning.calculateBuhlmannPlan({
@@ -614,7 +614,7 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     const dive1Air = Planning.calculateBuhlmannPlan({
         bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.79
     });
-    const surfaceTensionsAir = Planning.updateAllTensions(dive1Air.finalTensions, 0.79, interval);
+    const surfaceTensionsAir = Planning.updateAllTensions(dive1Air.finalTensions, Planning.SURFACE_AIR_ALV_PPN2, interval);
     const dive2Air = Planning.calculateBuhlmannPlan({
         bottomTime: 20, maxDepth: 30, gfLow: 30, gfHigh: 70, fN2: 0.79,
         initialTensions: surfaceTensionsAir
