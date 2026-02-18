@@ -2,13 +2,12 @@
 
     // Dive parameters
     const SURFACE_DEPTH = 0; // meters (not really useful to use a variable as it’s always 0)
-    const SURFACE_PRESSURE = 1.01325; // bar at sea level
-    const FRESHWATER_DENSITY = 1000; // kg/m^3
+    const SURFACE_PRESSURE = 1.01325; // bar at sea level could be adjusted for altitude
+    const FRESHWATER_DENSITY = 1000; // kg/m^3  unused in the app currently
     const SEAWATER_DENSITY = 1025; // kg/m^3
     const WATER_DENSITY = SEAWATER_DENSITY; // default to seawater, can be changed if needed
     const GRAVITY = 9.80665; // m/s^2
     const AIR_FN2 = 0.79; // fraction of N2 in AIR, ie 79% of the air is N2
-    const SURFACE_AIR_PPN2 = AIR_FN2 * SURFACE_PRESSURE; // partial pressure of N2 at surface (bar)
     const DESCENT_RATE = 20; // m/min 20m/min is recommended
     const ASCENT_RATE = 15; // m/min  15m/min is recommended
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
@@ -115,7 +114,7 @@
             ascentRate = ASCENT_RATE,
             descentRate = DESCENT_RATE
         } = diveParams;
-        const surfaceTensions = Array(N_COMPARTMENTS).fill(SURFACE_AIR_PPN2)
+        const surfaceTensions = Array(N_COMPARTMENTS).fill(AIR_FN2 * SURFACE_PRESSURE)
 
         if (bottomTime <= 0 || maxDepth <= 0) {
             return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions, dtr: 0 };
@@ -434,7 +433,8 @@
 
     // Expose Planning API
     window.Planning = {
-        SURFACE_AIR_PPN2,
+        AIR_FN2,
+        SURFACE_PRESSURE,
         SURFACE_PRESSURE,
         ASCENT_RATE,
         getMN90Profile,
