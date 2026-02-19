@@ -8,8 +8,8 @@
 
 # Installation
 PWA can be installed on mobile/laptop/desktop and used offline. Direct installation from the browsers (no PlayStore, no AppStore). 
-- **Android/Desktop**: Use the install prompt or "+" icon in the address bar.
-- **iOS**: In Safari, tap Share -> "Add to Home Screen".
+- **Android/Desktop**: Use the install button in app, or the install prompt or "+" icon in the address bar.
+- **iOS**: In browser, tap Share -> "Add to Home Screen".
 
 # References
 - Design copied from [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
