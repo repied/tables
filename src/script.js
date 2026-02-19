@@ -716,8 +716,11 @@ function setupInstallLogic() {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
                     deferredPrompt = null;
                     if (installAppContainer) installAppContainer.style.display = 'none';
+                } else {
+                    console.log('User dismissed the install prompt');
                 }
             } else if (isIOS()) {
                 const modal = document.getElementById("help-modal");
