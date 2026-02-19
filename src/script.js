@@ -597,24 +597,78 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
     const dtr = Planning.calculateDTR(diveDepth, result.profile.stops);
     const dtrFormatted = formatTime(dtr);
 
-    const gasUsed = Planning.calculateGasConsumption(diveDepth, diveTime, result.profile, sac);
+    const consumption = Planning.calculateGasConsumption(diveDepth, diveTime, result.profile, sac);
+    const gasUsed = consumption.total;
     const pressureUsed = gasUsed / tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
 
     const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-    const reserveHtml = `<div class="result-box important reserve-box"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+    const reserveHtml = `<div class="result-box important reserve-box" style="cursor: pointer;"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
 
     let nitroxHtml = `<div class="result-box important nitroxBox"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
     container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
 
-    if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
-        const rb = container.querySelector('.reserve-box');
-        if (rb) rb.style.backgroundColor = '#e53935';
+    const reserveBox = container.querySelector('.reserve-box');
+    if (reserveBox) {
+        if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+            reserveBox.style.backgroundColor = '#e53935';
+        }
+        reserveBox.onclick = () => showGasBreakdown(consumption.breakdown, remainingPressure);
     }
+
     if (ppo2 > PPO2_THRESHOLD_ORANGE) {
         const rb = container.querySelector('.nitroxBox');
         if (rb) rb.style.backgroundColor = '#ff9800';
     }
+}
+
+function showGasBreakdown(breakdown, remainingPressure) {
+    const modal = document.getElementById("gas-modal");
+    const list = document.getElementById("gas-breakdown-list");
+    const trans = window.translations[currentLang];
+
+    if (!modal || !list) return;
+
+    list.innerHTML = '';
+
+    const addLine = (label, liters) => {
+        const bar = Math.ceil(liters / tankVolume);
+        const li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        li.innerHTML = `<strong>${label}:</strong> ${bar} bar (${Math.round(liters)}L)`;
+        list.appendChild(li);
+    };
+
+    if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent);
+    if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom);
+    if (breakdown.ascent > 0) addLine(trans.ascent, breakdown.ascent);
+
+    const stopDepths = Object.keys(breakdown.stops).map(Number).sort((a, b) => b - a);
+    stopDepths.forEach(d => {
+        addLine(`${trans.stopAt} ${d}m`, breakdown.stops[d]);
+    });
+
+    if (remainingPressure < 0) {
+        const msg = document.createElement('div');
+        msg.style.color = '#e53935';
+        msg.style.marginTop = '20px';
+        msg.style.fontWeight = 'bold';
+        msg.textContent = trans.notEnoughGas;
+        list.appendChild(msg);
+    } else if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
+        const msg = document.createElement('div');
+        msg.style.color = '#ff9800';
+        msg.style.marginTop = '20px';
+        msg.style.fontWeight = 'bold';
+        msg.textContent = trans.notEnoughReserve;
+        list.appendChild(msg);
+    }
+
+    modal.style.display = "block";
+
+    modal.onclick = function () {
+        modal.style.display = "none";
+    };
 }
 
 // Start
