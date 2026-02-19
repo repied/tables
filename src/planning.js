@@ -278,25 +278,28 @@
     }
 
     function calculateGasConsumption(depth, time, profile, sac) {
-        if (depth <= 0) return 0;
+        if (depth <= 0) return { total: 0, breakdown: { descent: 0, bottom: 0, ascent: 0, stops: {} } };
 
         // Helper to get pressure at depth
         const getP = (d) => depthToPressure(d, SURFACE_PRESSURE);
 
+        const breakdown = {
+            descent: 0,
+            bottom: 0,
+            ascent: 0, // travel time
+            stops: {}  // individual stops
+        };
+
         // 1. Bottom Gas (split into descent and time at bottom)
         const t_descent = depth / DESCENT_RATE;
         const avg_p_descent = (getP(SURFACE_DEPTH) + getP(depth)) / 2;
-        const descentGas = t_descent * avg_p_descent * sac;
+        breakdown.descent = t_descent * avg_p_descent * sac;
 
         const t_at_depth = Math.max(0, time - t_descent);
-        const bottomGasAtDepth = t_at_depth * getP(depth) * sac;
-
-        const bottomGas = descentGas + bottomGasAtDepth;
+        breakdown.bottom = t_at_depth * getP(depth) * sac;
 
         // 2. Ascent Gas
-        let ascentGas = 0;
         const stops = profile ? profile.stops : {};
-
         const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
         const firstTargetDepth = stopDepths.length > 0 ? stopDepths[0] : 0;
 
@@ -304,21 +307,28 @@
         if (depth > firstTargetDepth) {
             const travelTime = (depth - firstTargetDepth) / ASCENT_RATE;
             const avgPressure = (getP(depth) + getP(firstTargetDepth)) / 2;
-            ascentGas += travelTime * avgPressure * sac;
+            breakdown.ascent += travelTime * avgPressure * sac;
         }
 
         stopDepths.forEach((d, i) => {
             const stopDuration = stops[d];
-            ascentGas += stopDuration * getP(d) * sac;
+            const gasAtStop = stopDuration * getP(d) * sac;
+            breakdown.stops[d] = (breakdown.stops[d] || 0) + gasAtStop;
 
             const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : SURFACE_DEPTH;
 
             const travelTime = (d - nextTarget) / ASCENT_RATE_FROM_FIRST_STOP;
             const avgPressure = (getP(d) + getP(nextTarget)) / 2;
-            ascentGas += travelTime * avgPressure * sac;
+            breakdown.ascent += travelTime * avgPressure * sac;
         });
 
-        return Math.ceil(bottomGas + ascentGas);
+        const totalGas = breakdown.descent + breakdown.bottom + breakdown.ascent +
+            Object.values(breakdown.stops).reduce((a, b) => a + b, 0);
+
+        return {
+            total: Math.ceil(totalGas),
+            breakdown: breakdown
+        };
     }
 
     function calculateDTR(depth, stops) { // Use ceiling for stops and ascent times (safer)
