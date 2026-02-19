@@ -271,6 +271,13 @@ body.gf-mode .majoration-display {
     background: rgba(0, 0, 0, 0.6);
 }
 
+.install-app-container {
+    display: none;
+    justify-content: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
 .stops-display {
     display: flex;
     justify-content: center;

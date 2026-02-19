@@ -99,6 +99,9 @@ const depthProgress2 = document.getElementById('depth-progress-2');
 const stopsDisplay2 = document.getElementById('stops-display-2');
 const diveDetails2 = document.getElementById('dive-details-2');
 
+// PWA Install logic
+let deferredPrompt;
+
 // Initialize
 async function init() {
     const success = await window.dataManager.loadAllData();
@@ -110,6 +113,7 @@ async function init() {
     initGauges();
     setupInteractions();
     setupModal();
+    setupInstallLogic();
 
     const langToggle = document.getElementById('lang-toggle');
     if (langToggle) {
@@ -673,6 +677,81 @@ function showGasBreakdown(breakdown, remainingPressure) {
 
 // Start
 document.addEventListener('DOMContentLoaded', init);
+
+function isIOS() {
+    return [
+        'iPad Simulator',
+        'iPhone Simulator',
+        'iPod Simulator',
+        'iPad',
+        'iPhone',
+        'iPod'
+    ].includes(navigator.platform)
+        // iPad on iOS 13 detection
+        || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+        // Alternative check for userAgent
+        || /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
+function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+}
+
+function setupInstallLogic() {
+    const installAppContainer = document.getElementById('install-app-container');
+    const installAppBtn = document.getElementById('install-app-btn');
+
+    if (isStandalone()) {
+        if (installAppContainer) installAppContainer.style.display = 'none';
+        return;
+    }
+
+    if (isIOS()) {
+        if (installAppContainer) installAppContainer.style.display = 'flex';
+    }
+
+    if (installAppBtn) {
+        installAppBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    deferredPrompt = null;
+                    if (installAppContainer) installAppContainer.style.display = 'none';
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+            } else if (isIOS()) {
+                const modal = document.getElementById("help-modal");
+                if (modal) {
+                    modal.style.display = "block";
+                    const installSection = document.getElementById('installation-section');
+                    if (installSection) {
+                        installSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            }
+        });
+    }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installAppContainer = document.getElementById('install-app-container');
+    if (installAppContainer) {
+        installAppContainer.style.display = 'flex';
+    }
+});
+
+window.addEventListener('appinstalled', (event) => {
+    deferredPrompt = null;
+    const installAppContainer = document.getElementById('install-app-container');
+    if (installAppContainer) {
+        installAppContainer.style.display = 'none';
+    }
+});
 
 function setupModal() {
     const modal = document.getElementById("help-modal");
