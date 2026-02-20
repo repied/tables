@@ -773,6 +773,12 @@ function setupModal() {
             localStorage.setItem('hasVisited', 'true');
         }
     }
+
+    // Display app version
+    const versionElement = document.getElementById('app-version');
+    if (versionElement) {
+        versionElement.textContent = window.APP_VERSION || '?';
+    }
 }
 
 // ----------------------------------------------------------------------------
