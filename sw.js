@@ -1,5 +1,4 @@
-const APP_VERSION_CACHE_NAME = window.APP_VERSION || '??';
-const CACHE_NAME = 'mn90+GF-v9';
+const CACHE_NAME = window.APP_VERSION || '??';
 const urlsToCache = [
     './',
     './index.html',
