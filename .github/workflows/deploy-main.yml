@@ -41,7 +41,7 @@ jobs:
       - name: Prepare deployment
         run: |
           mkdir public
-          cp -r src assets data index.html manifest.json sw.js LICENSE README.md public/
+          cp -r .gitignore src assets data index.html manifest.json sw.js LICENSE README.md public/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
