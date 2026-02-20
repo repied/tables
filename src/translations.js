@@ -1,6 +1,6 @@
 window.translations = {
     fr: {
-        firstDive: "TODO MAIN Première plongée",
+        firstDive: "Première plongée",
         interval: "Intervalle de surface",
         "interval-title": "Intervalle de surface (min)",
         secondDive: "Seconde plongée",
