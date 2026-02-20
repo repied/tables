@@ -13,7 +13,7 @@
     const DESCENT_RATE = 20; // m/min 20m/min is recommended
     const ASCENT_RATE = 15; // m/min  15m/min is recommended
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
-
+    const MAX_SURFACE_INTERVAL = 12 * 60; // minutes, 12h is a MN90 threshold for "no residual nitrogen"
 
 
     // --- BUEHLMANN ALGORITHM ---
@@ -383,7 +383,7 @@
         // Standard MN90: If interval > max table interval (12h), N2 is 0.8 (or reset).
         // Actually, usually >12h means new dive (no residual).
 
-        if (interval > 720) { // > 12h
+        if (interval > MAX_SURFACE_INTERVAL) {
             return { majoration: 0, n2: 0 };
         }
 
