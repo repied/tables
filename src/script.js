@@ -777,7 +777,7 @@ function setupModal() {
     // Display app version
     const versionElement = document.getElementById('app-version');
     if (versionElement) {
-        versionElement.textContent = window.APP_VERSION || '?';
+        versionElement.textContent = 'Version ' + (window.APP_VERSION || '?');
     }
 }
 
