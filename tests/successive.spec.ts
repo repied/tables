@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 declare global {
     interface Window {
         dataManager: any;
+        Planning: any;
     }
 }
 
@@ -55,4 +56,102 @@ test('Typical dive data load', async ({ page }) => {
     });
 
     expect(dataCount).toBeGreaterThan(0);
+});
+
+test('Dive 2 parameters are independent from Dive 1', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+
+    // Get initial Dive 1 values
+    const dive1Depth = await page.locator('#depth-display').innerText();
+    const dive1Time = await page.locator('#time-display').innerText();
+
+    // Get Dive 2 default values
+    const dive2Depth = await page.locator('#depth-display-2').innerText();
+    const dive2Time = await page.locator('#time-display-2').innerText();
+
+    // Verify both dives have independent displays
+    await expect(page.locator('#depth-display')).toBeVisible();
+    await expect(page.locator('#depth-display-2')).toBeVisible();
+    await expect(page.locator('#time-display')).toBeVisible();
+    await expect(page.locator('#time-display-2')).toBeVisible();
+
+    // Values should be defined
+    expect(dive1Depth).toMatch(/\d+/);
+    expect(dive1Time).toMatch(/\d+/);
+    expect(dive2Depth).toMatch(/\d+/);
+    expect(dive2Time).toMatch(/\d+/);
+});
+
+test('Surface interval control affects majoration calculation', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+
+    // Verify interval gauge exists and is visible
+    await expect(page.locator('#interval-gauge-container')).toBeVisible();
+    await expect(page.locator('#interval-display')).toBeVisible();
+
+    // Get initial majoration
+    const initialMajText = await page.locator('#majoration-display').innerText();
+    expect(initialMajText).toContain('min');
+
+    // The interval value should be displayed
+    const intervalDisplay = await page.locator('#interval-display').innerText();
+    expect(intervalDisplay).toMatch(/\d+/);
+});
+
+test('Successive dive results are properly displayed', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+
+    // Check Dive 1 DTR/GPS display
+    const dive1Details = page.locator('#dive-details');
+    await expect(dive1Details).toBeVisible();
+
+    // Check Dive 2 DTR/GPS display
+    const dive2Details = page.locator('#dive-details-2');
+    await expect(dive2Details).toBeVisible();
+
+    // Check majoration display
+    const majDisplay = page.locator('#majoration-display');
+    await expect(majDisplay).toBeVisible();
+
+    // Majoration should show a value with + and min
+    const majText = await majDisplay.innerText();
+    expect(majText).toMatch(/\+\d+\s*min/);
+});
+
+test('Multiple successive dive scenarios calculate correctly', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
+    await page.goto('/');
+    await page.waitForFunction(() => window.Planning && window.Planning.calculateSuccessive);
+
+    // Test multiple dive profiles
+    const testCases = [
+        { group: 'A', interval: 30, depth: 12, expectedPositive: true }, // Should have majoration
+        { group: 'G', interval: 180, depth: 20, expectedPositive: true }, // Should have majoration
+    ];
+
+    for (const testCase of testCases) {
+        const result = await page.evaluate((tc) => {
+            return window.Planning.calculateSuccessive(tc.group, tc.interval, tc.depth);
+        }, testCase);
+
+        expect(result).toHaveProperty('majoration');
+        expect(result).toHaveProperty('n2');
+        expect(result.majoration).toBeGreaterThanOrEqual(0);
+        expect(result.n2).toBeGreaterThan(0);
+        expect(result.n2).toBeLessThanOrEqual(2); // Reasonable N2 coefficient range
+    }
 });

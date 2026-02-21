@@ -17,7 +17,10 @@ test('GF Mode Calculation', async ({ page }) => {
     await page.waitForTimeout(500);
 
     // Check if body has gf-mode class
-    await expect(page.locator('body')).toHaveClass(/gf-mode/);
+    const hasGFClass = await page.evaluate(() => {
+        return document.body.classList.contains('gf-mode');
+    });
+    expect(hasGFClass).toBe(true);
 
     // Default values: Depth 40, Time 25, GF 30/80
     // Check DTR is calculated and not the fake 98
@@ -45,4 +48,89 @@ test('GF Mode Calculation', async ({ page }) => {
     const dtr2Text = await dtr2Locator.innerText();
     console.log('DTR2 GF:', dtr2Text);
     expect(dtr2Text).toMatch(/\d+:\d+/);
+});
+
+test('GF gradient factors control visibility and effect', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Switch to GF Mode
+    await page.click('label[for="mode-gf"]');
+    await page.waitForTimeout(500);
+
+    // GF controls should be visible
+    await expect(page.locator('#gf-low-gauge-container')).toBeVisible();
+    await expect(page.locator('#gf-high-gauge-container')).toBeVisible();
+    await expect(page.locator('#gf-low-display')).toBeVisible();
+    await expect(page.locator('#gf-high-display')).toBeVisible();
+
+    // Check initial GF values are displayed
+    const gfLowText = await page.locator('#gf-low-display').innerText();
+    const gfHighText = await page.locator('#gf-high-display').innerText();
+
+    expect(gfLowText).toMatch(/\d+/);
+    expect(gfHighText).toMatch(/\d+/);
+    expect(parseInt(gfLowText)).toBeLessThanOrEqual(parseInt(gfHighText));
+});
+
+test('GF mode shows decompression stop display', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+
+    // Switch to GF Mode
+    await page.click('label[for="mode-gf"]');
+    await page.waitForTimeout(500);
+
+    // Set a deeper dive to ensure decompression stops
+    // Using JavaScript to set values since gauge interaction is complex
+    await page.evaluate(() => {
+        // Access dive parameters and set to a profile that needs decompression
+        (window as any).dive1Depth = 50;
+        (window as any).dive1Time = 30;
+        // Trigger UI update
+        (window as any).updateUI?.();
+    });
+
+    await page.waitForTimeout(1000);
+
+    // Verify calculations updated
+    const dtrLocator = page.locator('#dive-details .result-value').first();
+    const dtrText = await dtrLocator.innerText();
+    expect(dtrText).toMatch(/\d+:\d+/);
+
+    // Check that stops display exists
+    await expect(page.locator('#stops-display')).toBeVisible();
+});
+
+test('GF mode switching preserves parameter settings', async ({ page }) => {
+    await page.addInitScript(() => {
+        window.localStorage.setItem('hasVisited', 'true');
+    });
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Get initial pressure value in MN90
+    const initialPressure = await page.locator('#pressure-display').innerText();
+
+    // Switch to GF Mode
+    await page.click('label[for="mode-gf"]');
+    await page.waitForTimeout(500);
+
+    // Check pressure is still visible and same value
+    const gfPressure = await page.locator('#pressure-display').innerText();
+    expect(gfPressure).toBe(initialPressure);
+
+    // Switch back to MN90
+    await page.click('label[for="mode-mn90"]');
+    await page.waitForTimeout(500);
+
+    // Pressure should remain the same
+    const finalPressure = await page.locator('#pressure-display').innerText();
+    expect(finalPressure).toBe(initialPressure);
 });
