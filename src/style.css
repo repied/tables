@@ -588,6 +588,15 @@ input:checked+.slider:before {
     transition: transform 0.1s;
 }
 
+/* Keyboard focus visuals for accessibility */
+.gauge-container:focus-visible,
+.action-btn:focus-visible,
+.gauge-dropdown-item:focus-visible,
+.result-box:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.25);
+    outline-offset: 2px;
+}
+
 /* Small mobile devices */
 @media (max-width: 400px) {
     .app-container {

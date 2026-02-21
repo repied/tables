@@ -213,6 +213,21 @@ function setupInteractions() {
 
 
 function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5) {
+    if (!gaugeElement) return;
+
+    // Make the gauge keyboard-focusable and expose ARIA slider attributes
+    try {
+        gaugeElement.tabIndex = 0;
+        gaugeElement.setAttribute('role', 'slider');
+        gaugeElement.setAttribute('aria-valuemin', String(min));
+        gaugeElement.setAttribute('aria-valuemax', String(max));
+        gaugeElement.setAttribute('aria-valuenow', String(getValue()));
+        const label = gaugeElement.getAttribute('aria-label') || gaugeElement.id.replace('-gauge-container', '').replace('-2', '').replace(/-/g, ' ');
+        gaugeElement.setAttribute('aria-label', label);
+    } catch (e) {
+        // ignore in environments where DOM mutation might fail
+    }
+
     let startY = 0;
     let startValue = 0;
     let isDragging = false;
@@ -302,6 +317,51 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
         gaugeElement.style.cursor = 'default';
         if (singleTapTimer) clearTimeout(singleTapTimer);
     });
+
+    // Keyboard interaction for accessibility
+    gaugeElement.addEventListener('keydown', (e) => {
+        const cur = getValue();
+        const step = (sensitivity >= 1) ? Math.round(sensitivity) : (sensitivity > 0 ? 0.5 : 1);
+        switch (e.key) {
+            case 'ArrowUp':
+            case 'ArrowRight':
+                setValue(Math.min(max, cur + step));
+                renderUI();
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+            case 'ArrowLeft':
+                setValue(Math.max(min, cur - step));
+                renderUI();
+                e.preventDefault();
+                break;
+            case 'PageUp':
+                setValue(Math.min(max, cur + Math.max(1, step * 5)));
+                renderUI();
+                e.preventDefault();
+                break;
+            case 'PageDown':
+                setValue(Math.max(min, cur - Math.max(1, step * 5)));
+                renderUI();
+                e.preventDefault();
+                break;
+            case 'Home':
+                setValue(min);
+                renderUI();
+                e.preventDefault();
+                break;
+            case 'End':
+                setValue(max);
+                renderUI();
+                e.preventDefault();
+                break;
+            case 'Enter':
+            case ' ':
+                showGaugeValueDropdown(gaugeElement, getValue(), setValue, min, max);
+                e.preventDefault();
+                break;
+        }
+    });
 }
 
 function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) {
@@ -324,10 +384,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
     header.className = 'gauge-dropdown-header';
     header.innerHTML = `
         <span style="flex-grow:1">${gaugeName}</span>
-        <span class="close-btn" style="cursor:pointer; font-size:1.5rem;">&times;</span>
     `;
-    // Close button logic
-    header.querySelector('.close-btn').onclick = closeDropdown;
 
     content.appendChild(header);
 
@@ -377,8 +434,46 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
         }
     };
 
+    // Accessibility: make overlay a dialog and support keyboard actions (Esc to close)
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', gaugeName);
+    overlay.tabIndex = -1;
+
+    // No dedicated close button on dropdowns (use Escape or backdrop click)
+
+    // Make items keyboard-focusable and operable
+    const items = content.querySelectorAll('.gauge-dropdown-item');
+    items.forEach(it => {
+        it.tabIndex = 0;
+        it.setAttribute('role', 'option');
+        it.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') {
+                ev.preventDefault();
+                it.click();
+            }
+        });
+    });
+
+    function onOverlayKeyDown(e) {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            closeDropdown();
+        }
+    }
+
+    overlay.addEventListener('keydown', onOverlayKeyDown);
+
+    // Focus selected item or close button
+    setTimeout(() => {
+        const selected = content.querySelector('.selected');
+        if (selected) selected.focus();
+        else overlay.focus();
+    }, 50);
+
     function closeDropdown() {
         overlay.classList.remove('visible');
+        overlay.removeEventListener('keydown', onOverlayKeyDown);
         setTimeout(() => {
             if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         }, 200);
@@ -404,6 +499,17 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
     const displayEl = document.getElementById(displayId);
     if (displayEl) {
         displayEl.textContent = isTime ? formatTime(value) : value;
+    }
+
+    // Update ARIA on the container so assistive tech sees the current value
+    try {
+        const containerEl = document.getElementById(`${type}-gauge-container${suffix}`);
+        if (containerEl) {
+            containerEl.setAttribute('aria-valuenow', String(value));
+            containerEl.setAttribute('aria-valuetext', isTime ? formatTime(value) : String(value));
+        }
+    } catch (e) {
+        // ignore
     }
 }
 
@@ -672,11 +778,14 @@ function showGasBreakdown(consumption, remainingPressure) {
         list.appendChild(msg);
     }
 
-    modal.style.display = "block";
-
-    modal.onclick = function () {
-        modal.style.display = "none";
-    };
+    if (window.__openModal) {
+        window.__openModal(modal);
+    } else {
+        modal.style.display = "block";
+        modal.onclick = function () {
+            modal.style.display = "none";
+        };
+    }
 }
 
 // Start
@@ -729,7 +838,8 @@ function setupInstallLogic() {
             } else if (isIOS()) {
                 const modal = document.getElementById("help-modal");
                 if (modal) {
-                    modal.style.display = "block";
+                    if (window.__openModal) window.__openModal(modal);
+                    else modal.style.display = "block";
                     const installSection = document.getElementById('installation-section');
                     if (installSection) {
                         installSection.scrollIntoView({ behavior: 'smooth' });
@@ -758,24 +868,90 @@ window.addEventListener('appinstalled', (event) => {
 });
 
 function setupModal() {
-    const modal = document.getElementById("help-modal");
-    const btn = document.getElementById("help-link");
+    const helpModal = document.getElementById("help-modal");
+    const helpBtn = document.getElementById("help-link");
+    const gasModal = document.getElementById("gas-modal");
 
-    if (btn && modal) {
-        btn.onclick = function (e) {
+    // Helper to open modal with focus trap
+    function openModal(modal, opener) {
+        if (!modal) return;
+        modal.style.display = "block";
+        modal.setAttribute('aria-hidden', 'false');
+        const focusable = modal.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const previouslyFocused = opener || document.activeElement;
+
+        function onKeyDown(e) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeModal(modal, previouslyFocused);
+                return;
+            }
+            if (e.key === 'Tab') {
+                if (focusable.length === 0) {
+                    e.preventDefault();
+                    return;
+                }
+                // Trap focus
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        }
+
+        // Click on overlay to close (only when clicking the backdrop)
+        function onClick(e) {
+            if (e.target === modal) closeModal(modal, previouslyFocused);
+        }
+
+        modal.__previouslyFocused = previouslyFocused;
+        modal.__onKeyDown = onKeyDown;
+        modal.__onClick = onClick;
+
+        document.addEventListener('keydown', onKeyDown);
+        modal.addEventListener('click', onClick);
+
+        if (first) first.focus();
+    }
+
+    function closeModal(modal, returnFocus) {
+        if (!modal) return;
+        modal.style.display = "none";
+        modal.setAttribute('aria-hidden', 'true');
+        if (modal.__onKeyDown) document.removeEventListener('keydown', modal.__onKeyDown);
+        if (modal.__onClick) modal.removeEventListener('click', modal.__onClick);
+        try {
+            const prev = returnFocus || modal.__previouslyFocused;
+            if (prev && typeof prev.focus === 'function') prev.focus();
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            modal.style.display = "block";
-        }
-
-        modal.onclick = function () {
-            modal.style.display = "none";
-        }
+            openModal(helpModal, helpBtn);
+        });
 
         // Show modal on first visit
         if (!localStorage.getItem('hasVisited')) {
-            modal.style.display = "block";
+            openModal(helpModal, null);
             localStorage.setItem('hasVisited', 'true');
         }
+    }
+
+    // Gas modal opener is the reserve box created dynamically; ensure gasModal closes via the helpers
+    if (gasModal) {
+        // leave showGasBreakdown to call openModal
+        gasModal.addEventListener('click', (e) => {
+            if (e.target === gasModal) closeModal(gasModal);
+        });
     }
 
     // Display app version
@@ -783,6 +959,10 @@ function setupModal() {
     if (versionElement) {
         versionElement.textContent = 'Version ' + (window.APP_VERSION || '?');
     }
+
+    // Replace simple style-based show/hide in other functions by exposing helpers
+    window.__openModal = openModal;
+    window.__closeModal = closeModal;
 }
 
 // ----------------------------------------------------------------------------
