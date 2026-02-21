@@ -1,4 +1,4 @@
-const CACHE_NAME = window.APP_VERSION || '??';
+const CACHE_NAME = self.APP_VERSION || 'MISSING_VERSION';
 const urlsToCache = [
     './',
     './index.html',
