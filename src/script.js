@@ -429,9 +429,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
 
     // Close on overlay click
     overlay.onclick = (e) => {
-        if (e.target === overlay) {
-            closeDropdown();
-        }
+        closeDropdown();
     };
 
     // Accessibility: make overlay a dialog and support keyboard actions (Esc to close)
@@ -904,9 +902,9 @@ function setupModal() {
             }
         }
 
-        // Click on overlay to close (only when clicking the backdrop)
+        // Click on overlay to close
         function onClick(e) {
-            if (e.target === modal) closeModal(modal, previouslyFocused);
+            closeModal(modal, previouslyFocused);
         }
 
         modal.__previouslyFocused = previouslyFocused;
@@ -946,13 +944,6 @@ function setupModal() {
         }
     }
 
-    // Gas modal opener is the reserve box created dynamically; ensure gasModal closes via the helpers
-    if (gasModal) {
-        // leave showGasBreakdown to call openModal
-        gasModal.addEventListener('click', (e) => {
-            if (e.target === gasModal) closeModal(gasModal);
-        });
-    }
 
     // Display app version
     const versionElement = document.getElementById('app-version');
