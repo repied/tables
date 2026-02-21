@@ -1,0 +1,47 @@
+# name: Deploy Insiders
+
+# on:
+#   push:
+#     branches:
+#       - insiders
+
+# concurrency:
+#   group: pages-deploy
+#   cancel-in-progress: false
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Checkout gh-pages
+#         uses: actions/checkout@v4
+#         with:
+#           ref: gh-pages
+#           path: gh-pages-branch
+#         continue-on-error: true
+
+#       - name: Prepare deployment
+#         run: |
+#           # Create the new insiders build
+#           mkdir -p public/insiders
+#           cp -r .gitignore src assets data index.html manifest.json sw.js LICENSE README.md public/insiders/
+
+#           # Copy existing root files if available (excluding .git and insiders)
+#           if [ -d "gh-pages-branch" ]; then
+#             # Copy everything from gh-pages-branch to public/
+#             # except .git and insiders folder (which we just built)
+#             rsync -av --exclude='.git' --exclude='insiders' gh-pages-branch/ public/
+#           fi
+
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./public
+#           destination_dir: .
+#           keep_files: false

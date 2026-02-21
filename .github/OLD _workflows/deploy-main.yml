@@ -1,0 +1,66 @@
+# name: Deploy Main
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# concurrency:
+#   group: pages-deploy
+#   cancel-in-progress: false
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
+#           cache: 'npm'
+
+#       - name: Install dependencies
+#         run: npm ci
+
+#       - name: Install Playwright browsers
+#         run: npx playwright install --with-deps
+
+#       - name: Run tests
+#         run: npm run test
+
+#   deploy:
+#     needs: test
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Checkout gh-pages
+#         uses: actions/checkout@v4
+#         with:
+#           ref: gh-pages
+#           path: gh-pages-branch
+#         continue-on-error: true
+
+#       - name: Prepare deployment
+#         run: |
+#           mkdir public
+#           cp -r .gitignore src assets data index.html manifest.json sw.js LICENSE README.md public/
+          
+#           # Copy existing insiders if available to preserve it
+#           if [ -d "gh-pages-branch/insiders" ]; then
+#             cp -r gh-pages-branch/insiders public/
+#           fi
+
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./public
+#           destination_dir: .
+#           keep_files: false
