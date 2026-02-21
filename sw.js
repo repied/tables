@@ -1,4 +1,4 @@
-const CACHE_NAME = self.APP_VERSION || 'MISSING_VERSION';
+const CACHE_NAME = "10.1";
 const urlsToCache = [
     './',
     './index.html',
