@@ -742,7 +742,7 @@ function showGasBreakdown(consumption, remainingPressure) {
     if (!modal || !list) return;
 
     const bar_total = Math.ceil(consumption.total / tankVolume);
-    title.innerHTML += ` ${bar_total} bar`;
+    title.innerHTML = `${trans.gasBreakdownTitle}: ${bar_total} bar`;
     list.innerHTML = '';
 
     const addLine = (label, liters) => {
