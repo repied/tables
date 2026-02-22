@@ -21,10 +21,10 @@ test('app loads and shows main elements', async ({ page }) => {
     await expect(page.locator('#pressure-display')).toHaveText('200');
     await expect(page.locator('#depth-display')).toHaveText('40');
 
-    // Check footer contains expected text structure (gps, dtr, réserve)
+    // Check footer contains expected text structure (gps, dtr, Pression fin)
     await expect(page.locator('#gps-display-1')).toContainText('gps');
     await expect(page.locator('#dive-details')).toContainText('dtr');
-    await expect(page.locator('#dive-details')).toContainText('réserve');
+    await expect(page.locator('#dive-details')).toContainText('Pression fin');
 });
 
 test('mode switching between MN90 and GF', async ({ page }) => {
@@ -116,7 +116,7 @@ test('dive results are properly formatted', async ({ page }) => {
 
     // Check that reserve/gas info is displayed
     const reserveText = await page.locator('#dive-details').innerText();
-    expect(reserveText.toLowerCase()).toContain('réserve');
+    expect(reserveText.toLowerCase()).toContain('pression fin');
 });
 
 test('no console errors on page load', async ({ page }) => {

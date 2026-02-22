@@ -191,11 +191,11 @@ function setupInteractions() {
     }
 
     if (mn90Toggle && gfToggle) {
-        mn90Toggle.addEventListener('change', () => {
+        mn90Toggle.addEventListener('click', () => {
             isGFMode = false;
             renderUI();
         });
-        gfToggle.addEventListener('change', () => {
+        gfToggle.addEventListener('click', () => {
             isGFMode = true;
             renderUI();
         });
@@ -878,10 +878,16 @@ function setupModal() {
     function openModal(modal, opener) {
         if (!modal) return;
         modal.style.display = "block";
+        modal.scrollTop = 0;
         modal.setAttribute('aria-hidden', 'false');
+
+        // Focus the title for accessibility and to ensure we start at the top
+        const titleId = modal.getAttribute('aria-labelledby');
+        const title = titleId ? document.getElementById(titleId) : null;
+
         const focusable = modal.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
+        const first = title || focusable[0];
+        const last = focusable[focusable.length - 1] || first;
         const previouslyFocused = opener || document.activeElement;
 
         function onKeyDown(e) {
@@ -918,7 +924,7 @@ function setupModal() {
         document.addEventListener('keydown', onKeyDown);
         modal.addEventListener('click', onClick);
 
-        if (first) first.focus();
+        if (first) first.focus({ preventScroll: true });
     }
 
     function closeModal(modal, returnFocus) {
