@@ -28,8 +28,8 @@ jobs:
 
       - name: Inject Version into files
         run: |
-          sed -i "s/{{APP_VERSION}}/${{ env.VERSION }}/g" index.html
-          sed -i "s/{{APP_VERSION}}/${{ env.VERSION }}/g" sw.js
+          sed -i "s/{{ APP_VERSION }}/${{ env.VERSION }}/g" index.html
+          sed -i "s/{{ APP_VERSION }}/${{ env.VERSION }}/g" sw.js
 
       - name: Determine Deployment Path
         id: deploy_path
