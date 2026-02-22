@@ -43,14 +43,3 @@ First read `./README.md` file. Remember that your are most likely developing in 
 *   **Robustness**: Adding null checks for DOM elements to prevent initialization errors.
 
 ### 5. Deployments
-- **Bump app version:** update `window.APP_VERSION` in `index.html` to force clients to refresh cached assets and the service worker.
-- Troubleshooting: to debug or force an update, open DevTools → Application → Service Workers and unregister the service worker, then reload the page.
-
-CI/CD workflows (GitHub Actions):
-
-This repository contains two GitHub Actions workflows for publishing to GitHub Pages:
-
-- `.github/workflows/deploy-main.yml`: runs on pushes to `main`. It executes a `test` job that installs dependencies, installs Playwright browsers, and runs `npm run test` before the `deploy` job publishes the prepared `public` directory to the Pages root (using `destination_dir: .`). This is the guarded, production deploy path.
-- `.github/workflows/deploy-insiders.yml`: runs on pushes to `insiders`. It prepares the same `public` directory and publishes to the `insiders` subfolder on GitHub Pages (using `destination_dir: insiders`) but does not run tests first.
-
-Both workflows copy repository files into `public` and use `peaceiris/actions-gh-pages@v3` to publish; `keep_files: true` may leave stale files in Pages if assets are renamed or removed.
