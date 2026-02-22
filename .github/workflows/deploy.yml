@@ -34,6 +34,7 @@ jobs:
       - name: Determine Deployment Path
         id: deploy_path
         run: |
+          echo "DEBUG: GITHUB_REF is $GITHUB_REF"
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             echo "DEST_DIR=." >> $GITHUB_ENV # Production (root directory)
           else
