@@ -23,8 +23,15 @@ PWA can be installed on mobile/laptop/desktop and used offline. Direct installat
 - Start server: `npm run dev` and http://127.0.0.1:5500 live refreshes.
 - Run tests: `npm test`.
 
-# Donations
+# Deployments
+After local tests, choose environment: 
+- To test on github pages:
+    - simply pushing to `main` will deploy to [https://repied.github.io/tables/staging](https://repied.github.io/tables/staging/)
+- To deploy to users:
+    - `npm version minor` to upgrade version and add a git tag commit.
+    - then push to `main` will deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
 
+# Donations
 Donations welcomed to support development costs.
 
 [![Buy Me a Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=repied&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/repied)

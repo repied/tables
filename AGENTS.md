@@ -43,3 +43,4 @@ First read `./README.md` file. Remember that your are most likely developing in 
 *   **Robustness**: Adding null checks for DOM elements to prevent initialization errors.
 
 ### 5. Deployments
+See `./README.md` for instructions.
