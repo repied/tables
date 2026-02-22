@@ -73,6 +73,7 @@ async function init() {
     initGauges();
     setupInteractions();
     setupModal();
+    setupSharing();
     setupInstallLogic();
 
     if (el['lang-toggle']) {
@@ -966,10 +967,11 @@ function setupModal() {
     }
 
     // Helper to open modal with focus trap
-    function openModal(modal, opener) {
+    function openModal(modal, opener, onClose) {
         if (!modal) return;
         modal.style.display = "block";
         modal.scrollTop = 0;
+        modal.__onClose = onClose;
         modal.setAttribute('aria-hidden', 'false');
 
         // Focus the title for accessibility and to ensure we start at the top
@@ -1026,6 +1028,11 @@ function setupModal() {
 
         if (modal.id === 'help-modal') {
             localStorage.setItem('hasVisited', 'true');
+        }
+
+        if (modal.__onClose) {
+            modal.__onClose();
+            modal.__onClose = null;
         }
 
         modal.style.display = "none";

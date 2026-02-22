@@ -367,6 +367,41 @@
             </div>
         </div>
 
+        <!-- Share Modal -->
+        <div id="share-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title"
+            aria-hidden="true">
+            <div class="modal-content">
+                <h1 id="share-modal-title" data-i18n="shareModalTitle"></h1>
+                <div id="qrcode-container"
+                    style="margin-top: 20px; background: white; padding: 10px; display: inline-block;"></div>
+                <div class="share-link-container" style="margin-top: 20px;">
+                    <p data-i18n="shareLinkText"></p>
+                    <input type="text" id="share-link-input" readonly
+                        style="width: 100%; padding: 10px; margin-top: 5px; background: rgba(255,255,255,0.1); border: 1px solid #ccc; color: white; border-radius: 5px;">
+                    <button class="action-btn" id="copy-link-btn" data-i18n="copyLink"
+                        style="margin-top: 10px;"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Modal -->
+        <div id="scan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="scan-modal-title"
+            aria-hidden="true">
+            <div class="modal-content" style="max-width: 500px;">
+                <h1 id="scan-modal-title" data-i18n="scanModalTitle"></h1>
+                <div id="camera-container"
+                    style="margin-top: 20px; position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; background: #000; border-radius: 10px;">
+                    <video id="scan-video" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <canvas id="scan-canvas" style="display: none;"></canvas>
+                    <div class="scan-overlay"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 70%; border: 2px dashed #fff; pointer-events: none;">
+                    </div>
+                </div>
+                <p id="scan-status" style="margin-top: 10px; font-style: italic;" data-i18n="scanStatusWaiting"></p>
+                <button class="action-btn" id="cancel-scan-btn" data-i18n="cancel" style="margin-top: 10px;"></button>
+            </div>
+        </div>
+
         <!-- Help Modal -->
         <div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-modal-title"
             aria-hidden="true">
@@ -402,6 +437,8 @@
         </div>
     </div>
 
+    <script src="./src/qrcode.min.js"></script>
+    <script src="./src/jsQR.min.js"></script>
     <script src="./src/dataManager.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="./src/translations.js"></script>
