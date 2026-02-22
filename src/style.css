@@ -248,11 +248,12 @@ body.gf-mode .majoration-display {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.actions-container {
+.actions-container, .sharing-buttons {
     display: flex;
     justify-content: center;
     gap: 10px;
     align-items: center;
+    margin: 15px 0;
 }
 
 .action-btn {

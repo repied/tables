@@ -1,4 +1,4 @@
-const CACHE_NAME = "10.3";
+const CACHE_NAME = "10.4";
 const urlsToCache = [
     './',
     './index.html',
@@ -7,6 +7,8 @@ const urlsToCache = [
     './src/dataManager.js',
     './src/planning.js',
     './src/translations.js',
+    './src/qrcode.min.js',
+    './src/jsQR.min.js',
     './data/mn90_stops.csv',
     './data/mn90-n2.csv',
     './data/mn90-majoration.csv',

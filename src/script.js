@@ -99,6 +99,22 @@ const depthProgress2 = document.getElementById('depth-progress-2');
 const stopsDisplay2 = document.getElementById('stops-display-2');
 const diveDetails2 = document.getElementById('dive-details-2');
 
+// Sharing Elements
+const sharePlanBtn = document.getElementById('share-plan-btn');
+const importPlanBtn = document.getElementById('import-plan-btn');
+const shareModal = document.getElementById('share-modal');
+const scanModal = document.getElementById('scan-modal');
+const qrcodeContainer = document.getElementById('qrcode-container');
+const shareLinkInput = document.getElementById('share-link-input');
+const copyLinkBtn = document.getElementById('copy-link-btn');
+const scanVideo = document.getElementById('scan-video');
+const scanCanvas = document.getElementById('scan-canvas');
+const scanStatus = document.getElementById('scan-status');
+const cancelScanBtn = document.getElementById('cancel-scan-btn');
+
+let scanStream = null;
+let isScanning = false;
+
 // PWA Install logic
 let deferredPrompt;
 
@@ -113,7 +129,9 @@ async function init() {
     initGauges();
     setupInteractions();
     setupModal();
+    setupSharing();
     setupInstallLogic();
+    initPlanFromURL();
 
     const langToggle = document.getElementById('lang-toggle');
     if (langToggle) {
@@ -175,6 +193,128 @@ function initGauges() {
     }
 
     renderUI();
+}
+
+function setupSharing() {
+    if (sharePlanBtn) {
+        sharePlanBtn.addEventListener('click', handleSharePlan);
+    }
+    if (importPlanBtn) {
+        importPlanBtn.addEventListener('click', handleImportPlan);
+    }
+    if (copyLinkBtn) {
+        copyLinkBtn.addEventListener('click', () => {
+            shareLinkInput.select();
+            document.execCommand('copy');
+            const originalText = copyLinkBtn.innerHTML;
+            copyLinkBtn.innerHTML = "✓";
+            setTimeout(() => {
+                copyLinkBtn.innerHTML = originalText;
+            }, 2000);
+        });
+    }
+    if (cancelScanBtn) {
+        cancelScanBtn.addEventListener('click', () => {
+            if (window.__closeModal) window.__closeModal(scanModal);
+        });
+    }
+}
+
+function handleSharePlan() {
+    const planStr = generatePlanString();
+    const shareUrl = new URL(window.location.href);
+    shareUrl.searchParams.set('plan', planStr);
+
+    // Generate QR Code
+    const typeNumber = 0;
+    const errorCorrectionLevel = 'L';
+    const qr = qrcode(typeNumber, errorCorrectionLevel);
+    qr.addData(planStr);
+    qr.make();
+    qrcodeContainer.innerHTML = qr.createImgTag(5);
+
+    // Set Link
+    shareLinkInput.value = shareUrl.toString();
+
+    if (window.__openModal) {
+        window.__openModal(shareModal, sharePlanBtn);
+    }
+}
+
+async function handleImportPlan() {
+    if (window.__openModal) {
+        window.__openModal(scanModal, importPlanBtn, stopScanning);
+    }
+
+    try {
+        scanStatus.setAttribute('data-i18n', 'scanStatusWaiting');
+        translateUI();
+
+        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        scanVideo.srcObject = scanStream;
+        scanVideo.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+        scanVideo.play();
+        isScanning = true;
+        requestAnimationFrame(tick);
+    } catch (err) {
+        console.error("Camera error:", err);
+        scanStatus.setAttribute('data-i18n', 'scanStatusError');
+        translateUI();
+    }
+}
+
+function tick() {
+    if (!isScanning) return;
+
+    if (scanVideo.readyState === scanVideo.HAVE_ENOUGH_DATA) {
+        scanStatus.setAttribute('data-i18n', 'scanStatusScanning');
+        translateUI();
+
+        scanCanvas.height = scanVideo.videoHeight;
+        scanCanvas.width = scanVideo.videoWidth;
+        const ctx = scanCanvas.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(scanVideo, 0, 0, scanCanvas.width, scanCanvas.height);
+        const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "attemptBoth",
+        });
+
+        if (code) {
+            if (parsePlanString(code.data)) {
+                stopScanning();
+                if (window.__closeModal) window.__closeModal(scanModal);
+                alert(window.translations[currentLang].planImported);
+                return;
+            } else {
+                scanStatus.setAttribute('data-i18n', 'invalidPlan');
+                translateUI();
+            }
+        }
+    }
+    requestAnimationFrame(tick);
+}
+
+function stopScanning() {
+    isScanning = false;
+    if (scanStream) {
+        scanStream.getTracks().forEach(track => track.stop());
+        scanStream = null;
+    }
+    scanVideo.srcObject = null;
+}
+
+function initPlanFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const planStr = urlParams.get('plan');
+    if (planStr) {
+        if (parsePlanString(planStr)) {
+            // Clean up URL without refreshing
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        } else {
+            alert(window.translations[currentLang].invalidPlan);
+        }
+    }
 }
 
 function setupInteractions() {
@@ -482,6 +622,56 @@ function formatTime(minutes) {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     return `${h}:${m.toString().padStart(2, '0')}`;
+}
+
+function generatePlanString() {
+    const parts = [
+        1, // Version
+        isGFMode ? 1 : 0,
+        Math.round(initTankPressure),
+        Number(sac.toFixed(1)),
+        Math.round(tankVolume),
+        Math.round(gazO2pct),
+        Number(dive1Depth.toFixed(1)),
+        Math.round(dive1Time),
+        Math.round(surfaceInterval),
+        Number(dive2Depth.toFixed(1)),
+        Math.round(dive2Time),
+        Number(currentGFLow.toFixed(1)),
+        Number(currentGFHigh.toFixed(1))
+    ];
+    return parts.join(',');
+}
+
+function parsePlanString(str) {
+    if (!str) return false;
+    const parts = str.split(',').map(Number);
+    if (parts.length < 13 || parts.some(isNaN)) return false;
+    const version = parts[0];
+    if (version === 1) {
+        isGFMode = parts[1] === 1;
+        initTankPressure = parts[2];
+        sac = parts[3];
+        tankVolume = parts[4];
+        gazO2pct = parts[5];
+        dive1Depth = parts[6];
+        dive1Time = parts[7];
+        surfaceInterval = parts[8];
+        dive2Depth = parts[9];
+        dive2Time = parts[10];
+        currentGFLow = parts[11];
+        currentGFHigh = parts[12];
+
+        // Update mode toggle UI
+        if (mn90Toggle && gfToggle) {
+            mn90Toggle.checked = !isGFMode;
+            gfToggle.checked = isGFMode;
+        }
+
+        renderUI();
+        return true;
+    }
+    return false;
 }
 
 function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
@@ -873,9 +1063,10 @@ function setupModal() {
     const gasModal = document.getElementById("gas-modal");
 
     // Helper to open modal with focus trap
-    function openModal(modal, opener) {
+    function openModal(modal, opener, onClose) {
         if (!modal) return;
         modal.style.display = "block";
+        modal.__onClose = onClose;
         modal.setAttribute('aria-hidden', 'false');
         const focusable = modal.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])');
         const first = focusable[0];
@@ -924,6 +1115,11 @@ function setupModal() {
 
         if (modal.id === 'help-modal') {
             localStorage.setItem('hasVisited', 'true');
+        }
+
+        if (modal.__onClose) {
+            modal.__onClose();
+            modal.__onClose = null;
         }
 
         modal.style.display = "none";
