@@ -31,6 +31,23 @@
     <div class="app-container">
         <!-- Top Row: Gas Settings -->
         <div class="gauges-row">
+            <!-- Volume Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="volume-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="volume-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
+                            stroke-dasharray="240" stroke-dashoffset="240" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="volume-display">15</div>
+                        <div class="gauge-unit">L</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Pressure Gauge -->
             <div class="gauge-wrapper small">
                 <div class="gauge-container" id="pressure-gauge-container">
@@ -60,27 +77,11 @@
                     </svg>
                     <div class="gauge-content">
                         <div class="gauge-value small-text" id="sac-display">20</div>
-                        <div class="gauge-unit">l/min</div>
+                        <div class="gauge-unit">L/min</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Volume Gauge -->
-            <div class="gauge-wrapper small">
-                <div class="gauge-container" id="volume-gauge-container">
-                    <svg class="gauge-ring" viewBox="0 0 120 120">
-                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                            stroke-linecap="round" />
-                        <path class="ring-progress fixed-color-gauge-ring " id="volume-progress"
-                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round"
-                            stroke-dasharray="240" stroke-dashoffset="240" />
-                    </svg>
-                    <div class="gauge-content">
-                        <div class="gauge-value small-text" id="volume-display">15</div>
-                        <div class="gauge-unit">l</div>
-                    </div>
-                </div>
-            </div>
 
             <!-- O2 Gauge -->
             <div class="gauge-wrapper small">
@@ -306,6 +307,7 @@
             aria-hidden="true">
             <div class="modal-content">
                 <h1 id="gas-breakdown-title" data-i18n="gasBreakdownTitle"></h1>
+                <h2 id="gas-breakdown-total"></h2>
                 <ul id="gas-breakdown-list" style="text-align: left; display: inline-block; margin-top: 20px;">
                     <!-- Breakdown will be inserted here -->
                 </ul>

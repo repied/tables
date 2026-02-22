@@ -705,8 +705,8 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
     const dtr = Planning.calculateDTR(diveDepth, result.profile.stops);
     const dtrFormatted = formatTime(dtr);
 
-    const consumption = Planning.calculateGasConsumption(diveDepth, diveTime, result.profile, sac);
-    const gasUsed = consumption.total;
+    const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, sac);
+    const gasUsed = consoLiters.total;
     const pressureUsed = gasUsed / tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
 
@@ -723,7 +723,7 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
         } else if (remainingPressure <= RESERVE_PRESSURE_THRESHOLD) {
             reserveBox.style.backgroundColor = '#ff9800';
         }
-        reserveBox.onclick = () => showGasBreakdown(consumption, remainingPressure);
+        reserveBox.onclick = () => showGasBreakdown(consoLiters, remainingPressure);
     }
 
     if (ppo2 > PPO2_THRESHOLD_ORANGE) {
@@ -732,17 +732,15 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
     }
 }
 
-function showGasBreakdown(consumption, remainingPressure) {
-    const breakdown = consumption.breakdown;
+function showGasBreakdown(consoLiters, remainingPressure) {
+    const breakdown = consoLiters.breakdown;
     const modal = document.getElementById("gas-modal");
-    const title = document.getElementById("gas-breakdown-title");
     const list = document.getElementById("gas-breakdown-list");
+    const total = document.getElementById("gas-breakdown-total");
     const trans = window.translations[currentLang];
 
     if (!modal || !list) return;
 
-    const bar_total = Math.ceil(consumption.total / tankVolume);
-    title.innerHTML = `${trans.gasBreakdownTitle}: ${bar_total} bar`;
     list.innerHTML = '';
 
     const addLine = (label, liters) => {
@@ -752,6 +750,8 @@ function showGasBreakdown(consumption, remainingPressure) {
         li.innerHTML = `<strong>${label}:</strong> ${bar} bar (${Math.round(liters)} L)`;
         list.appendChild(li);
     };
+    const bar_total = Math.ceil(consoLiters.total / tankVolume);
+    total.innerHTML = `${trans.total}: ${bar_total} bar (${Math.round(consoLiters.total)} L)`;
 
     if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent);
     if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom);
@@ -765,16 +765,18 @@ function showGasBreakdown(consumption, remainingPressure) {
     if (remainingPressure < 0) {
         const msg = document.createElement('div');
         msg.style.color = '#e53935';
+        total.style.color = '#e53935';
         msg.style.marginTop = '20px';
         msg.style.fontWeight = 'bold';
-        msg.textContent = trans.notEnoughGas;
+        msg.innerHTML = trans.notEnoughGas;
         list.appendChild(msg);
     } else if (remainingPressure <= RESERVE_PRESSURE_THRESHOLD) {
         const msg = document.createElement('div');
         msg.style.color = '#ff9800';
+        total.style.color = '#ff9800';
         msg.style.marginTop = '20px';
         msg.style.fontWeight = 'bold';
-        msg.textContent = trans.notEnoughReserve;
+        msg.innerHTML = trans.notEnoughReserve;
         list.appendChild(msg);
     }
 

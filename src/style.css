@@ -773,7 +773,7 @@ input:checked+.slider:before {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     color: var(--text-color);
     position: relative;
-    animation: fadeIn 0.3s;
+    /* animation: fadeIn 0.3s; */
 }
 
 @keyframes fadeIn {

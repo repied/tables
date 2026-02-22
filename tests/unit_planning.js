@@ -154,7 +154,7 @@ console.log("--- Starting Unit Tests ---\n");
 {
     const profile = Planning.getMN90Profile(20, 50);
     const sac = 20;
-    const result = Planning.calculateGasConsumption(20, 50, profile.profile, sac);
+    const result = Planning.calculateGasConsumptionLiters(20, 50, profile.profile, sac);
     const gas = result.total;
     const expected = 3170;
     assert(Math.abs(gas - expected) <= 5, `Gas consumption close to ${expected} (got ${gas})`);
@@ -645,7 +645,7 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Ascent Gas: 1.333 * 2 * 20 = 53.33 L.
     // Total: 40 + 540 + 53.33 = 633.33 -> 634 L.
     const profileNoStops = { stops: {} };
-    const gasNoStops = Planning.calculateGasConsumption(20, 10, profileNoStops, SAC).total;
+    const gasNoStops = Planning.calculateGasConsumptionLiters(20, 10, profileNoStops, SAC).total;
     if (Math.abs(gasNoStops - 639) > 2) {
         console.error(`❌ Simple ascent gas failed. Expected ~639, got ${gasNoStops}`);
         failed++;
@@ -668,7 +668,7 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Gas Travel 2: 0.5 * 1.15 * 20 = 11.5 L.
     // Total: 75 + 1480 + 95.4 + 130 + 11.5 = 1791.9 -> 1792 L.
     const profileWithStops = { stops: { 3: 5 } };
-    const gasWithStops = Planning.calculateGasConsumption(30, 20, profileWithStops, SAC).total;
+    const gasWithStops = Planning.calculateGasConsumptionLiters(30, 20, profileWithStops, SAC).total;
 
     // Allow small margin for floating point
     if (Math.abs(gasWithStops - 1806) > 5) {
@@ -688,8 +688,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     const ead35 = Planning.calculateEquivalentAirDepth(d35, 32); // EAN32
     const pNx35 = Planning.getMN90Profile(ead35, t40);
 
-    const gAir = Planning.calculateGasConsumption(d35, t40, pAir35.profile, SAC).total;
-    const gNx = Planning.calculateGasConsumption(d35, t40, pNx35.profile, SAC).total;
+    const gAir = Planning.calculateGasConsumptionLiters(d35, t40, pAir35.profile, SAC).total;
+    const gNx = Planning.calculateGasConsumptionLiters(d35, t40, pNx35.profile, SAC).total;
 
     if (gNx < gAir) {
         console.log(`✅ Nitrox gas saving verified (Air: ${gAir} L, Nx: ${gNx} L)`);

@@ -277,7 +277,7 @@
         };
     }
 
-    function calculateGasConsumption(depth, time, profile, sac) {
+    function calculateGasConsumptionLiters(depth, time, profile, sac) {
         if (depth <= 0) return { total: 0, breakdown: { descent: 0, bottom: 0, ascent: 0, stops: {} } };
 
         // Helper to get pressure at depth
@@ -447,7 +447,7 @@
     window.Planning = {
         SURFACE_AIR_ALV_PPN2,
         getMN90Profile,
-        calculateGasConsumption,
+        calculateGasConsumptionLiters,
         calculateDTR,
         calculateEquivalentAirDepth,
         calculatePPO2,
