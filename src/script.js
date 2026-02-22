@@ -919,6 +919,11 @@ function setupModal() {
 
     function closeModal(modal, returnFocus) {
         if (!modal) return;
+
+        if (modal.id === 'help-modal') {
+            localStorage.setItem('hasVisited', 'true');
+        }
+
         modal.style.display = "none";
         modal.setAttribute('aria-hidden', 'true');
         if (modal.__onKeyDown) document.removeEventListener('keydown', modal.__onKeyDown);
@@ -940,7 +945,6 @@ function setupModal() {
         // Show modal on first visit
         if (!localStorage.getItem('hasVisited')) {
             openModal(helpModal, null);
-            localStorage.setItem('hasVisited', 'true');
         }
     }
 
