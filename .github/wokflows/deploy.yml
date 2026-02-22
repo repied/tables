@@ -1,0 +1,48 @@
+name: Deploy App
+
+on:
+  push:
+    branches:
+      - main # Deploys to staging automatically when you push to main
+    tags:
+      - 'v*.*.*' # Deploys to production ONLY when you create a tag like v1.0.0
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Extract Version from package.json
+        id: get_version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
+      - name: Inject Version into files
+        run: |
+          sed -i "s/{{APP_VERSION}}/${{ env.VERSION }}/g" index.html
+          sed -i "s/{{APP_VERSION}}/${{ env.VERSION }}/g" sw.js
+
+      - name: Determine Deployment Path
+        id: deploy_path
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "DEST_DIR=." >> $GITHUB_ENV # Production (root directory)
+          else
+            echo "DEST_DIR=staging" >> $GITHUB_ENV # Staging (subdirectory)
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          destination_dir: ${{ env.DEST_DIR }}

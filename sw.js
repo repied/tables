@@ -1,4 +1,4 @@
-const CACHE_NAME = "10.5";
+const CACHE_NAME = 'tables-cache-v{{APP_VERSION}}';
 const urlsToCache = [
     './',
     './index.html',
