@@ -3,9 +3,10 @@ name: Deploy App
 on:
   push:
     branches:
-      - main # Deploys to staging automatically when you push to main
+      - main # Deploys to production
+      - staging # Deploys to staging
     tags:
-      - 'v*.*.*' # Deploys to production ONLY when you create a tag like v1.0.0
+      - 'v*.*.*' # Optional: Can still trigger production deployment via tags
 
 permissions:
   contents: write
@@ -35,7 +36,7 @@ jobs:
         id: deploy_path
         run: |
           echo "DEBUG: GITHUB_REF is $GITHUB_REF"
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
+          if [[ $GITHUB_REF == "refs/heads/main" ]] || [[ $GITHUB_REF == refs/tags/* ]]; then
             echo "DEST_DIR=." >> $GITHUB_ENV # Production (root directory)
           else
             echo "DEST_DIR=staging" >> $GITHUB_ENV # Staging (subdirectory)
