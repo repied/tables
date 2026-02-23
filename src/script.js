@@ -313,6 +313,16 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
 
     content.appendChild(header);
 
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'gauge-dropdown-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        closeDropdown();
+    };
+    header.appendChild(closeBtn);
+
     // List Container
     const listContainer = document.createElement('div');
     listContainer.style.overflowY = 'auto';
@@ -715,7 +725,8 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     } else {
         modal.style.display = "block";
         modal.onclick = (e) => {
-            if (e.target === modal) modal.style.display = "none";
+            if (e.target.tagName === 'A' || e.target.closest('a')) return;
+            modal.style.display = "none";
         };
     }
 }
@@ -839,11 +850,12 @@ function setupModal() {
             }
         }
 
-        // Click on overlay to close
+        // Click on anywhere to close, except on links
         function onClick(e) {
-            if (e.target === modal) {
-                closeModal(modal, previouslyFocused);
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
             }
+            closeModal(modal, previouslyFocused);
         }
 
         modal.__previouslyFocused = previouslyFocused;
