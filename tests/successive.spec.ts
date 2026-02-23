@@ -141,11 +141,13 @@ test('Multiple successive dive scenarios calculate correctly', async ({ page }) 
         { group: 'G', interval: 180, depth: 20, expectedPositive: true }, // Should have majoration
     ];
 
-    for (const testCase of testCases) {
-        const result = await page.evaluate((tc) => {
+    const results = await page.evaluate((cases) => {
+        return cases.map((tc) => {
             return window.Planning.calculateSuccessive(tc.group, tc.interval, tc.depth);
-        }, testCase);
+        });
+    }, testCases);
 
+    for (const result of results) {
         expect(result).toHaveProperty('majoration');
         expect(result).toHaveProperty('n2');
         expect(result.majoration).toBeGreaterThanOrEqual(0);
