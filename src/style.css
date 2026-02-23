@@ -28,6 +28,11 @@ body {
     min-height: 100vh;
 }
 
+body.dark-mode {
+    background-image: none;
+    background-color: var(-card-bg);
+}
+
 .app-container {
     width: 100%;
     max-width: 600px;

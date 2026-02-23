@@ -13,7 +13,8 @@ const state = {
     currentGFLow: 85,
     currentGFHigh: 85,
     surfaceInterval: 60 * 3,
-    currentLang: localStorage.getItem('selectedLang') || 'fr'
+    currentLang: localStorage.getItem('selectedLang') || 'fr',
+    theme: localStorage.getItem('theme') || 'light'
 };
 
 // UI Elements Cache
@@ -79,7 +80,29 @@ async function init() {
             triggerUpdate();
         });
     }
+
+    if (el['theme-toggle']) {
+        el['theme-toggle'].checked = (state.theme === 'dark');
+        updateTheme();
+        el['theme-toggle'].addEventListener('change', () => {
+            state.theme = el['theme-toggle'].checked ? 'dark' : 'light';
+            localStorage.setItem('theme', state.theme);
+            updateTheme();
+        });
+    }
+
     translateUI();
+}
+
+function updateTheme() {
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (state.theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (metaThemeColor) metaThemeColor.setAttribute('content', '#000000');
+    } else {
+        document.body.classList.remove('dark-mode');
+        if (metaThemeColor) metaThemeColor.setAttribute('content', '#1e2130');
+    }
 }
 
 function cacheElements() {
@@ -96,7 +119,7 @@ function cacheElements() {
         'interval-display', 'interval-progress', 'time-gauge-container-2',
         'depth-gauge-container-2', 'o2-gauge-container-2', 'time-display-2', 'depth-display-2', 'o2-display-2',
         'time-progress-2', 'depth-progress-2', 'o2-progress-2', 'stops-display-2', 'dive-details-2',
-        'lang-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
+        'lang-toggle', 'theme-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
         'help-modal', 'help-link', 'app-version', 'install-app-container',
         'install-app-btn', 'installation-section'
     ];
