@@ -506,10 +506,9 @@ function updateUI() {
 
     // --- DIVE 1 CALCULATION ---
     const ppo2_1 = Planning.calculatePPO2(state.dive1Depth, state.gazO2pct);
-    const ppo2Ticks = calculatePPO2Tick(state.dive1Depth, state.gazO2pct);
+    const ppo2Ticks1 = calculatePPO2Tick(state.dive1Depth, state.gazO2pct);
 
-    updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
-    updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
+    updateGaugeTicks('depth-gauge-container', ppo2Ticks1, MIN_DEPTH, MAX_DEPTH);
 
     const timeTicks1 = calculateStopTicks(state.dive1Depth, state.gazO2pct, 0);
     updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
@@ -598,6 +597,9 @@ function updateUI() {
     updateGaugeVisuals('o2', state.gazO2pct2, MAX_O2_pct, false, '-2');
 
     const ppo2_2 = Planning.calculatePPO2(state.dive2Depth, state.gazO2pct2);
+    const ppo2Ticks2 = calculatePPO2Tick(state.dive2Depth, state.gazO2pct2);
+    updateGaugeTicks('depth-gauge-container-2', ppo2Ticks2, MIN_DEPTH, MAX_DEPTH);
+
     const timeTicks2 = calculateStopTicks(state.dive2Depth, state.gazO2pct2, currentMajoration);
     updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
