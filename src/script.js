@@ -38,7 +38,8 @@ const MIN_O2_pct = 21;
 const MAX_GF_pct = 100;
 const MIN_GF_pct = 10;
 const MAX_INTERVAL = 60 * 12;
-const MIN_INTERVAL = 15;
+const MIN_INTERVAL = 30;
+const STEP_INTERVAL = 30;
 
 // PWA logic
 let deferredPrompt;
@@ -330,7 +331,9 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
 
     // Step Logic
     let step = 1;
-    if (max - min < 60 && (min % 1 !== 0 || max % 1 !== 0 || currentValue % 1 !== 0)) {
+    if (baseKey === 'interval') {
+        step = STEP_INTERVAL;
+    } else if (max - min < 60 && (min % 1 !== 0 || max % 1 !== 0 || currentValue % 1 !== 0)) {
         step = 0.5;
     }
 
