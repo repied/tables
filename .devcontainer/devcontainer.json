@@ -26,6 +26,5 @@
         }
     },
     "remoteUser": "node",
-    // "postCreateCommand": "git config commit.gpgsign false && npm install && npx playwright install"
-    "postCreateCommand": "npm install && npx playwright install"
+    "postCreateCommand": "sudo mkdir -p /workspaces/tables.worktrees && sudo chown node:node /workspaces/tables.worktrees && npm install && npx playwright install"
 }
