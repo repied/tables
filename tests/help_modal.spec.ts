@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test('help modal persists through reload on first visit', async ({ page }) => {
   // Clear localStorage to simulate first visit
-  await page.goto('http://localhost:5500');
   await page.evaluate(() => localStorage.clear());
+  await page.goto('http://localhost:5500');
   await page.reload();
 
   // Verify modal is visible
