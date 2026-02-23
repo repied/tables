@@ -26,7 +26,7 @@ This application is an educational tool. The results presented may be wrong. Use
 
 ### Installation
 
-Can be installed on mobile/tablet/computer and used offline. Direct installation from the browser (no PlayStore, no AppStore).
+Direct installation from the browser (no PlayStore, no AppStore) for  offline usage.
 
 *   **Android/Computer:** Use the install prompt or the '+' icon in the address bar.
 *   **iOS:** In Safari, tap Share -> 'Add to Home Screen'.

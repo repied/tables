@@ -26,7 +26,7 @@ Cette application est un outil pédagogique. Les résultats présentés peuvent 
 
 ### Installation
 
-Peut être installée sur mobile/tablette/ordinateur et utilisée hors ligne. Installation directe depuis le navigateur (pas de PlayStore, pas d'AppStore).
+Installation directe depuis le navigateur (pas de PlayStore/AppStore) pour utilisation hors ligne.
 
 *   **Android/Ordinateur :** Utilisez l'invite d'installation ou l'icône '+' dans la barre d'adresse.
 *   **iOS :** Dans Safari, appuyez sur Partager -> 'Sur l'écran d'accueil'.
