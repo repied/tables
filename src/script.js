@@ -1,27 +1,27 @@
-// Dives Parameters set in UI
-let dive1Depth = 40; // meters, bottom depth of the "square" dive
-let dive1Time = 15; // minutes, diveTime = time for descent + time at bottom depth
-let dive2Depth = 40;
-let dive2Time = 15;
+// App State
+const state = {
+    dive1Depth: 40,
+    dive1Time: 15,
+    dive2Depth: 40,
+    dive2Time: 15,
+    initTankPressure: 200,
+    sac: 15,
+    tankVolume: 15,
+    gazO2pct: 21,
+    isGFMode: false,
+    currentGFLow: 85,
+    currentGFHigh: 85,
+    surfaceInterval: 60 * 3,
+    currentLang: localStorage.getItem('selectedLang') || 'fr'
+};
 
-let initTankPressure = 200; // bar
-let sac = 15; // Surface Air consumption l/min
-let tankVolume = 15; // liters
-let gazO2pct = 21; // Percentage
+// UI Elements Cache
+const el = {};
 
-// GF Mode State
-let isGFMode = false;
-let currentGFLow = 85;
-let currentGFHigh = 85;
+// Constants
+const RESERVE_PRESSURE_THRESHOLD = 50;
+const PPO2_THRESHOLD_ORANGE = 1.5;
 
-// Successive Dive State
-let surfaceInterval = 60 * 3; // minutes
-
-// App Constant values
-const RESERVE_PRESSURE_THRESHOLD = 50; // bar
-const PPO2_THRESHOLD_ORANGE = 1.5; // Maximum safe ppO2 (update translations if you change it)
-
-// Gauge definitions
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 1; // do not put 0, makes no sense
 const MAX_TIME = 60 * 2;
@@ -36,71 +36,23 @@ const MAX_O2_pct = 40;
 const MIN_O2_pct = 21;
 const MAX_GF_pct = 100;
 const MIN_GF_pct = 10;
-const MAX_INTERVAL = 60 * 12; // after 12 hours MN90 assumes a fresh dive
-const MIN_INTERVAL = 15; // less 15min MN90 says it's another calculation
+const MAX_INTERVAL = 60 * 12;
+const MIN_INTERVAL = 15;
 
-// Language State
-let currentLang = localStorage.getItem('selectedLang') || 'fr';
-
-// UI Elements
-const timeGauge = document.getElementById('time-gauge-container');
-const depthGauge = document.getElementById('depth-gauge-container');
-const pressureGauge = document.getElementById('pressure-gauge-container');
-const sacGauge = document.getElementById('sac-gauge-container');
-const volumeGauge = document.getElementById('volume-gauge-container');
-const o2Gauge = document.getElementById('o2-gauge-container');
-
-const timeDisplay = document.getElementById('time-display');
-const depthDisplay = document.getElementById('depth-display');
-const pressureDisplay = document.getElementById('pressure-display');
-const sacDisplay = document.getElementById('sac-display');
-const volumeDisplay = document.getElementById('volume-display');
-const o2Display = document.getElementById('o2-display');
-
-const timeProgress = document.getElementById('time-progress');
-const depthProgress = document.getElementById('depth-progress');
-const pressureProgress = document.getElementById('pressure-progress');
-const sacProgress = document.getElementById('sac-progress');
-const volumeProgress = document.getElementById('volume-progress');
-const o2Progress = document.getElementById('o2-progress');
-
-// GF Elements
-const mn90Toggle = document.getElementById('mode-mn90');
-const gfToggle = document.getElementById('mode-gf');
-
-const gfLowGauge = document.getElementById('gf-low-gauge-container');
-const gfHighGauge = document.getElementById('gf-high-gauge-container');
-const gfLowDisplay = document.getElementById('gf-low-display');
-const gfHighDisplay = document.getElementById('gf-high-display');
-const gfLowProgress = document.getElementById('gf-low-progress');
-const gfHighProgress = document.getElementById('gf-high-progress');
-
-const stopsDisplay = document.getElementById('stops-display');
-const diveDetails = document.getElementById('dive-details');
-const gpsDisplay1 = document.getElementById('gps-display-1');
-
-// Successive Elements
-const successiveControls = document.getElementById('successive-controls');
-const majorationDisplay = document.getElementById('majoration-display');
-const successiveHeaderText = document.getElementById('successive-header-text');
-
-// Interval Gauge Elements
-const intervalGauge = document.getElementById('interval-gauge-container');
-const intervalDisplay = document.getElementById('interval-display');
-const intervalProgress = document.getElementById('interval-progress');
-
-// Dive 2 UI Elements
-const timeGauge2 = document.getElementById('time-gauge-container-2');
-const depthGauge2 = document.getElementById('depth-gauge-container-2');
-const timeDisplay2 = document.getElementById('time-display-2');
-const depthDisplay2 = document.getElementById('depth-display-2');
-const timeProgress2 = document.getElementById('time-progress-2');
-const depthProgress2 = document.getElementById('depth-progress-2');
-const stopsDisplay2 = document.getElementById('stops-display-2');
-const diveDetails2 = document.getElementById('dive-details-2');
-
-// PWA Install logic
+// PWA logic
 let deferredPrompt;
+
+// Update throttling
+let updateRequested = false;
+
+function triggerUpdate() {
+    if (updateRequested) return;
+    updateRequested = true;
+    requestAnimationFrame(() => {
+        updateUI();
+        updateRequested = false;
+    });
+}
 
 // Initialize
 async function init() {
@@ -110,105 +62,101 @@ async function init() {
         return;
     }
 
+    cacheElements();
     initGauges();
     setupInteractions();
     setupModal();
     setupInstallLogic();
 
-    const langToggle = document.getElementById('lang-toggle');
-    if (langToggle) {
-        // Set initial state from localStorage
-        langToggle.checked = (currentLang === 'en');
-
-        langToggle.addEventListener('change', () => {
-            currentLang = langToggle.checked ? 'en' : 'fr';
-            localStorage.setItem('selectedLang', currentLang);
+    if (el['lang-toggle']) {
+        el['lang-toggle'].checked = (state.currentLang === 'en');
+        el['lang-toggle'].addEventListener('change', () => {
+            state.currentLang = el['lang-toggle'].checked ? 'en' : 'fr';
+            localStorage.setItem('selectedLang', state.currentLang);
             translateUI();
-            updateUI();
+            triggerUpdate();
         });
     }
     translateUI();
 }
 
+function cacheElements() {
+    const ids = [
+        'time-gauge-container', 'depth-gauge-container', 'pressure-gauge-container',
+        'sac-gauge-container', 'volume-gauge-container', 'o2-gauge-container',
+        'time-display', 'depth-display', 'pressure-display', 'sac-display',
+        'volume-display', 'o2-display', 'time-progress', 'depth-progress',
+        'pressure-progress', 'sac-progress', 'volume-progress', 'o2-progress',
+        'mode-mn90', 'mode-gf', 'gf-low-gauge-container', 'gf-high-gauge-container',
+        'gf-low-display', 'gf-high-display', 'gf-low-progress', 'gf-high-progress',
+        'stops-display', 'dive-details', 'gps-display-1', 'successive-controls',
+        'majoration-display', 'successive-header-text', 'interval-gauge-container',
+        'interval-display', 'interval-progress', 'time-gauge-container-2',
+        'depth-gauge-container-2', 'time-display-2', 'depth-display-2',
+        'time-progress-2', 'depth-progress-2', 'stops-display-2', 'dive-details-2',
+        'lang-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
+        'help-modal', 'help-link', 'app-version', 'install-app-container',
+        'install-app-btn', 'installation-section'
+    ];
+    ids.forEach(id => el[id] = document.getElementById(id));
+}
+
 function translateUI() {
     const elements = document.querySelectorAll('[data-i18n]');
     const trans = window.translations;
-    elements.forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (trans && trans[currentLang][key]) {
-            el.innerHTML = trans[currentLang][key];
+    elements.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (trans && trans[state.currentLang][key]) {
+            element.innerHTML = trans[state.currentLang][key];
         }
     });
 }
 
 function initGauges() {
-    // Set up initial dasharray for progress rings
-    const length = timeProgress.getTotalLength();
+    if (!el['time-progress']) return;
+    const length = el['time-progress'].getTotalLength();
 
-    if (!timeProgress || !depthProgress || !pressureProgress || !sacProgress || !volumeProgress || !o2Progress) {
-        console.error("Missing gauge elements");
-        return;
-    }
+    const progresses = [
+        'time-progress', 'depth-progress', 'pressure-progress', 'sac-progress',
+        'volume-progress', 'o2-progress', 'time-progress-2', 'depth-progress-2',
+        'gf-low-progress', 'gf-high-progress', 'interval-progress'
+    ];
 
-    [timeProgress, depthProgress, pressureProgress, sacProgress, volumeProgress, o2Progress].forEach(p => {
-        p.style.strokeDasharray = length;
-        p.style.strokeDashoffset = length;
+    progresses.forEach(p => {
+        if (el[p]) {
+            el[p].style.strokeDasharray = length;
+            el[p].style.strokeDashoffset = length;
+        }
     });
 
-    if (timeProgress2 && depthProgress2) {
-        [timeProgress2, depthProgress2].forEach(p => {
-            p.style.strokeDasharray = length;
-            p.style.strokeDashoffset = length;
-        });
-    }
-
-    if (gfLowProgress && gfHighProgress) {
-        [gfLowProgress, gfHighProgress].forEach(p => {
-            p.style.strokeDasharray = length;
-            p.style.strokeDashoffset = length;
-        });
-    }
-
-    if (intervalProgress) {
-        intervalProgress.style.strokeDasharray = length;
-        intervalProgress.style.strokeDashoffset = length;
-    }
-
-    updateUI();
+    triggerUpdate();
 }
 
 function setupInteractions() {
-    setupGaugeInteraction(timeGauge, () => dive1Time, (val) => dive1Time = val, MIN_TIME, MAX_TIME, 1);
-    setupGaugeInteraction(depthGauge, () => dive1Depth, (val) => dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.2);
-    setupGaugeInteraction(pressureGauge, () => initTankPressure, (val) => initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 1);
-    setupGaugeInteraction(sacGauge, () => sac, (val) => sac = val, MIN_SAC, MAX_SAC, 0.5);
-    setupGaugeInteraction(volumeGauge, () => tankVolume, (val) => tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 1);
-    setupGaugeInteraction(o2Gauge, () => gazO2pct, (val) => gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 1);
+    setupGaugeInteraction(el['time-gauge-container'], () => state.dive1Time, (val) => state.dive1Time = val, MIN_TIME, MAX_TIME, 1);
+    setupGaugeInteraction(el['depth-gauge-container'], () => state.dive1Depth, (val) => state.dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.2);
+    setupGaugeInteraction(el['pressure-gauge-container'], () => state.initTankPressure, (val) => state.initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 1);
+    setupGaugeInteraction(el['sac-gauge-container'], () => state.sac, (val) => state.sac = val, MIN_SAC, MAX_SAC, 0.5);
+    setupGaugeInteraction(el['volume-gauge-container'], () => state.tankVolume, (val) => state.tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 1);
+    setupGaugeInteraction(el['o2-gauge-container'], () => state.gazO2pct, (val) => state.gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 1);
 
-    if (gfLowGauge && gfHighGauge) {
-        setupGaugeInteraction(gfLowGauge, () => currentGFLow, (val) => currentGFLow = val, MIN_GF_pct, MAX_GF_pct, 0.5);
-        setupGaugeInteraction(gfHighGauge, () => currentGFHigh, (val) => currentGFHigh = val, MIN_GF_pct, MAX_GF_pct, 0.5);
-    }
+    setupGaugeInteraction(el['gf-low-gauge-container'], () => state.currentGFLow, (val) => state.currentGFLow = val, MIN_GF_pct, MAX_GF_pct, 0.5);
+    setupGaugeInteraction(el['gf-high-gauge-container'], () => state.currentGFHigh, (val) => state.currentGFHigh = val, MIN_GF_pct, MAX_GF_pct, 0.5);
 
-    if (mn90Toggle && gfToggle) {
-        mn90Toggle.addEventListener('click', () => {
-            isGFMode = false;
-            updateUI();
+    if (el['mode-mn90'] && el['mode-gf']) {
+        el['mode-mn90'].addEventListener('click', () => {
+            state.isGFMode = false;
+            triggerUpdate();
         });
-        gfToggle.addEventListener('click', () => {
-            isGFMode = true;
-            updateUI();
+        el['mode-gf'].addEventListener('click', () => {
+            state.isGFMode = true;
+            triggerUpdate();
         });
     }
 
-    if (timeGauge2 && depthGauge2) {
-        setupGaugeInteraction(timeGauge2, () => dive2Time, (val) => dive2Time = val, MIN_TIME, MAX_TIME, 1);
-        setupGaugeInteraction(depthGauge2, () => dive2Depth, (val) => dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
-    }
-
-    if (intervalGauge) {
-        setupGaugeInteraction(intervalGauge, () => surfaceInterval, (val) => surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 10);
-    }
+    setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 1);
+    setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
+    setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 10);
 }
 
 
@@ -252,7 +200,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
 
             // Reset to default
             setValue(defaultValue);
-            updateUI();
+            triggerUpdate();
 
             // Reset state
             lastTapTime = 0;
@@ -289,7 +237,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
             if (newValue > max) newValue = max;
             if (newValue !== getValue()) {
                 setValue(newValue);
-                updateUI();
+                triggerUpdate();
             }
         }
     });
@@ -330,7 +278,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
         };
         if (map[e.key] !== undefined) {
             setValue(Math.max(min, Math.min(max, map[e.key])));
-            updateUI();
+            triggerUpdate();
             e.preventDefault();
         } else if (e.key === 'Enter' || e.key === ' ') {
             showGaugeValueDropdown(gaugeElement, getValue(), setValue, min, max);
@@ -352,7 +300,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
 
     // Header
     const baseKey = gaugeElement.id.replace('-gauge-container', '').replace('-2', '');
-    const trans = window.translations?.[currentLang];
+    const trans = window.translations?.[state.currentLang];
     const titleKey = `${baseKey}-title`;
     const gaugeName = (trans?.[titleKey] || trans?.[baseKey] || baseKey.replace(/-/g, ' ')).toUpperCase();
     const header = document.createElement('div');
@@ -383,7 +331,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
         }
         item.onclick = () => {
             setValue(val);
-            updateUI();
+            triggerUpdate();
             closeDropdown();
         };
         listContainer.appendChild(item);
@@ -460,161 +408,155 @@ function formatTime(minutes) {
 }
 
 function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
-    const progressId = `${type}-progress${suffix}`;
-    const displayId = `${type}-display${suffix}`;
-
-    const progressEl = document.getElementById(progressId);
+    const progressEl = el[`${type}-progress${suffix}`];
     if (progressEl) {
         const length = progressEl.getTotalLength();
         progressEl.style.strokeDashoffset = length * (1 - Math.min(value / max, 1));
     }
 
-    const displayEl = document.getElementById(displayId);
+    const displayEl = el[`${type}-display${suffix}`];
     if (displayEl) {
         displayEl.textContent = isTime ? formatTime(value) : value;
     }
 
-    // Update ARIA on the container so assistive tech sees the current value
-    try {
-        const containerEl = document.getElementById(`${type}-gauge-container${suffix}`);
-        if (containerEl) {
-            containerEl.setAttribute('aria-valuenow', String(value));
-            containerEl.setAttribute('aria-valuetext', isTime ? formatTime(value) : String(value));
-        }
-    } catch (e) {
-        // ignore
+    // Update ARIA
+    const containerEl = el[`${type}-gauge-container${suffix}`];
+    if (containerEl) {
+        containerEl.setAttribute('aria-valuenow', String(value));
+        containerEl.setAttribute('aria-valuetext', isTime ? formatTime(value) : String(value));
     }
 }
 
 function updateUI() {
-    document.body.classList.toggle('gf-mode', isGFMode);
+    document.body.classList.toggle('gf-mode', state.isGFMode);
 
     // Common Calcs
-    const length = timeProgress ? timeProgress.getTotalLength() : 0;
+    const length = el['time-progress'] ? el['time-progress'].getTotalLength() : 0;
 
     // --- DIVE 1 UI ---
-    updateGaugeVisuals('time', dive1Time, MAX_TIME, true);
-    updateGaugeVisuals('depth', dive1Depth, MAX_DEPTH);
-    updateGaugeVisuals('pressure', initTankPressure, MAX_TANK_PRESSURE);
-    updateGaugeVisuals('sac', sac, MAX_SAC);
-    updateGaugeVisuals('volume', tankVolume, MAX_TANK_VOLUME);
-    updateGaugeVisuals('o2', gazO2pct, MAX_O2_pct);
+    updateGaugeVisuals('time', state.dive1Time, MAX_TIME, true);
+    updateGaugeVisuals('depth', state.dive1Depth, MAX_DEPTH);
+    updateGaugeVisuals('pressure', state.initTankPressure, MAX_TANK_PRESSURE);
+    updateGaugeVisuals('sac', state.sac, MAX_SAC);
+    updateGaugeVisuals('volume', state.tankVolume, MAX_TANK_VOLUME);
+    updateGaugeVisuals('o2', state.gazO2pct, MAX_O2_pct);
 
-    if (gfLowDisplay) {
-        gfLowDisplay.textContent = currentGFLow;
-        gfHighDisplay.textContent = currentGFHigh;
-        if (gfLowProgress) gfLowProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFLow / 100, 1));
-        if (gfHighProgress) gfHighProgress.style.strokeDashoffset = length * (1 - Math.min(currentGFHigh / 100, 1));
+    if (el['gf-low-display']) {
+        el['gf-low-display'].textContent = state.currentGFLow;
+        el['gf-high-display'].textContent = state.currentGFHigh;
+        if (el['gf-low-progress']) el['gf-low-progress'].style.strokeDashoffset = length * (1 - Math.min(state.currentGFLow / 100, 1));
+        if (el['gf-high-progress']) el['gf-high-progress'].style.strokeDashoffset = length * (1 - Math.min(state.currentGFHigh / 100, 1));
     }
 
     // --- DIVE 1 CALCULATION ---
-    const ppo2_1 = Planning.calculatePPO2(dive1Depth, gazO2pct);
-    const ppo2Ticks = calculatePPO2Tick(dive1Depth, gazO2pct);
+    const ppo2_1 = Planning.calculatePPO2(state.dive1Depth, state.gazO2pct);
+    const ppo2Ticks = calculatePPO2Tick(state.dive1Depth, state.gazO2pct);
 
     updateGaugeTicks('depth-gauge-container', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
-    if (depthGauge2) updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
+    updateGaugeTicks('depth-gauge-container-2', ppo2Ticks, MIN_DEPTH, MAX_DEPTH);
 
-    const timeTicks1 = calculateStopTicks(dive1Depth, gazO2pct, 0);
+    const timeTicks1 = calculateStopTicks(state.dive1Depth, state.gazO2pct, 0);
     updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
 
     let result1;
-    if (isGFMode) {
+    if (state.isGFMode) {
         result1 = Planning.calculateBuhlmannPlan({
-            bottomTime: dive1Time, maxDepth: dive1Depth,
-            gfLow: currentGFLow, gfHigh: currentGFHigh,
-            fN2: (100 - gazO2pct) / 100
+            bottomTime: state.dive1Time, maxDepth: state.dive1Depth,
+            gfLow: state.currentGFLow, gfHigh: state.currentGFHigh,
+            fN2: (100 - state.gazO2pct) / 100
         });
     } else {
-        const ead1 = Planning.calculateEquivalentAirDepth(dive1Depth, gazO2pct);
-        result1 = Planning.getMN90Profile(ead1, dive1Time);
+        const ead1 = Planning.calculateEquivalentAirDepth(state.dive1Depth, state.gazO2pct);
+        result1 = Planning.getMN90Profile(ead1, state.dive1Time);
     }
 
-    renderStops(result1, stopsDisplay);
+    renderStops(result1, el['stops-display']);
 
-    if (gpsDisplay1) {
+    if (el['gps-display-1']) {
         if (result1 && result1.profile && result1.profile.group && result1.profile.group !== 'GF_GPS') {
-            gpsDisplay1.innerHTML = `<div class="gps-badge">${window.translations[currentLang].gps} ${result1.profile.group}</div>`;
-            gpsDisplay1.style.visibility = 'visible';
+            el['gps-display-1'].innerHTML = `<div class="gps-badge">${window.translations[state.currentLang].gps} ${result1.profile.group}</div>`;
+            el['gps-display-1'].style.visibility = 'visible';
         } else {
-            gpsDisplay1.innerHTML = '';
-            gpsDisplay1.style.visibility = 'hidden';
+            el['gps-display-1'].innerHTML = '';
+            el['gps-display-1'].style.visibility = 'hidden';
         }
     }
 
-    renderDiveDetails(diveDetails, result1, dive1Depth, dive1Time, initTankPressure, ppo2_1);
+    renderDiveDetails(el['dive-details'], result1, state.dive1Depth, state.dive1Time, state.initTankPressure, ppo2_1);
 
 
     // --- DIVE 2 UI ---
-    if (successiveHeaderText) successiveHeaderText.textContent = window.translations[currentLang].secondDive;
+    if (el['successive-header-text']) el['successive-header-text'].textContent = window.translations[state.currentLang].secondDive;
 
 
     let result2, currentMajoration = 0;
-    if (isGFMode) {
+    if (state.isGFMode) {
         // Tension evolution
         const surface_air_alv_ppn2 = Planning.SURFACE_AIR_ALV_PPN2;
         let currentTensions = result1 ? result1.finalTensions : null;
         const sursaturationBeforePct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
         if (currentTensions) {
-            currentTensions = Planning.updateAllTensions(currentTensions, surface_air_alv_ppn2, surfaceInterval);
+            currentTensions = Planning.updateAllTensions(currentTensions, surface_air_alv_ppn2, state.surfaceInterval);
         }
         const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
 
-        if (majorationDisplay) {
-            const tensionEvolutionLabel = window.translations[currentLang].tensionEvolution;
-            majorationDisplay.innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
+        if (el['majoration-display']) {
+            const tensionEvolutionLabel = window.translations[state.currentLang].tensionEvolution;
+            el['majoration-display'].innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
         }
 
         result2 = Planning.calculateBuhlmannPlan({
-            bottomTime: dive2Time, maxDepth: dive2Depth,
-            gfLow: currentGFLow, gfHigh: currentGFHigh,
-            fN2: (100 - gazO2pct) / 100,
+            bottomTime: state.dive2Time, maxDepth: state.dive2Depth,
+            gfLow: state.currentGFLow, gfHigh: state.currentGFHigh,
+            fN2: (100 - state.gazO2pct) / 100,
             initialTensions: currentTensions
         });
 
     } else {
         const prevGroup = (result1 && result1.profile && result1.profile.group) ? result1.profile.group : null;
-        const ead2 = Planning.calculateEquivalentAirDepth(dive2Depth, gazO2pct);
-        const succResult = Planning.calculateSuccessive(prevGroup, surfaceInterval, ead2);
+        const ead2 = Planning.calculateEquivalentAirDepth(state.dive2Depth, state.gazO2pct);
+        const succResult = Planning.calculateSuccessive(prevGroup, state.surfaceInterval, ead2);
 
         currentMajoration = (succResult && !succResult.error) ? succResult.majoration : 0;
-        const effectiveTime2 = dive2Time + currentMajoration;
+        const effectiveTime2 = state.dive2Time + currentMajoration;
         result2 = Planning.getMN90Profile(ead2, effectiveTime2);
 
-        if (majorationDisplay) {
+        if (el['majoration-display']) {
             let majText = "Error";
             if (succResult && !succResult.error) {
                 majText = `+${currentMajoration} min`;
-                majorationDisplay.textContent = `${window.translations[currentLang].majoration}: ${majText} `;
+                el['majoration-display'].textContent = `${window.translations[state.currentLang].majoration}: ${majText} `;
             } else if (succResult && succResult.error) {
-                majText = window.translations[currentLang].secondDiveNotAuthorized;
-                majorationDisplay.textContent = `${majText} `;
+                majText = window.translations[state.currentLang].secondDiveNotAuthorized;
+                el['majoration-display'].textContent = `${majText} `;
                 result2.second_dive_not_authorized = true;
             }
         }
     }
 
-    if (intervalDisplay) intervalDisplay.textContent = formatTime(surfaceInterval);
-    if (intervalProgress) intervalProgress.style.strokeDashoffset = length * (1 - Math.min(surfaceInterval / MAX_INTERVAL, 1));
+    if (el['interval-display']) el['interval-display'].textContent = formatTime(state.surfaceInterval);
+    if (el['interval-progress']) el['interval-progress'].style.strokeDashoffset = length * (1 - Math.min(state.surfaceInterval / MAX_INTERVAL, 1));
 
-    updateGaugeVisuals('time', dive2Time, MAX_TIME, true, '-2');
-    updateGaugeVisuals('depth', dive2Depth, MAX_DEPTH, false, '-2');
+    updateGaugeVisuals('time', state.dive2Time, MAX_TIME, true, '-2');
+    updateGaugeVisuals('depth', state.dive2Depth, MAX_DEPTH, false, '-2');
 
-    const ppo2_2 = Planning.calculatePPO2(dive2Depth, gazO2pct);
-    const timeTicks2 = calculateStopTicks(dive2Depth, gazO2pct, currentMajoration);
-    if (timeGauge2) updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
+    const ppo2_2 = Planning.calculatePPO2(state.dive2Depth, state.gazO2pct);
+    const timeTicks2 = calculateStopTicks(state.dive2Depth, state.gazO2pct, currentMajoration);
+    updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
-    renderStops(result2, stopsDisplay2);
-    renderDiveDetails(diveDetails2, result2, dive2Depth, dive2Time, initTankPressure, ppo2_2);
+    renderStops(result2, el['stops-display-2']);
+    renderDiveDetails(el['dive-details-2'], result2, state.dive2Depth, state.dive2Time, state.initTankPressure, ppo2_2);
 }
 
 
 
 function renderStops(result, containerElement) {
+    if (!containerElement) return;
     containerElement.innerHTML = '';
     const trans = window.translations;
 
     if (result.is_out_of_table || result.is_surface_dive) {
-        containerElement.innerHTML = `<div class="placeholder-text">${trans[currentLang].outOfTable}</div>`;
+        containerElement.innerHTML = `<div class="placeholder-text">${trans[state.currentLang].outOfTable}</div>`;
         return;
     }
     if (result.second_dive_not_authorized) {
@@ -680,13 +622,13 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
     const dtr = Planning.calculateDTR(diveDepth, result.profile.stops);
     const dtrFormatted = formatTime(dtr);
 
-    const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, sac);
+    const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, state.sac);
     const gasUsed = consoLiters.total;
-    const pressureUsed = gasUsed / tankVolume;
+    const pressureUsed = gasUsed / state.tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
 
-    const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-    const reserveHtml = `<div class="result-box important reserve-box" style="cursor: pointer;"><span class="result-label">${trans[currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+    const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[state.currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
+    const reserveHtml = `<div class="result-box important reserve-box" style="cursor: pointer;"><span class="result-label">${trans[state.currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
 
     let nitroxHtml = `<div class="result-box important nitroxBox"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
     container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
@@ -708,34 +650,42 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
 }
 
 function showGasBreakdown(consoLiters, remainingPressure) {
+    if (!consoLiters || !consoLiters.breakdown) return;
     const breakdown = consoLiters.breakdown;
-    const modal = document.getElementById("gas-modal");
-    const list = document.getElementById("gas-breakdown-list");
-    const total = document.getElementById("gas-breakdown-total");
-    const trans = window.translations[currentLang];
+    
+    // Fallbacks for critical elements
+    const modal = el['gas-modal'] || document.getElementById('gas-modal');
+    const list = el['gas-breakdown-list'] || document.getElementById('gas-breakdown-list');
+    const total = el['gas-breakdown-total'] || document.getElementById('gas-breakdown-total');
+    
+    if (!modal || !list || !total) return;
 
-    if (!modal || !list) return;
+    const trans = window.translations[state.currentLang];
+    if (!trans) return;
 
     list.innerHTML = '';
 
     const addLine = (label, liters) => {
-        const bar = Math.ceil(liters / tankVolume);
+        const bar = Math.ceil(liters / state.tankVolume);
         const li = document.createElement('li');
         li.style.marginBottom = '10px';
         li.innerHTML = `<strong>${label}:</strong> ${bar} bar (${Math.round(liters)} L)`;
         list.appendChild(li);
     };
-    const bar_total = Math.ceil(consoLiters.total / tankVolume);
+    
+    const bar_total = Math.ceil(consoLiters.total / state.tankVolume);
     total.innerHTML = `${trans.total}: ${bar_total} bar (${Math.round(consoLiters.total)} L)`;
 
     if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent);
     if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom);
     if (breakdown.ascent > 0) addLine(trans.ascent, breakdown.ascent);
 
-    const stopDepths = Object.keys(breakdown.stops).map(Number).sort((a, b) => b - a);
-    stopDepths.forEach(d => {
-        addLine(`${trans.stopAt} ${d}m`, breakdown.stops[d]);
-    });
+    if (breakdown.stops) {
+        const stopDepths = Object.keys(breakdown.stops).map(Number).sort((a, b) => b - a);
+        stopDepths.forEach(d => {
+            addLine(`${trans.stopAt} ${d}m`, breakdown.stops[d]);
+        });
+    }
 
     if (remainingPressure < 0) {
         const msg = document.createElement('div');
@@ -755,12 +705,12 @@ function showGasBreakdown(consoLiters, remainingPressure) {
         list.appendChild(msg);
     }
 
-    if (window.__openModal) {
+    if (typeof window.__openModal === 'function') {
         window.__openModal(modal);
     } else {
         modal.style.display = "block";
-        modal.onclick = function () {
-            modal.style.display = "none";
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.style.display = "none";
         };
     }
 }
@@ -788,8 +738,8 @@ function isStandalone() {
 }
 
 function setupInstallLogic() {
-    const installAppContainer = document.getElementById('install-app-container');
-    const installAppBtn = document.getElementById('install-app-btn');
+    const installAppContainer = el['install-app-container'];
+    const installAppBtn = el['install-app-btn'];
 
     if (isStandalone()) {
         if (installAppContainer) installAppContainer.style.display = 'none';
@@ -806,18 +756,15 @@ function setupInstallLogic() {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
                     deferredPrompt = null;
                     if (installAppContainer) installAppContainer.style.display = 'none';
-                } else {
-                    console.log('User dismissed the install prompt');
                 }
             } else if (isIOS()) {
-                const modal = document.getElementById("help-modal");
+                const modal = el['help-modal'];
                 if (modal) {
                     if (window.__openModal) window.__openModal(modal);
                     else modal.style.display = "block";
-                    const installSection = document.getElementById('installation-section');
+                    const installSection = el['installation-section'];
                     if (installSection) {
                         installSection.scrollIntoView({ behavior: 'smooth' });
                     }
@@ -830,7 +777,7 @@ function setupInstallLogic() {
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    const installAppContainer = document.getElementById('install-app-container');
+    const installAppContainer = el['install-app-container'];
     if (installAppContainer) {
         installAppContainer.style.display = 'flex';
     }
@@ -838,16 +785,16 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 window.addEventListener('appinstalled', (event) => {
     deferredPrompt = null;
-    const installAppContainer = document.getElementById('install-app-container');
+    const installAppContainer = el['install-app-container'];
     if (installAppContainer) {
         installAppContainer.style.display = 'none';
     }
 });
 
 function setupModal() {
-    const helpModal = document.getElementById("help-modal");
-    const helpBtn = document.getElementById("help-link");
-    const gasModal = document.getElementById("gas-modal");
+    const helpModal = el['help-modal'];
+    const helpBtn = el['help-link'];
+    const gasModal = el['gas-modal'];
 
     // Helper to open modal with focus trap
     function openModal(modal, opener) {
@@ -889,7 +836,9 @@ function setupModal() {
 
         // Click on overlay to close
         function onClick(e) {
-            closeModal(modal, previouslyFocused);
+            if (e.target === modal) {
+                closeModal(modal, previouslyFocused);
+            }
         }
 
         modal.__previouslyFocused = previouslyFocused;
@@ -935,7 +884,7 @@ function setupModal() {
 
 
     // Display app version
-    const versionElement = document.getElementById('app-version');
+    const versionElement = el['app-version'];
     if (versionElement) {
         versionElement.textContent = 'Version ' + (window.APP_VERSION || '?');
     }
@@ -950,7 +899,7 @@ function setupModal() {
 // ----------------------------------------------------------------------------
 
 function updateGaugeTicks(gaugeContainerId, ticks, min, max) {
-    const container = document.getElementById(gaugeContainerId);
+    const container = el[gaugeContainerId] || document.getElementById(gaugeContainerId);
     if (!container) return;
     const svg = container.querySelector('svg');
     if (!svg) return;
@@ -1030,7 +979,7 @@ function calculatePPO2Tick(depth, o2Pct) {
 }
 
 function calculateStopTicks(depth, o2Pct, majoration = 0) {
-    if (isGFMode) return []; // Only MN90 for now
+    if (state.isGFMode) return []; // Only MN90 for now
 
     const ead = Planning.calculateEquivalentAirDepth(depth, o2Pct);
 

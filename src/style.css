@@ -39,11 +39,6 @@ body {
     box-sizing: border-box;
 }
 
-.gauges {
-    display: none;
-    /* Deprecated */
-}
-
 .gauges-row {
     display: flex;
     justify-content: space-around;
@@ -502,7 +497,7 @@ body.gf-mode .majoration-display {
     margin-bottom: 15px;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--accent-color);
     background: rgba(0, 0, 0, 0.3);
     padding: 8px 15px;
     border-radius: 10px;
@@ -522,12 +517,6 @@ body.gf-mode .majoration-display {
 .glass-input option {
     background: #2b2e42;
     color: #fff;
-}
-
-.majoration-display {
-    color: var(--accent-color);
-    font-weight: bold;
-    font-size: 0.9rem;
 }
 
 /* Switch */
