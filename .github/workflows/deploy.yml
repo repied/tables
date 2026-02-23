@@ -23,21 +23,33 @@ jobs:
 
       - name: Extract Version from package.json
         id: get_version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+        run: echo "VERSION=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
 
       - name: Inject Version into files
         run: |
-          sed -i "s/{{APP_VERSION}}/${{ env.VERSION }}/g" index.html
-          sed -i "s/{{APP_VERSION}}/${{ env.VERSION }}/g" sw.js
+          sed -i "s/{{APP_VERSION}}/${{ steps.get_version.outputs.VERSION }}/g" index.html
+          sed -i "s/{{APP_VERSION}}/${{ steps.get_version.outputs.VERSION }}/g" sw.js
+
+      - name: Install Dependencies
+        if: github.ref == 'refs/heads/main'
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        if: github.ref == 'refs/heads/main'
+        run: npx playwright install --with-deps
+
+      - name: Run Tests
+        if: github.ref == 'refs/heads/main'
+        run: npm run test
 
       - name: Determine Deployment Path
         id: deploy_path
         run: |
           echo "DEBUG: GITHUB_REF is $GITHUB_REF"
-          if [[ $GITHUB_REF == "refs/heads/main" ]] then
-            echo "DEST_DIR=." >> $GITHUB_ENV # Production (root directory)
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            echo "DEST_DIR=." >> $GITHUB_OUTPUT
           else
-            echo "DEST_DIR=staging" >> $GITHUB_ENV # Staging (subdirectory)
+            echo "DEST_DIR=staging" >> $GITHUB_OUTPUT
           fi
 
       - name: Deploy to GitHub Pages
@@ -45,4 +57,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
-          destination_dir: ${{ env.DEST_DIR }}
+          destination_dir: ${{ steps.deploy_path.outputs.DEST_DIR }}
