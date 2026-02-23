@@ -112,6 +112,22 @@ function translateUI() {
             element.innerHTML = trans[state.currentLang][key];
         }
     });
+
+    const helpContainer = document.getElementById('help-markdown-content');
+    if (helpContainer && typeof marked !== 'undefined') {
+        fetch(`./assets/help_${state.currentLang}.md`)
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.text();
+            })
+            .then(text => {
+                helpContainer.innerHTML = marked.parse(text);
+            })
+            .catch(err => {
+                console.error('Failed to load help markdown', err);
+                helpContainer.innerHTML = "<p>Error loading help content.</p>";
+            });
+    }
 }
 
 function initGauges() {
