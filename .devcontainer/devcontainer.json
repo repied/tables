@@ -21,7 +21,8 @@
                 "streetsidesoftware.code-spell-checker",
                 "github.vscode-github-actions",
                 "dracula-theme.theme-dracula",
-                "github.copilot-chat"
+                "github.copilot-chat",
+                "mechatroner.rainbow-csv"
             ]
         }
     },
