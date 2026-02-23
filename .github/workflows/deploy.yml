@@ -22,9 +22,9 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Extract Version from package.json
+      - name: Extract short Git SHA
         id: get_version
-        run: echo "VERSION=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Inject Version into files
         run: |

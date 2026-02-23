@@ -30,7 +30,7 @@ After local tests, choose environment:
 - To deploy to users:
     - push to `main` branch will deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
 
-In both cases `npm version minor` upgrades version number.
+Version number are git hash to make sure updates invalidate service workers cache. 
 
 # Donations
 Donations welcomed to support development costs.
