@@ -1,21 +1,19 @@
-Application gratuite et open source pour planifier des plongées loisir en utilisant soit les tables MN90 de la Marine Nationale, soit l'algorithme Bühlmann ZHL-16C avec Facteurs de Gradient.
+Application gratuite et open source pour planifier des plongées, avec les tables MN90 ou les Facteurs de Gradient.
 
 ### Utilisation
 
-*   **Glisser haut/bas:** Ajuster la valeur.
-*   **Appui simple :** Ouvrir la liste des valeurs.
-*   **Double appui :** Réinitialiser la valeur.
-*   **Modes :** MN90 (Tables) ou GF (Bühlmann ZHL-16C).
-*   **Calculs :** DTR (Durée Totale de Remontée) et Réserve (pression bouteille en fin de plongée).
-*   **Alertes :** Réserve < 50b (rouge), ppO2 > 1.5 (orange).
+*   **Glisser haut/bas** ou  **Tap :** Ajuster la valeur
+*   **Double tap :** Réinitialiser la valeur
+*   **Modes :** MN90 (Tables) ou GF (Bühlmann ZHL-16C)
+*   **Calculs :** Durée Totale de Remontée et pression en fin de plongée
+*   **Alertes :** Réserve < 50b (rouge), ppO2 > 1.5 (orange)
 
 ### Hypothèses de calcul
 
-*   Niveau de la mer, eau salée
-*   **Profil :** plongée carrée
-*   **Vitesse de descente :** 20 m/min
-*   **Vitesse de remontée :** 15 m/min
-*   **Vitesse entre paliers :** 6 m/min
+*   Plongée loisir carrée au niveau de la mer, eau salée
+*   **Descente :** 20 m/min
+*   **Remontée :** 15 m/min
+*   **Entre paliers :** 6 m/min
 *   **Pas de palier de sécurité**
 
 <div class="disclaimer-box">
@@ -35,6 +33,7 @@ Peut être installée sur mobile/tablette/ordinateur et utilisée hors ligne. In
 
 ### Références
 
+*   Code source [Github](https://github.com/repied/tables)
 *   Design inspiré de [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
 *   Tables MN90 : [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
-*   Paramètres ZH-L16C : [Wikipedia](https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm)
+*   Paramètres ZH-L16C : [Wikipedia](https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm) et [Subsurface](https://github.com/subsurface)
