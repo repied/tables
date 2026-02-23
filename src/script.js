@@ -8,6 +8,7 @@ const state = {
     sac: 15,
     tankVolume: 15,
     gazO2pct: 21,
+    gazO2pct2: 21,
     isGFMode: false,
     currentGFLow: 85,
     currentGFHigh: 85,
@@ -92,8 +93,8 @@ function cacheElements() {
         'stops-display', 'dive-details', 'gps-display-1', 'successive-controls',
         'majoration-display', 'successive-header-text', 'interval-gauge-container',
         'interval-display', 'interval-progress', 'time-gauge-container-2',
-        'depth-gauge-container-2', 'time-display-2', 'depth-display-2',
-        'time-progress-2', 'depth-progress-2', 'stops-display-2', 'dive-details-2',
+        'depth-gauge-container-2', 'o2-gauge-container-2', 'time-display-2', 'depth-display-2', 'o2-display-2',
+        'time-progress-2', 'depth-progress-2', 'o2-progress-2', 'stops-display-2', 'dive-details-2',
         'lang-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
         'help-modal', 'help-link', 'app-version', 'install-app-container',
         'install-app-btn', 'installation-section'
@@ -119,7 +120,7 @@ function initGauges() {
     const progresses = [
         'time-progress', 'depth-progress', 'pressure-progress', 'sac-progress',
         'volume-progress', 'o2-progress', 'time-progress-2', 'depth-progress-2',
-        'gf-low-progress', 'gf-high-progress', 'interval-progress'
+        'o2-progress-2', 'gf-low-progress', 'gf-high-progress', 'interval-progress'
     ];
 
     progresses.forEach(p => {
@@ -156,6 +157,7 @@ function setupInteractions() {
 
     setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 1);
     setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
+    setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 1);
     setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 10);
 }
 
@@ -325,7 +327,9 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
     for (let val = min; val <= max; val += step) {
         const item = document.createElement('div');
         item.className = 'gauge-dropdown-item';
-        item.textContent = val;
+        // For the interval and time gauges, display values as hh:mm for better readability
+        const displayText = (baseKey === 'interval' || baseKey === 'time') ? formatTime(val) : val;
+        item.textContent = displayText;
         if (Math.abs(val - currentValue) < 0.1) {
             item.classList.add('selected');
         }
@@ -508,13 +512,13 @@ function updateUI() {
         result2 = Planning.calculateBuhlmannPlan({
             bottomTime: state.dive2Time, maxDepth: state.dive2Depth,
             gfLow: state.currentGFLow, gfHigh: state.currentGFHigh,
-            fN2: (100 - state.gazO2pct) / 100,
+            fN2: (100 - state.gazO2pct2) / 100,
             initialTensions: currentTensions
         });
 
     } else {
         const prevGroup = (result1 && result1.profile && result1.profile.group) ? result1.profile.group : null;
-        const ead2 = Planning.calculateEquivalentAirDepth(state.dive2Depth, state.gazO2pct);
+        const ead2 = Planning.calculateEquivalentAirDepth(state.dive2Depth, state.gazO2pct2);
         const succResult = Planning.calculateSuccessive(prevGroup, state.surfaceInterval, ead2);
 
         currentMajoration = (succResult && !succResult.error) ? succResult.majoration : 0;
@@ -539,9 +543,10 @@ function updateUI() {
 
     updateGaugeVisuals('time', state.dive2Time, MAX_TIME, true, '-2');
     updateGaugeVisuals('depth', state.dive2Depth, MAX_DEPTH, false, '-2');
+    updateGaugeVisuals('o2', state.gazO2pct2, MAX_O2_pct, false, '-2');
 
-    const ppo2_2 = Planning.calculatePPO2(state.dive2Depth, state.gazO2pct);
-    const timeTicks2 = calculateStopTicks(state.dive2Depth, state.gazO2pct, currentMajoration);
+    const ppo2_2 = Planning.calculatePPO2(state.dive2Depth, state.gazO2pct2);
+    const timeTicks2 = calculateStopTicks(state.dive2Depth, state.gazO2pct2, currentMajoration);
     updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
     renderStops(result2, el['stops-display-2']);
@@ -652,12 +657,12 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
 function showGasBreakdown(consoLiters, remainingPressure) {
     if (!consoLiters || !consoLiters.breakdown) return;
     const breakdown = consoLiters.breakdown;
-    
+
     // Fallbacks for critical elements
     const modal = el['gas-modal'] || document.getElementById('gas-modal');
     const list = el['gas-breakdown-list'] || document.getElementById('gas-breakdown-list');
     const total = el['gas-breakdown-total'] || document.getElementById('gas-breakdown-total');
-    
+
     if (!modal || !list || !total) return;
 
     const trans = window.translations[state.currentLang];
@@ -672,7 +677,7 @@ function showGasBreakdown(consoLiters, remainingPressure) {
         li.innerHTML = `<strong>${label}:</strong> ${bar} bar (${Math.round(liters)} L)`;
         list.appendChild(li);
     };
-    
+
     const bar_total = Math.ceil(consoLiters.total / state.tankVolume);
     total.innerHTML = `${trans.total}: ${bar_total} bar (${Math.round(consoLiters.total)} L)`;
 
