@@ -29,6 +29,7 @@ After local tests, choose environment:
     - push to `staging` branch will deploy to [https://repied.github.io/tables/staging](https://repied.github.io/tables/staging/)
 - To deploy to users:
     - push to `main` branch will deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
+
 In both cases `npm version minor` upgrades version number.
 
 # Donations
