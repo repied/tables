@@ -124,7 +124,7 @@ async function init() {
             currentLang = langToggle.checked ? 'en' : 'fr';
             localStorage.setItem('selectedLang', currentLang);
             translateUI();
-            renderUI();
+            updateUI();
         });
     }
     translateUI();
@@ -174,7 +174,7 @@ function initGauges() {
         intervalProgress.style.strokeDashoffset = length;
     }
 
-    renderUI();
+    updateUI();
 }
 
 function setupInteractions() {
@@ -193,11 +193,11 @@ function setupInteractions() {
     if (mn90Toggle && gfToggle) {
         mn90Toggle.addEventListener('click', () => {
             isGFMode = false;
-            renderUI();
+            updateUI();
         });
         gfToggle.addEventListener('click', () => {
             isGFMode = true;
-            renderUI();
+            updateUI();
         });
     }
 
@@ -252,7 +252,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
 
             // Reset to default
             setValue(defaultValue);
-            renderUI();
+            updateUI();
 
             // Reset state
             lastTapTime = 0;
@@ -289,7 +289,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
             if (newValue > max) newValue = max;
             if (newValue !== getValue()) {
                 setValue(newValue);
-                renderUI();
+                updateUI();
             }
         }
     });
@@ -322,44 +322,19 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
     gaugeElement.addEventListener('keydown', (e) => {
         const cur = getValue();
         const step = (sensitivity >= 1) ? Math.round(sensitivity) : (sensitivity > 0 ? 0.5 : 1);
-        switch (e.key) {
-            case 'ArrowUp':
-            case 'ArrowRight':
-                setValue(Math.min(max, cur + step));
-                renderUI();
-                e.preventDefault();
-                break;
-            case 'ArrowDown':
-            case 'ArrowLeft':
-                setValue(Math.max(min, cur - step));
-                renderUI();
-                e.preventDefault();
-                break;
-            case 'PageUp':
-                setValue(Math.min(max, cur + Math.max(1, step * 5)));
-                renderUI();
-                e.preventDefault();
-                break;
-            case 'PageDown':
-                setValue(Math.max(min, cur - Math.max(1, step * 5)));
-                renderUI();
-                e.preventDefault();
-                break;
-            case 'Home':
-                setValue(min);
-                renderUI();
-                e.preventDefault();
-                break;
-            case 'End':
-                setValue(max);
-                renderUI();
-                e.preventDefault();
-                break;
-            case 'Enter':
-            case ' ':
-                showGaugeValueDropdown(gaugeElement, getValue(), setValue, min, max);
-                e.preventDefault();
-                break;
+        const map = {
+            'ArrowUp': cur + step, 'ArrowRight': cur + step,
+            'ArrowDown': cur - step, 'ArrowLeft': cur - step,
+            'PageUp': cur + Math.max(1, step * 5), 'PageDown': cur - Math.max(1, step * 5),
+            'Home': min, 'End': max
+        };
+        if (map[e.key] !== undefined) {
+            setValue(Math.max(min, Math.min(max, map[e.key])));
+            updateUI();
+            e.preventDefault();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+            showGaugeValueDropdown(gaugeElement, getValue(), setValue, min, max);
+            e.preventDefault();
         }
     });
 }
@@ -408,7 +383,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
         }
         item.onclick = () => {
             setValue(val);
-            renderUI();
+            updateUI();
             closeDropdown();
         };
         listContainer.appendChild(item);
@@ -511,7 +486,7 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
     }
 }
 
-function renderUI() {
+function updateUI() {
     document.body.classList.toggle('gf-mode', isGFMode);
 
     // Common Calcs
@@ -643,7 +618,7 @@ function renderStops(result, containerElement) {
         return;
     }
     if (result.second_dive_not_authorized) {
-        container.innerHTML = '';
+        containerElement.innerHTML = '';
         return;
     }
 

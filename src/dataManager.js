@@ -40,7 +40,6 @@ async function loadAllData() {
 
         return true;
     } catch (e) {
-        console.error("Failed to load data", e);
         return false;
     }
 }

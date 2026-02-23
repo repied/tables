@@ -32,7 +32,6 @@ window.translations = {
         usage4: "<strong>Modes :</strong> MN90 (Tables) ou GF (Bühlmann ZHL-16C).",
         usage5: "<strong>Calculs :</strong> DTR (Durée Totale de Remontée) et Réserve (pression bouteille en fin de plongée).",
         usage6: "<strong>Alertes :</strong> Réserve < 50b (rouge), ppO2 > 1.5 (orange).", // RESERVE_PRESSURE_THRESHOLD and PPO2_THRESHOLD
-        usage7: "",
         calcTitle: "Hypothèses de calcul",
         calc1: "Niveau de la mer, eau salée",
         calc2: "<strong>Profil :</strong> plongée carrée",

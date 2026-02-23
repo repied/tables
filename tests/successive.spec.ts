@@ -32,7 +32,6 @@ test('Successive dive calculation flow', async ({ page }) => {
     await page.waitForTimeout(500);
 
     const majText = await page.locator('#majoration-display').innerText();
-    console.log("Majoration displayed:", majText);
 
     expect(majText).toContain('+7 min');
 
@@ -41,7 +40,6 @@ test('Successive dive calculation flow', async ({ page }) => {
         return window.Planning.calculateSuccessive('H', 60, 20);
     });
 
-    console.log("Calculation result for H, 60min, 20m:", calculation);
     expect(calculation.majoration).toBe(32);
     expect(calculation.n2).toBeCloseTo(1.05);
 });

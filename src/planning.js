@@ -42,7 +42,6 @@
 
     const N_COMPARTMENTS = BUEHLMANN.length;
     const HALF_LIVES = BUEHLMANN.map(c => c.t12);
-    // const GF_INCREMENT = 5; // Unused
     const MAX_STOP_TIME_BEFORE_INFTY = 720;
 
     function depthToPressure(depth, surfacePressure) {

@@ -29,7 +29,6 @@ test('GF Mode Calculation', async ({ page }) => {
 
     // Get DTR value
     const dtrText = await dtrLocator.innerText();
-    console.log('DTR GF:', dtrText);
     expect(dtrText).toMatch(/\d+:\d+/);
 
     // Check stops are rendered
@@ -46,7 +45,6 @@ test('GF Mode Calculation', async ({ page }) => {
     const dtr2Locator = page.locator('#dive-details-2 .result-value').first();
     await expect(dtr2Locator).not.toHaveText('33'); // Fake value was 33
     const dtr2Text = await dtr2Locator.innerText();
-    console.log('DTR2 GF:', dtr2Text);
     expect(dtr2Text).toMatch(/\d+:\d+/);
 });
 
