@@ -6,6 +6,10 @@ on:
       - main # Deploys to production
       - staging # Deploys to staging
 
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -73,3 +77,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
           destination_dir: ${{ steps.deploy_path.outputs.DEST_DIR }}
+          keep_files: true
