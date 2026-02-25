@@ -20,7 +20,7 @@ const urlsToCache = [
     './assets/background-table-grey.png',
     './assets/fr-flag-800.png',
     './assets/uk-flag-800.png',
-    './assets/gsp.avif'
+    './src/dropdown.css'
 ];
 
 self.addEventListener('install', event => {
@@ -29,7 +29,7 @@ self.addEventListener('install', event => {
         caches.open(CACHE_NAME)
             .then(cache => {
                 console.log('Opened cache');
-                return cache.addAll(urlsToCache);
+                return cache.addAll(urlsToCache.map(url => new Request(url, { cache: 'reload' })));
             })
     );
 });
