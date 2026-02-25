@@ -12,6 +12,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   build-and-deploy:
@@ -60,6 +61,11 @@ jobs:
       - name: Run Tests
         if: github.ref == 'refs/heads/main'
         run: npm run test
+
+      - name: Generate Experiments Index
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/update-experiments-index.sh
 
       - name: Determine Deployment Path
         id: deploy_path
