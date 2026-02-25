@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main # Deploys to production
-      - staging # Deploys to staging
       - 'exp-*' # Deploys to experiment folders
 
 concurrency:
@@ -68,10 +67,7 @@ jobs:
           echo "DEBUG: GITHUB_REF is $GITHUB_REF"
           if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             echo "DEST_DIR=." >> $GITHUB_OUTPUT
-          elif [[ "$GITHUB_REF" == "refs/heads/staging" ]]; then
-            echo "DEST_DIR=staging" >> $GITHUB_OUTPUT
           else
-            # Extract branch name for exp-* branches
             BRANCH_NAME=${GITHUB_REF#refs/heads/}
             echo "DEST_DIR=$BRANCH_NAME" >> $GITHUB_OUTPUT
           fi

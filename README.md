@@ -24,10 +24,10 @@ PWA can be installed on mobile/laptop/desktop and used offline. Direct installat
 - Run tests: `npm test`.
 
 # Deployments
-After local tests, choose environment: 
 - To test on github pages:
-    - push to `staging` branch will deploy to [https://repied.github.io/tables/staging](https://repied.github.io/tables/staging/)
+    - push to any branch starting with `exp-` (e.g. `exp-new-feature`) will deploy to a subfolder (e.g. [https://repied.github.io/tables/exp-new-feature/](https://repied.github.io/tables/exp-new-feature/))
 - To deploy to users:
+    - first make sure all tests pass with `npm test`
     - push to `main` branch will deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
 
 Version number are git hash to make sure updates invalidate service workers cache. 

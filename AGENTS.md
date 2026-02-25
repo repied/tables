@@ -7,6 +7,7 @@ First read `./README.md` file. Remember that your are most likely developing in 
 ### 1. Progressive Web App (PWA) Implementation
 *   **Manifest Configuration**: Creating `manifest.json` for standalone mobile experience (icons, theme colors, display modes).
 *   **Service Worker**: Implementing `sw.js` for offline asset caching and version management (`caches.open`, `event.respondWith`).
+    *   **Aggressive Updates**: Using `cache: 'reload'` in `install` event to force network fetch of updated assets, avoiding stale browser caches.
 *   **Mobile Meta Tags**: Configuring `viewport` for non-scalable mobile interfaces and iOS-specific tags (`apple-mobile-web-app-capable`).
 
 ### 2. Vanilla Web Development (No Framework)
@@ -44,3 +45,8 @@ First read `./README.md` file. Remember that your are most likely developing in 
 
 ### 5. Deployments
 See `./README.md` for instructions.
+
+### 6. Agent Permissions & Workflow
+*   **Autonomy**: You are authorized to push autonomously to any branch (e.g. `exp-*`) **except `main`**.
+*   **Main Branch**: Changes to `main` must be done via Pull Request or user confirmation (unless explicitly instructed otherwise). You need to run tests `npm test` before any commit to `main` branch.
+*   **Experiments**: Use branches starting with `exp-` for experimental features. These are automatically deployed to a dedicated subfolder on GitHub Pages.
