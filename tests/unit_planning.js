@@ -136,7 +136,7 @@ console.log("--- Starting Unit Tests ---\n");
     assertEqual(profile.profile.group, 'I', "Group should be I");
     assertEqual(profile.profile.stops['3'], 4, "Should have 4 min stop at 3m");
 
-    const dtr = Planning.calculateDTR(20, profile.profile.stops);
+    const dtr = Planning.calculateDTR(20, profile.profile.stops, Planning.ASCENT_RATE_MN90);
     // Calculation (verified):
     // Ascent 20->3 = 1.133
     // Stop = 4
@@ -154,7 +154,7 @@ console.log("--- Starting Unit Tests ---\n");
 {
     const profile = Planning.getMN90Profile(20, 50);
     const sac = 20;
-    const result = Planning.calculateGasConsumptionLiters(20, 50, profile.profile, sac);
+    const result = Planning.calculateGasConsumptionLiters(20, 50, profile.profile, sac, Planning.ASCENT_RATE_MN90);
     const gas = result.total;
     const expected = 3170;
     assert(Math.abs(gas - expected) <= 5, `Gas consumption close to ${expected} (got ${gas})`);
@@ -195,7 +195,8 @@ console.log("--- Starting Unit Tests ---\n");
         maxDepth: 30,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
 
     assert(plan.dtr > 0, "Buehlmann plan has DTR");
@@ -207,7 +208,7 @@ console.log("--- Starting Unit Tests ---\n");
 
 function check_dtr_single_dive(depth, time, expectedDTR) {
     const profile = Planning.getMN90Profile(depth, time);
-    const dtr = Planning.calculateDTR(depth, profile.profile.stops);
+    const dtr = Planning.calculateDTR(depth, profile.profile.stops, Planning.ASCENT_RATE_MN90);
     console.log(`DTR for ${depth}m ${time}min: ${dtr} min`);
     assertEqual(dtr, expectedDTR, `DTR should be ${expectedDTR} min`);
 }
@@ -347,7 +348,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 0,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     // Check DTR and stops
     if (planZeroDepth.dtr !== 0 || Object.keys(planZeroDepth.profile.stops).length > 0) {
@@ -365,7 +367,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 30,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     if (planZeroTime.dtr !== 0 || Object.keys(planZeroTime.profile.stops).length > 0) {
         console.error(`❌ Zero Time (0min) should have 0 DTR. Got DTR: ${planZeroTime.dtr}`);
@@ -383,7 +386,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 100,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     // Verify we got some stops
     const stopsDeep = Object.keys(planDeep.profile.stops);
@@ -402,7 +406,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 10,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     if (Object.keys(planShallow.profile.stops).length > 0) {
         console.error(`❌ Shallow dive (10m 30min) should have no stops. Got: ${JSON.stringify(planShallow.profile.stops)}`);
@@ -420,14 +425,16 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 30,
         gfLow: 100,
         gfHigh: 100,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     const planConservative = Planning.calculateBuhlmannPlan({
         bottomTime: 30,
         maxDepth: 30,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
 
     // Conservative should have equal or more deco (DTR) than aggressive.
@@ -452,11 +459,12 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
             maxDepth: depth,
             gfLow: gfLow,
             gfHigh: gfHigh,
-            fN2: 0.79
+            fN2: 0.79,
+            ascentRate: Planning.ASCENT_RATE_GF
         });
 
         const dtr_Buhlmann = plan.dtr;
-        const dtr_ceiled = Planning.calculateDTR(depth, plan.profile.stops);
+        const dtr_ceiled = Planning.calculateDTR(depth, plan.profile.stops, Planning.ASCENT_RATE_GF);
 
         if (dtr_Buhlmann > dtr_ceiled) {
             console.error(`❌ Consistency check failed for ${depth}m ${time}min GF ${gfLow}/${gfHigh}. dtr_Buhlmann: ${dtr_Buhlmann} >  DTR ceiled: ${dtr_ceiled}`);
@@ -561,7 +569,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 40,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.79
+        fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
 
     const planNx32 = Planning.calculateBuhlmannPlan({
@@ -569,7 +578,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 40,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.68 // EAN32
+        fN2: 0.68, // EAN32
+        ascentRate: Planning.ASCENT_RATE_GF
     });
 
     if (planNx32.dtr >= planAir.dtr && planAir.dtr > 10) { // Ensure there is actual deco on air to reduce
@@ -586,7 +596,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
         maxDepth: 6,
         gfLow: 30,
         gfHigh: 70,
-        fN2: 0.0
+        fN2: 0.0,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     if (planO2.profile.stops && Object.keys(planO2.profile.stops).length > 0) {
         console.error(`❌ Pure O2 at 6m should have no N2 deco stops. Got: ${JSON.stringify(planO2.profile.stops)}`);
@@ -599,7 +610,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // 6. Buhlmann Repetitive Nitrox Dive
     // Dive 1: 40m 20min EAN32.
     const dive1 = Planning.calculateBuhlmannPlan({
-        bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.68
+        bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.68,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     // Interval: 60 min.
     // Decay tensions.
@@ -609,17 +621,20 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Dive 2: 30m 20min EAN32.
     const dive2 = Planning.calculateBuhlmannPlan({
         bottomTime: 20, maxDepth: 30, gfLow: 30, gfHigh: 70, fN2: 0.68,
-        initialTensions: surfaceTensions
+        initialTensions: surfaceTensions,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
 
     // Compare with Air repetitive
     const dive1Air = Planning.calculateBuhlmannPlan({
-        bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.79
+        bottomTime: 20, maxDepth: 40, gfLow: 30, gfHigh: 70, fN2: 0.79,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
     const surfaceTensionsAir = Planning.updateAllTensions(dive1Air.finalTensions, Planning.SURFACE_AIR_ALV_PPN2, interval);
     const dive2Air = Planning.calculateBuhlmannPlan({
         bottomTime: 20, maxDepth: 30, gfLow: 30, gfHigh: 70, fN2: 0.79,
-        initialTensions: surfaceTensionsAir
+        initialTensions: surfaceTensionsAir,
+        ascentRate: Planning.ASCENT_RATE_GF
     });
 
     if (dive2.dtr >= dive2Air.dtr && dive2Air.dtr > 0) {
@@ -645,7 +660,7 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Ascent Gas: 1.333 * 2 * 20 = 53.33 L.
     // Total: 40 + 540 + 53.33 = 633.33 -> 634 L.
     const profileNoStops = { stops: {} };
-    const gasNoStops = Planning.calculateGasConsumptionLiters(20, 10, profileNoStops, SAC).total;
+    const gasNoStops = Planning.calculateGasConsumptionLiters(20, 10, profileNoStops, SAC, Planning.ASCENT_RATE_MN90).total;
     if (Math.abs(gasNoStops - 639) > 2) {
         console.error(`❌ Simple ascent gas failed. Expected ~639, got ${gasNoStops}`);
         failed++;
@@ -668,7 +683,7 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     // Gas Travel 2: 0.5 * 1.15 * 20 = 11.5 L.
     // Total: 75 + 1480 + 95.4 + 130 + 11.5 = 1791.9 -> 1792 L.
     const profileWithStops = { stops: { 3: 5 } };
-    const gasWithStops = Planning.calculateGasConsumptionLiters(30, 20, profileWithStops, SAC).total;
+    const gasWithStops = Planning.calculateGasConsumptionLiters(30, 20, profileWithStops, SAC, Planning.ASCENT_RATE_MN90).total;
 
     // Allow small margin for floating point
     if (Math.abs(gasWithStops - 1806) > 5) {
@@ -688,8 +703,8 @@ function check_successive_dive(group, interval, depth, expectedMaj) {
     const ead35 = Planning.calculateEquivalentAirDepth(d35, 32); // EAN32
     const pNx35 = Planning.getMN90Profile(ead35, t40);
 
-    const gAir = Planning.calculateGasConsumptionLiters(d35, t40, pAir35.profile, SAC).total;
-    const gNx = Planning.calculateGasConsumptionLiters(d35, t40, pNx35.profile, SAC).total;
+    const gAir = Planning.calculateGasConsumptionLiters(d35, t40, pAir35.profile, SAC, Planning.ASCENT_RATE_MN90).total;
+    const gNx = Planning.calculateGasConsumptionLiters(d35, t40, pNx35.profile, SAC, Planning.ASCENT_RATE_MN90).total;
 
     if (gNx < gAir) {
         console.log(`✅ Nitrox gas saving verified (Air: ${gAir} L, Nx: ${gNx} L)`);

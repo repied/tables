@@ -1,14 +1,3 @@
-## Matériel (Bateau)
-* Masque, palmes, tuba
-* Combinaison, chaussons, gants
-* Lestage (ceinture/plombs)
-* Gilet stabilisateur (BCD)
-* Détendeurs (principal + secours)
-* Ordinateur de plongée & boussole
-* Parachute de palier & dévidoir
-* Lampe, couteau, sifflet
-* Carnet de plongée, licence, certificat médical
-
 ## Buddy Check (BARKA)
 * **B**outeille : ouverte à fond, pression vérifiée
 * **A**ttaches : gilet bien fixé, sangles ajustées
