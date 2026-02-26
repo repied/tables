@@ -7,6 +7,7 @@
     <title>Tables Dive Planner</title>
     <link rel="stylesheet" href="./src/style.css">
     <link rel="stylesheet" href="./src/dropdown.css">
+    <link rel="stylesheet" href="./src/lock.css">
     <link rel="icon" type="image/png" href="./assets/favicon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e2130">
@@ -18,7 +19,7 @@
 </head>
 
 <script>
-    window.APP_VERSION = "5f8a2d6";
+    window.APP_VERSION = "e3f123f";
 </script>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-W2YD6XQDM5"></script>
@@ -33,7 +34,7 @@
 <body>
     <div class="app-container">
         <!-- Top Row: Gas Settings -->
-        <div class="gauges-row">
+        <div class="gauges-row" id="gas-settings-row">
             <!-- Volume Gauge -->
             <div class="gauge-wrapper small">
                 <div class="gauge-container" id="volume-gauge-container">
@@ -81,8 +82,23 @@
                     </div>
                 </div>
             </div>
+        </div>
 
+        <!-- Mode Toggle -->
+        <div class="actions-container toggle-container">
+            <div class="toggle-wrapper">
+                <input type="radio" name="mode-toggle" id="mode-mn90" value="mn90" checked>
+                <label for="mode-mn90" class="toggle-option" id="mode-mn90-label">MN90</label>
 
+                <input type="radio" name="mode-toggle" id="mode-gf" value="gf">
+                <label for="mode-gf" class="toggle-option" id="mode-gf-label">GF</label>
+
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+
+        <!-- First dive Area  -->
+        <div class="gauges-row" id="first-dive-params-row">
             <!-- O2 Gauge -->
             <div class="gauge-wrapper small">
                 <div class="gauge-container" id="o2-gauge-container">
@@ -98,24 +114,7 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- GF Gauges Row -->
-        <div class="gauges-row" id="gf-gauges-row">
-
-        </div>
-
-        <!-- Mode Toggle -->
-        <div class="actions-container toggle-container">
-            <div class="toggle-wrapper">
-                <input type="radio" name="mode-toggle" id="mode-mn90" value="mn90" checked>
-                <label for="mode-mn90" class="toggle-option" id="mode-mn90-label">MN90</label>
-
-                <input type="radio" name="mode-toggle" id="mode-gf" value="gf">
-                <label for="mode-gf" class="toggle-option" id="mode-gf-label">GF</label>
-
-                <div class="toggle-slider"></div>
-            </div>
             <!-- GF Low Gauge -->
             <div class="gauge-wrapper small">
                 <div class="gauge-container" id="gf-low-gauge-container">
@@ -148,61 +147,63 @@
                 </div>
             </div>
         </div>
-
-        <!-- First dive Area  -->
         <div class="results-container">
-            <div class="successive-header" style="justify-content: center; margin-bottom: 10px;">
+            <div class="successive-header" style="justify-content: center;">
                 <span id="first-dive-header-text" data-i18n="firstDive"></span>
             </div>
 
-            <div class="gauges-row main-gauges">
-                <!-- Duration Gauge 1 -->
-                <div class="gauge-wrapper medium">
-                    <div class="gauge-container" id="time-gauge-container">
-                        <svg class="gauge-ring" viewBox="0 0 120 120">
-                            <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
-                                stroke-linecap="round" />
-                            <path class="ring-progress" id="time-progress" d="M 30 100 A 50 50 0 1 1 90 100" fill="none"
-                                stroke-width="8" stroke-linecap="round" />
-                        </svg>
-                        <div class="gauge-content">
-                            <div class="gauge-value" id="time-display">0:00</div>
-                            <div class="gauge-unit">h:mm</div>
+            <div class="dive-controls">
+
+
+                <div class="gauges-row main-gauges">
+                    <!-- Duration Gauge 1 -->
+                    <div class="gauge-wrapper medium">
+                        <div class="gauge-container" id="time-gauge-container">
+                            <svg class="gauge-ring" viewBox="0 0 120 120">
+                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
+                                    stroke-linecap="round" />
+                                <path class="ring-progress" id="time-progress" d="M 30 100 A 50 50 0 1 1 90 100"
+                                    fill="none" stroke-width="8" stroke-linecap="round" />
+                            </svg>
+                            <div class="gauge-content">
+                                <div class="gauge-value" id="time-display">0:00</div>
+                                <div class="gauge-unit">h:mm</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="gps-display-1" class="gps-center" style="font-family: monospace;"></div>
+
+                    <!-- Depth Gauge 1 -->
+                    <div class="gauge-wrapper medium">
+                        <div class="gauge-container" id="depth-gauge-container">
+                            <svg class="gauge-ring" viewBox="0 0 120 120">
+                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
+                                    stroke-linecap="round" />
+                                <path class="ring-progress" id="depth-progress" d="M 30 100 A 50 50 0 1 1 90 100"
+                                    fill="none" stroke-width="8" stroke-linecap="round" />
+                            </svg>
+                            <div class="gauge-content">
+                                <div class="gauge-value" id="depth-display">0</div>
+                                <div class="gauge-unit">m</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div id="gps-display-1" class="gps-center" style="font-family: monospace;"></div>
-
-                <!-- Depth Gauge 1 -->
-                <div class="gauge-wrapper medium">
-                    <div class="gauge-container" id="depth-gauge-container">
-                        <svg class="gauge-ring" viewBox="0 0 120 120">
-                            <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
-                                stroke-linecap="round" />
-                            <path class="ring-progress" id="depth-progress" d="M 30 100 A 50 50 0 1 1 90 100"
-                                fill="none" stroke-width="8" stroke-linecap="round" />
-                        </svg>
-                        <div class="gauge-content">
-                            <div class="gauge-value" id="depth-display">0</div>
-                            <div class="gauge-unit">m</div>
-                        </div>
-                    </div>
+                <div class="stops-display" id="stops-display">
+                    <!-- Stops will be inserted here -->
                 </div>
-            </div>
-            <div class="stops-display" id="stops-display">
-                <!-- Stops will be inserted here -->
-            </div>
-            <div class="dive-details" id="dive-details">
-                <!-- DTR, Group , reserve for dive 1-->
+                <div class="dive-details" id="dive-details">
+                    <!-- DTR, Group , reserve for dive 1-->
+                </div>
             </div>
 
         </div>
 
-        <!-- Interval Gauge -->
-        <div class="gauges-row">
+        <!-- Second dive Area  -->
+        <div class="gauges-row" id="second-dive-params-row">
+            <!-- Interval Gauge -->
             <div class="gauge-wrapper small">
-                <div class="gauge-label" data-i18n="interval"></div>
                 <div class="gauge-container" id="interval-gauge-container">
                     <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
@@ -216,9 +217,9 @@
                     </div>
                 </div>
             </div>
+
             <!-- O2 Gauge 2 (per-dive gas selection) -->
             <div class="gauge-wrapper small">
-                <div class="gauge-label" data-i18n="o2-second-label"></div>
                 <div class="gauge-container" id="o2-gauge-container-2">
                     <svg class="gauge-ring" viewBox="0 0 120 120">
                         <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
@@ -233,16 +234,51 @@
                 </div>
             </div>
 
+            <!-- GF Low Gauge 2 -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-low-gauge-container-2">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-low-progress-2"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-low-display-2">30</div>
+                        <div class="gauge-unit" id="gf-low-unit-2" data-i18n="low"></div>
+                    </div>
+                    <div class="lock-icon-container" id="gf-low-lock-2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- GF High Gauge 2 -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-high-gauge-container-2">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-high-progress-2"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-high-display-2">80</div>
+                        <div class="gauge-unit" id="gf-high-unit-2" data-i18n="high"></div>
+                    </div>
+                    <div class="lock-icon-container" id="gf-high-lock-2">
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="successive-container glass-panel">
+        <div class="results-container successive-container">
             <div class="successive-header" style="justify-content: center;">
                 <span id="successive-header-text" data-i18n="secondDive"></span>
             </div>
 
-            <div class="successive-controls" id="successive-controls">
-                <div class="gauges-row">
+            <div class="dive-controls" id="successive-controls">
 
 
+                <div class="gauges-row main-gauges">
                     <!-- Duration Gauge 2 -->
                     <div class="gauge-wrapper medium">
                         <div class="gauge-container" id="time-gauge-container-2">
@@ -258,6 +294,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="gps-center" style="font-family: monospace; visibility: hidden;"></div>
 
                     <!-- Depth Gauge 2 -->
                     <div class="gauge-wrapper medium">
@@ -276,15 +314,15 @@
                     </div>
                 </div>
 
-                <div class="majoration-display" id="majoration-display">
-                    Majoration: +0 min
-                </div>
 
                 <div class="stops-display" id="stops-display-2">
                     <!-- Stops will be inserted here -->
                 </div>
                 <div class="dive-details" id="dive-details-2">
                     <!-- DTR, Reserve for Dive 2 -->
+                </div>
+                <div class="majoration-display" id="majoration-display">
+                    Majoration: +0 min
                 </div>
             </div>
         </div>

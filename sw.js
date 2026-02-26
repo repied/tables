@@ -1,8 +1,9 @@
-const CACHE_NAME = 'tables-cache-v5f8a2d6';
+const CACHE_NAME = 'tables-cache-ve3f123f';
 const urlsToCache = [
     './',
     './index.html',
     './src/style.css',
+    './src/lock.css',
     './src/script.js',
     './src/dataManager.js',
     './src/planning.js',
