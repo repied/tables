@@ -505,6 +505,14 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
 }
 
 function updateUI() {
+    try {
+        _updateUI_impl();
+    } catch (e) {
+        console.error("updateUI error", e);
+    }
+}
+
+function _updateUI_impl() {
     document.body.classList.toggle('gf-mode', state.isGFMode);
 
     // Common Calcs
@@ -531,7 +539,10 @@ function updateUI() {
 
     updateGaugeTicks('depth-gauge-container', ppo2Ticks1, MIN_DEPTH, MAX_DEPTH);
 
-    const timeTicks1 = calculateStopTicks(state.dive1Depth, state.gazO2pct, 0);
+    const timeTicks1 = calculateStopTicks(state.dive1Depth, state.gazO2pct, 0, {
+        gfLow: state.currentGFLow,
+        gfHigh: state.currentGFHigh
+    });
     updateGaugeTicks('time-gauge-container', timeTicks1, MIN_TIME, MAX_TIME);
 
     let result1;
@@ -567,10 +578,11 @@ function updateUI() {
 
 
     let result2, currentMajoration = 0;
+    let currentTensions = null;
     if (state.isGFMode) {
         // Tension evolution
         const surface_air_alv_ppn2 = Planning.SURFACE_AIR_ALV_PPN2;
-        let currentTensions = result1 ? result1.finalTensions : null;
+        currentTensions = result1 ? result1.finalTensions : null;
         const sursaturationBeforePct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
         if (currentTensions) {
             currentTensions = Planning.updateAllTensions(currentTensions, surface_air_alv_ppn2, state.surfaceInterval);
@@ -630,7 +642,11 @@ function updateUI() {
     const ppo2Ticks2 = calculatePPO2Tick(state.dive2Depth, state.gazO2pct2);
     updateGaugeTicks('depth-gauge-container-2', ppo2Ticks2, MIN_DEPTH, MAX_DEPTH);
 
-    const timeTicks2 = calculateStopTicks(state.dive2Depth, state.gazO2pct2, currentMajoration);
+    const timeTicks2 = calculateStopTicks(state.dive2Depth, state.gazO2pct2, currentMajoration, {
+        gfLow: state.currentGFLow2,
+        gfHigh: state.currentGFHigh2,
+        initialTensions: currentTensions
+    });
     updateGaugeTicks('time-gauge-container-2', timeTicks2, MIN_TIME, MAX_TIME);
 
     renderStops(result2, el['stops-display-2']);
@@ -1085,9 +1101,9 @@ function calculatePPO2Tick(depth, o2Pct) {
     }];
 }
 
-function calculateStopTicks(depth, o2Pct, majoration = 0) {
+function calculateStopTicks(depth, o2Pct, majoration = 0, gfContext = {}) {
     if (state.isGFMode) {
-        return calculateGFTicks(depth, o2Pct);
+        return calculateGFTicks(depth, o2Pct, gfContext);
     }
 
     const ead = Planning.calculateEquivalentAirDepth(depth, o2Pct);
@@ -1155,9 +1171,10 @@ function calculateStopTicks(depth, o2Pct, majoration = 0) {
     return ticks;
 }
 
-function calculateGFTicks(depth, o2Pct) {
-    const gfLow = state.currentGFLow;
-    const gfHigh = state.currentGFHigh;
+function calculateGFTicks(depth, o2Pct, context = {}) {
+    const gfLow = context.gfLow ?? state.currentGFLow;
+    const gfHigh = context.gfHigh ?? state.currentGFHigh;
+    const initialTensions = context.initialTensions || null;
     const MAX_SEARCH_TIME = 120; // Minutes
 
     // 1. Initial Check at Max Time
@@ -1167,6 +1184,7 @@ function calculateGFTicks(depth, o2Pct) {
         gfLow: gfLow,
         gfHigh: gfHigh,
         fN2: (100 - o2Pct) / 100,
+        initialTensions: initialTensions,
         ascentRate: Planning.ASCENT_RATE_GF
     });
     
@@ -1195,6 +1213,7 @@ function calculateGFTicks(depth, o2Pct) {
                 gfLow: gfLow,
                 gfHigh: gfHigh,
                 fN2: (100 - o2Pct) / 100,
+                initialTensions: initialTensions,
                 ascentRate: Planning.ASCENT_RATE_GF
             });
 
