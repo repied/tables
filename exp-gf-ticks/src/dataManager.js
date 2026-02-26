@@ -3,7 +3,6 @@
 let MN90_Tables = {};
 let Table2_N2 = null; // Structure: { intervals: [min], data: { 'A': [coeffs], ... } }
 let Table3_Maj = null; // Structure: { depths: [m], data: [ { n2: val, majorations: [min] } ] }
-let GF_Store = null; // { grid, lookup }
 
 // Helper: Parse time string "1h15" or "15" to minutes
 function parseDuration(str) {
@@ -21,11 +20,10 @@ function parseDuration(str) {
 // Fetch and Parse all data
 async function loadAllData() {
     try {
-        const [stopsRes, n2Res, majRes, gfRes] = await Promise.all([
+        const [stopsRes, n2Res, majRes] = await Promise.all([
             fetch('./data/mn90_stops.csv'),
             fetch('./data/mn90-n2.csv'),
-            fetch('./data/mn90-majoration.csv'),
-            fetch('./data/GF_ticks_grid.csv').catch(() => ({ ok: false }))
+            fetch('./data/mn90-majoration.csv')
         ]);
 
         if (!stopsRes.ok || !n2Res.ok || !majRes.ok) {
@@ -36,18 +34,12 @@ async function loadAllData() {
         const n2Text = await n2Res.text();
         const majText = await majRes.text();
 
-        if (gfRes && gfRes.ok) {
-            const gfText = await gfRes.text();
-            GF_Store = parseGFTicks(gfText);
-        }
-
         MN90_Tables = parseStopsTable(stopsText);
         Table2_N2 = parseN2Table(n2Text);
         Table3_Maj = parseMajorationTable(majText);
 
         return true;
     } catch (e) {
-        console.error(e);
         return false;
     }
 }
@@ -131,77 +123,6 @@ function parseMajorationTable(csv) {
     return { depths, data };
 }
 
-function parseGFTicks(csv) {
-    const lines = csv.split('\n');
-    const lookup = {};
-    const sets = { gfl: new Set(), gfh: new Set(), o2: new Set(), depth: new Set() };
-
-    // Header: GF low,GF high,O2,depth,stop_depth,min_duration
-    for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const cols = line.split(',');
-        if (cols.length < 6) continue;
-
-        const gfl = parseInt(cols[0]);
-        const gfh = parseInt(cols[1]);
-        const o2 = parseInt(cols[2]);
-        const depth = parseInt(cols[3]);
-        const stopDepth = parseInt(cols[4]);
-        const minDuration = parseInt(cols[5]);
-
-        sets.gfl.add(gfl);
-        sets.gfh.add(gfh);
-        sets.o2.add(o2);
-        sets.depth.add(depth);
-
-        if (!lookup[gfl]) lookup[gfl] = {};
-        if (!lookup[gfl][gfh]) lookup[gfl][gfh] = {};
-        if (!lookup[gfl][gfh][o2]) lookup[gfl][gfh][o2] = {};
-        if (!lookup[gfl][gfh][o2][depth]) lookup[gfl][gfh][o2][depth] = [];
-
-        lookup[gfl][gfh][o2][depth].push({ stopDepth, minDuration });
-    }
-
-    const grid = {
-        gfl: Array.from(sets.gfl).sort((a, b) => a - b),
-        gfh: Array.from(sets.gfh).sort((a, b) => a - b),
-        o2: Array.from(sets.o2).sort((a, b) => a - b),
-        depth: Array.from(sets.depth).sort((a, b) => a - b)
-    };
-
-    return { grid, lookup };
-}
-
-function findClosestGFTicks(gfl, gfh, o2, depth) {
-    if (!GF_Store) return [];
-
-    const { grid, lookup } = GF_Store;
-
-    // Helper to find floor
-    const getFloor = (arr, val) => {
-        let best = arr[0];
-        for (const v of arr) {
-            if (v <= val) best = v;
-            else break; // sorted ascending
-        }
-        return best;
-    };
-
-    const tGFL = getFloor(grid.gfl, gfl);
-    const tGFH = getFloor(grid.gfh, gfh);
-    const tO2 = getFloor(grid.o2, o2);
-    const tDepth = getFloor(grid.depth, depth);
-
-    if (lookup[tGFL] &&
-        lookup[tGFL][tGFH] &&
-        lookup[tGFL][tGFH][tO2] &&
-        lookup[tGFL][tGFH][tO2][tDepth]) {
-        return lookup[tGFL][tGFH][tO2][tDepth];
-    }
-    return [];
-}
-
 
 // Expose to window
 window.dataManager = {
@@ -209,5 +130,4 @@ window.dataManager = {
     getMN90: () => MN90_Tables,
     getTable2: () => Table2_N2,
     getTable3: () => Table3_Maj,
-    getGFTicks: findClosestGFTicks
 };

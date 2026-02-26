@@ -3,7 +3,7 @@ const path = require('path');
 const vm = require('vm');
 
 ////////////// PARAMETERS //////////////
-const num_samples = 10; // use null to generate all of them (very large)
+const num_samples = 5;
 ////////////// PARAMETERS //////////////
 
 // Mock browser environment
@@ -150,5 +150,5 @@ for (const gfLow of gfLows) {
     }
 }
 
-fs.writeFileSync('./data/dive_plans.csv', rows.join('\n'));
-console.log(`Generated ${count} dive plans in dive_plans.csv`);
+fs.writeFileSync('./data/gf_dive_plans.csv', rows.join('\n'));
+console.log(`Generated ${count} dive plans in gf_dive_plans.csv`);
