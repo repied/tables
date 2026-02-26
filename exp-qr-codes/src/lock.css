@@ -1,0 +1,54 @@
+/* Lock Icon */
+.lock-icon-container {
+    position: absolute;
+    bottom: -10%;
+    /* Place it near the bottom of the circle */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 20;
+    /* Above everything */
+    opacity: 0.7;
+    transition: all 0.2s;
+    pointer-events: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lock-icon-container:hover {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.4);
+}
+
+.lock-icon-container svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--text-color);
+}
+
+/* Locked state within GF mode */
+body.gf-mode .gauge-container.locked {
+    pointer-events: none;
+}
+
+body.gf-mode .gauge-container.locked .gauge-ring,
+body.gf-mode .gauge-container.locked .gauge-content {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+body.gf-mode .gauge-container.locked .lock-icon-container {
+    opacity: 0.9;
+    filter: none;
+    pointer-events: auto;
+}
+
+/* Hide lock icon when NOT in GF mode? 
+   The gauges are disabled anyway. The lock icon probably shouldn't be clickable or visible if the whole gauge is disabled.
+*/
+body:not(.gf-mode) .lock-icon-container {
+    display: none;
+}
