@@ -44,7 +44,7 @@ const MAX_GF_pct = 100;
 const MIN_GF_pct = 10;
 const MAX_INTERVAL = 60 * 12;
 const MIN_INTERVAL = 30;
-const STEP_INTERVAL = 30;
+const STEP_INTERVAL = 15;
 
 // PWA logic
 let deferredPrompt;
@@ -242,7 +242,7 @@ function setupInteractions() {
     setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 1);
     setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
     setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 1);
-    setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 10);
+    setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 5);
 }
 
 
