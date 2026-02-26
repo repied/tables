@@ -120,7 +120,7 @@ function cacheElements() {
         'depth-gauge-container-2', 'o2-gauge-container-2', 'time-display-2', 'depth-display-2', 'o2-display-2',
         'time-progress-2', 'depth-progress-2', 'o2-progress-2', 'stops-display-2', 'dive-details-2',
         'lang-toggle', 'theme-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
-        'help-modal', 'help-link', 'checklist-modal', 'extra-link', 'app-version', 'install-app-container',
+        'help-modal', 'help-link', 'checklist-modal', 'app-version', 'install-app-container',
         'install-app-btn', 'installation-section'
     ];
     ids.forEach(id => el[id] = document.getElementById(id));
@@ -871,7 +871,19 @@ function setupModal() {
     const helpModal = el['help-modal'];
     const helpBtn = el['help-link'];
     const checklistModal = el['checklist-modal'];
-    const checklistBtn = el['extra-link'];
+    const helpContainer = document.getElementById('help-markdown-content');
+
+    // Handle clicks on links inside the help markdown (like the checklist link)
+    if (helpContainer) {
+        helpContainer.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href="#checklist"]');
+            if (link) {
+                e.preventDefault();
+                closeModal(helpModal);
+                openModal(checklistModal, helpBtn);
+            }
+        });
+    }
 
     // Helper to open modal with focus trap
     function openModal(modal, opener) {
@@ -952,14 +964,6 @@ function setupModal() {
         helpBtn.addEventListener('click', (e) => {
             e.preventDefault();
             openModal(helpModal, helpBtn);
-        });
-    }
-
-    if (checklistBtn && checklistModal) {
-        checklistBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (helpModal) closeModal(helpModal);
-            openModal(checklistModal, helpBtn);
         });
     }
 

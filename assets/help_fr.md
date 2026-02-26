@@ -37,3 +37,6 @@ Installation directe depuis le navigateur (pas de PlayStore/AppStore) pour utili
 *   Design inspiré de [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
 *   Tables MN90 : [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
 *   Paramètres ZH-L16C : [Wikipedia](https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm) et [Subsurface](https://github.com/subsurface)
+
+### Extra
+*   [Checklist](#checklist)
