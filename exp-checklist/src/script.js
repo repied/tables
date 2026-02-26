@@ -151,6 +151,22 @@ function translateUI() {
                 helpContainer.innerHTML = "<p>Error loading help content.</p>";
             });
     }
+
+    const checklistContainer = document.getElementById('checklist-markdown-content');
+    if (checklistContainer && typeof marked !== 'undefined') {
+        fetch(`./assets/checklist_${state.currentLang}.md`)
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.text();
+            })
+            .then(text => {
+                checklistContainer.innerHTML = marked.parse(text);
+            })
+            .catch(err => {
+                console.error('Failed to load checklist markdown', err);
+                checklistContainer.innerHTML = "<p>Error loading checklist content.</p>";
+            });
+    }
 }
 
 function initGauges() {
@@ -854,7 +870,6 @@ window.addEventListener('appinstalled', (event) => {
 function setupModal() {
     const helpModal = el['help-modal'];
     const helpBtn = el['help-link'];
-    const gasModal = el['gas-modal'];
     const checklistModal = el['checklist-modal'];
     const checklistBtn = el['extra-link'];
 
@@ -943,7 +958,8 @@ function setupModal() {
     if (checklistBtn && checklistModal) {
         checklistBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            openModal(checklistModal, checklistBtn);
+            if (helpModal) closeModal(helpModal);
+            openModal(checklistModal, helpBtn);
         });
     }
 
