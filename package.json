@@ -7,6 +7,7 @@
     "dev2": "live-server --port=5502",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node tests/unit_planning.js",
+    "genGFplans": "node ./src/generate_gf_plans.js",
     "test:e2e": "playwright test",
     "test:headed": "playwright test --headed",
     "test:report": "playwright show-report"
