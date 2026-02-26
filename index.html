@@ -97,64 +97,62 @@
         </div>
 
         <!-- First dive Area  -->
+        <div class="gauges-row" id="first-dive-params-row">
+            <!-- O2 Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="o2-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="o2-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="o2-display">21</div>
+                        <div class="gauge-unit">% O<sub>2</sub></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GF Low Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-low-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-low-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-low-display">30</div>
+                        <div class="gauge-unit" id="gf-low-unit" data-i18n="low"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GF High Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-high-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-high-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-high-display">80</div>
+                        <div class="gauge-unit" id="gf-high-unit" data-i18n="high"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="results-container">
             <div class="successive-header" style="justify-content: center;">
                 <span id="first-dive-header-text" data-i18n="firstDive"></span>
             </div>
 
             <div class="dive-controls">
-                <div class="gauges-row" id="first-dive-params-row">
-                    <!-- O2 Gauge -->
-                    <div class="gauge-wrapper small">
-                        <div class="gauge-container" id="o2-gauge-container">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress fixed-color-gauge-ring " id="o2-progress"
-                                    d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value small-text" id="o2-display">21</div>
-                                <div class="gauge-unit">% O<sub>2</sub></div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- GF Low Gauge -->
-                    <div class="gauge-wrapper small">
-                        <div class="gauge-container" id="gf-low-gauge-container">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress fixed-color-gauge-ring " id="gf-low-progress"
-                                    d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value small-text" id="gf-low-display">30</div>
-                                <div class="gauge-unit" id="gf-low-unit" data-i18n="low"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- GF High Gauge -->
-                    <div class="gauge-wrapper small">
-                        <div class="gauge-container" id="gf-high-gauge-container">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress fixed-color-gauge-ring " id="gf-high-progress"
-                                    d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value small-text" id="gf-high-display">80</div>
-                                <div class="gauge-unit" id="gf-high-unit" data-i18n="high"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="gauges-row main-gauges">
                     <!-- Duration Gauge 1 -->
@@ -201,85 +199,81 @@
 
         </div>
 
+        <!-- Second dive Area  -->
+        <div class="gauges-row" id="second-dive-params-row">
+            <!-- Interval Gauge -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="interval-gauge-container">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="interval-progress"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value  small-text" id="interval-display">60</div>
+                        <div class="gauge-unit">h:mm</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- O2 Gauge 2 (per-dive gas selection) -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="o2-gauge-container-2">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="o2-progress-2"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="o2-display-2">21</div>
+                        <div class="gauge-unit">% O<sub>2</sub></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GF Low Gauge 2 -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-low-gauge-container-2">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-low-progress-2"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-low-display-2">30</div>
+                        <div class="gauge-unit" id="gf-low-unit-2" data-i18n="low"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GF High Gauge 2 -->
+            <div class="gauge-wrapper small">
+                <div class="gauge-container" id="gf-high-gauge-container-2">
+                    <svg class="gauge-ring" viewBox="0 0 120 120">
+                        <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
+                            stroke-linecap="round" />
+                        <path class="ring-progress fixed-color-gauge-ring " id="gf-high-progress-2"
+                            d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6" stroke-linecap="round" />
+                    </svg>
+                    <div class="gauge-content">
+                        <div class="gauge-value small-text" id="gf-high-display-2">80</div>
+                        <div class="gauge-unit" id="gf-high-unit-2" data-i18n="high"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="results-container successive-container">
             <div class="successive-header" style="justify-content: center;">
                 <span id="successive-header-text" data-i18n="secondDive"></span>
             </div>
 
             <div class="dive-controls" id="successive-controls">
-                <div class="gauges-row" id="second-dive-params-row">
-                    <!-- Interval Gauge -->
-                    <div class="gauge-wrapper small">
-                        <div class="gauge-container" id="interval-gauge-container">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress fixed-color-gauge-ring " id="interval-progress"
-                                    d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value  small-text" id="interval-display">60</div>
-                                <div class="gauge-unit">h:mm</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- O2 Gauge 2 (per-dive gas selection) -->
-                    <div class="gauge-wrapper small">
-                        <div class="gauge-container" id="o2-gauge-container-2">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress fixed-color-gauge-ring " id="o2-progress-2"
-                                    d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value small-text" id="o2-display-2">21</div>
-                                <div class="gauge-unit">% O<sub>2</sub></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- GF Low Gauge 2 -->
-                    <div class="gauge-wrapper small">
-                        <div class="gauge-container" id="gf-low-gauge-container-2">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress fixed-color-gauge-ring " id="gf-low-progress-2"
-                                    d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value small-text" id="gf-low-display-2">30</div>
-                                <div class="gauge-unit" id="gf-low-unit-2" data-i18n="low"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- GF High Gauge 2 -->
-                    <div class="gauge-wrapper small">
-                        <div class="gauge-container" id="gf-high-gauge-container-2">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
-                                <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                                <path class="ring-progress fixed-color-gauge-ring " id="gf-high-progress-2"
-                                    d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="6"
-                                    stroke-linecap="round" />
-                            </svg>
-                            <div class="gauge-content">
-                                <div class="gauge-value small-text" id="gf-high-display-2">80</div>
-                                <div class="gauge-unit" id="gf-high-unit-2" data-i18n="high"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="gauges-row main-gauges">
-
-
                     <!-- Duration Gauge 2 -->
                     <div class="gauge-wrapper medium">
                         <div class="gauge-container" id="time-gauge-container-2">
@@ -315,15 +309,15 @@
                     </div>
                 </div>
 
-                <div class="majoration-display" id="majoration-display">
-                    Majoration: +0 min
-                </div>
 
                 <div class="stops-display" id="stops-display-2">
                     <!-- Stops will be inserted here -->
                 </div>
                 <div class="dive-details" id="dive-details-2">
                     <!-- DTR, Reserve for Dive 2 -->
+                </div>
+                <div class="majoration-display" id="majoration-display">
+                    Majoration: +0 min
                 </div>
             </div>
         </div>
