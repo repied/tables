@@ -640,6 +640,7 @@ function _updateUI_impl() {
         if (el['majoration-display']) {
             const tensionEvolutionLabel = window.translations[state.currentLang].tensionEvolution;
             el['majoration-display'].innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
+            el['majoration-display'].style.display = 'block';
         }
 
         result2 = Planning.calculateBuhlmannPlan({
@@ -664,9 +665,9 @@ function _updateUI_impl() {
             if (succResult && !succResult.error) {
                 majText = `+${currentMajoration} min`;
                 el['majoration-display'].textContent = `${window.translations[state.currentLang].majoration}: ${majText} `;
+                el['majoration-display'].style.display = 'block';
             } else if (succResult && succResult.error) {
-                majText = window.translations[state.currentLang].secondDiveNotAuthorized;
-                el['majoration-display'].textContent = `${majText} `;
+                el['majoration-display'].style.display = 'none';
                 result2.second_dive_not_authorized = true;
             }
         }

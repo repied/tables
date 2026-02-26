@@ -591,10 +591,17 @@ input:checked+.slider:before {
 .gauge-container:focus-visible,
 .action-btn:focus-visible,
 .gauge-dropdown-item:focus-visible,
-.result-box:focus-visible {
+.result-box:focus-visible,
+.modal h1:focus-visible {
     outline: 3px solid rgba(255, 255, 255, 0.25);
     outline-offset: 2px;
 }
+
+/* Remove default outline for modal title on focus (it's programmatically focused) */
+.modal h1:focus {
+    outline: none;
+}
+
 
 /* Small mobile devices */
 @media (max-width: 400px) {
