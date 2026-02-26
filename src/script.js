@@ -413,14 +413,14 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
     overlay.appendChild(content);
     document.body.appendChild(overlay);
 
+    // Show immediately
+    overlay.classList.add('visible');
+
     // Scroll to selected
-    setTimeout(() => {
-        const selected = content.querySelector('.selected');
-        if (selected) {
-            selected.scrollIntoView({ block: 'center' });
-        }
-        overlay.classList.add('visible');
-    }, 10);
+    const selected = content.querySelector('.selected');
+    if (selected) {
+        selected.scrollIntoView({ block: 'center' });
+    }
 
     // Close on overlay click
     overlay.onclick = (e) => {
@@ -467,9 +467,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
     function closeDropdown() {
         overlay.classList.remove('visible');
         overlay.removeEventListener('keydown', onOverlayKeyDown);
-        setTimeout(() => {
-            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        }, 200);
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
     }
 }
 
