@@ -74,6 +74,7 @@ async function init() {
     setupInteractions();
     setupModal();
     setupSharing();
+    loadStateFromUrl();
     setupInstallLogic();
 
     if (el['lang-toggle']) {
@@ -1302,3 +1303,205 @@ function calculateGFTicks(depth, o2Pct, context = {}) {
 
     return ticks;
 }
+
+/* --- QR Code & Sharing --- */
+function setupSharing() {
+    const shareLink = document.getElementById('share-link');
+    if (shareLink) {
+        shareLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openShareModal();
+        });
+    }
+
+    const scanLink = document.getElementById('scan-link');
+    if (scanLink) {
+        scanLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openScanModal();
+        });
+    }
+
+    const copyBtn = document.getElementById('copy-link-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', copyShareLink);
+    }
+
+    const cancelScanBtn = document.getElementById('cancel-scan-btn');
+    if (cancelScanBtn) {
+        cancelScanBtn.addEventListener('click', closeScanModal);
+    }
+}
+
+function openShareModal() {
+    const modal = document.getElementById('share-modal');
+    if (!modal) return;
+    
+    // Generate Link
+    const params = new URLSearchParams();
+    params.set('d1', state.dive1Depth);
+    params.set('t1', state.dive1Time);
+    params.set('d2', state.dive2Depth);
+    params.set('t2', state.dive2Time);
+    params.set('si', state.surfaceInterval);
+    params.set('g1', state.gazO2pct);
+    params.set('g2', state.gazO2pct2);
+    params.set('p', state.initTankPressure);
+    params.set('s', state.sac);
+    params.set('v', state.tankVolume);
+    
+    if(state.isGFMode) {
+        params.set('gf', '1');
+        params.set('gl', state.currentGFLow);
+        params.set('gh', state.currentGFHigh);
+    }
+
+    const url = window.location.origin + window.location.pathname + '?' + params.toString();
+    
+    const input = document.getElementById('share-link-input');
+    if (input) input.value = url;
+
+    const container = document.getElementById('qrcode-container');
+    if (container) {
+        container.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+            new QRCode(container, {
+                text: url,
+                width: 200,
+                height: 200
+            });
+        }
+    }
+
+    if(window.__openModal) window.__openModal(modal);
+}
+
+function copyShareLink() {
+    const input = document.getElementById('share-link-input');
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            const btn = document.getElementById('copy-link-btn');
+            const originalText = btn.getAttribute('data-i18n') ? window.translations[state.currentLang][btn.getAttribute('data-i18n')] : btn.innerText;
+            btn.innerText = "Copied!";
+            setTimeout(() => {
+                 btn.innerText = originalText;
+            }, 2000);
+        });
+    } else {
+        document.execCommand('copy');
+        alert("Copied to clipboard");
+    }
+}
+
+let scanStream = null;
+let scanInterval = null;
+
+async function openScanModal() {
+    const modal = document.getElementById('scan-modal');
+    if (!modal) return;
+    
+    if(window.__openModal) window.__openModal(modal);
+
+    const video = document.getElementById('scan-video');
+    const canvas = document.getElementById('scan-canvas');
+    const status = document.getElementById('scan-status');
+
+    if (!video || !canvas) return;
+
+    try {
+        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        video.srcObject = scanStream;
+        video.setAttribute("playsinline", true);
+        video.play();
+        
+        scanInterval = setInterval(() => {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                if (typeof jsQR !== 'undefined') {
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+
+                    if (code) {
+                        handleScan(code.data);
+                    }
+                }
+            }
+        }, 200);
+        
+        if(status) status.innerText = window.translations[state.currentLang].scanStatusWaiting || "Waiting...";
+
+    } catch (err) {
+        console.error(err);
+        if(status) status.innerText = (window.translations[state.currentLang].cameraError || "Camera Error") + ": " + err.message;
+    }
+}
+
+function closeScanModal() {
+    const modal = document.getElementById('scan-modal');
+    
+    if (scanStream) {
+        scanStream.getTracks().forEach(track => track.stop());
+        scanStream = null;
+    }
+    
+    if (scanInterval) {
+        clearInterval(scanInterval);
+        scanInterval = null;
+    }
+    
+    if (modal && window.__closeModal) window.__closeModal(modal);
+}
+
+function handleScan(data) {
+    try {
+        const url = new URL(data);
+        const params = url.searchParams;
+        if (applyParams(params)) {
+             closeScanModal();
+             triggerUpdate();
+             alert("Plan loaded successfully!");
+        }
+    } catch (e) {
+        console.error("Invalid QR Code", e);
+    }
+}
+
+function applyParams(params) {
+    let changed = false;
+    if (params.has('d1')) { state.dive1Depth = parseInt(params.get('d1')); changed = true; }
+    if (params.has('t1')) { state.dive1Time = parseInt(params.get('t1')); changed = true; }
+    if (params.has('d2')) { state.dive2Depth = parseInt(params.get('d2')); changed = true; }
+    if (params.has('t2')) { state.dive2Time = parseInt(params.get('t2')); changed = true; }
+    if (params.has('si')) { state.surfaceInterval = parseInt(params.get('si')); changed = true; }
+    if (params.has('g1')) { state.gazO2pct = parseInt(params.get('g1')); changed = true; }
+    if (params.has('g2')) { state.gazO2pct2 = parseInt(params.get('g2')); changed = true; }
+    if (params.has('p')) { state.initTankPressure = parseInt(params.get('p')); changed = true; }
+    if (params.has('s')) { state.sac = parseInt(params.get('s')); changed = true; }
+    if (params.has('v')) { state.tankVolume = parseInt(params.get('v')); changed = true; }
+    
+    if (params.has('gf')) {
+        state.isGFMode = true;
+        if (params.has('gl')) state.currentGFLow = parseInt(params.get('gl'));
+        if (params.has('gh')) state.currentGFHigh = parseInt(params.get('gh'));
+        changed = true;
+    }
+    return changed;
+}
+
+function loadStateFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (applyParams(params)) {
+        triggerUpdate();
+    }
+}
+
