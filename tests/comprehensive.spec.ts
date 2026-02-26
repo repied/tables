@@ -166,7 +166,7 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
 
         test('main app containers visible', async ({ page }) => {
             await expect(page.locator('.app-container')).toBeVisible();
-            await expect(page.locator('.results-container')).toBeVisible();
+            await expect(page.locator('.results-container').first()).toBeVisible();
             await expect(page.locator('.actions-container')).toBeVisible();
         });
     });
