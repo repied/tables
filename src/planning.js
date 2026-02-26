@@ -45,6 +45,17 @@
     const HALF_LIVES = BUEHLMANN.map(c => c.t12);
     const MAX_STOP_TIME_BEFORE_INFTY = 720;
 
+    // Optimized constants
+    const COMPARTMENTS = BUEHLMANN.map(c => {
+        const k = Math.log(2) / c.t12;
+        return {
+            k: k,
+            decayTimeStep: Math.exp(-k * BUEHLMANN_timeStep),
+            A: c.A,
+            B: c.B
+        };
+    });
+
     function depthToPressure(depth, surfacePressure) {
         return surfacePressure + depth * WATER_DENSITY * GRAVITY / 100_000; // convert Pa to bar
     }
@@ -53,22 +64,21 @@
         return (depthToPressure(depth, surfacePressure) - WATER_VAPOR_PRESSURE) * fN2;
     }
 
-    function updateTension(t0, pn2, t, compartment_t12) {
-        const k = Math.log(2) / compartment_t12;
-        return pn2 + (t0 - pn2) * Math.exp(-k * t);
-    }
+    // function updateTension(t0, pn2, t, compartment_t12) {
+    //     const k = Math.log(2) / compartment_t12;
+    //     return pn2 + (t0 - pn2) * Math.exp(-k * t);
+    // }
 
     function updateAllTensions(tensions, PN2, t) {
-        return HALF_LIVES.map((t12, i) => updateTension(tensions[i], PN2, t, t12));
-    }
+        const res = new Float64Array(N_COMPARTMENTS);
+        const isStandardStep = (t === BUEHLMANN_timeStep);
 
-    function getMValue(A, B, pressure) {
-        return A + pressure / B;
-    }
-
-    function getModifiedMValue(A, B, pressure, GF) {
-        const M_orig = getMValue(A, B, pressure);
-        return M_orig * GF + pressure * (1 - GF);
+        for (let i = 0; i < N_COMPARTMENTS; i++) {
+            const comp = COMPARTMENTS[i];
+            const decay = isStandardStep ? comp.decayTimeStep : Math.exp(-comp.k * t);
+            res[i] = PN2 + (tensions[i] - PN2) * decay;
+        }
+        return res;
     }
 
     function getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh) {
@@ -89,16 +99,22 @@
         // simulate tensions at depth with given GF and check if any compartment exceeds its M-value
         const gf = getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh);
         const p = depthToPressure(depth, surfacePressure);
-        let isSafe = true;
-        let satsCompIdx = [];
+
+        // Optimized:
+        // M_mod = (A + p/B)*GF + p*(1-GF)
+        // M_mod = A*GF + p*GF/B + p*(1-GF)
+        const p_term = p * (1 - gf);
+        const p_gf_div_B_factor = p * gf;
+
         for (let i = 0; i < N_COMPARTMENTS; i++) {
-            const M_mod = getModifiedMValue(BUEHLMANN[i].A, BUEHLMANN[i].B, p, gf);
+            const comp = COMPARTMENTS[i];
+            const M_mod = comp.A * gf + p_gf_div_B_factor / comp.B + p_term;
+
             if (tensions[i] > M_mod) {
-                isSafe = false;
-                satsCompIdx.push(i);
+                return { isSafe: false };
             }
         }
-        return { isSafe, satsCompIdx };
+        return { isSafe: true };
     }
 
     function calculateBuhlmannPlan(diveParams) {
@@ -116,13 +132,13 @@
             ascentRate,
             descentRate = DESCENT_RATE
         } = diveParams;
-        const surfaceTensions = Array(N_COMPARTMENTS).fill(SURFACE_AIR_ALV_PPN2)
+        const surfaceTensions = new Float64Array(N_COMPARTMENTS).fill(SURFACE_AIR_ALV_PPN2);
 
         if (bottomTime <= 0 || maxDepth <= 0) {
-            return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions, dtr: 0 };
+            return { profile: { stops: {} }, finalTensions: Array.from(initialTensions || surfaceTensions), dtr: 0 };
         }
         // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
-        let tensions = initialTensions ? [...initialTensions] : [...surfaceTensions]; // deep copy
+        let tensions = initialTensions ? new Float64Array(initialTensions) : surfaceTensions;
 
         // Convert gfLow/High to 0-1 if passed as 0-100
         const _gfLow = gfLow > 1 ? gfLow / 100 : gfLow;
@@ -240,7 +256,7 @@
             else stopsObj[d] = t;
         });
         // format output for the app
-        return { profile: { stops: stopsObj }, finalTensions: tensions, dtr: dtr_Buhlmann };
+        return { profile: { stops: stopsObj }, finalTensions: Array.from(tensions), dtr: dtr_Buhlmann };
     }
     // --- END BUEHLMANN ---
 
