@@ -120,7 +120,7 @@ function cacheElements() {
         'depth-gauge-container-2', 'o2-gauge-container-2', 'time-display-2', 'depth-display-2', 'o2-display-2',
         'time-progress-2', 'depth-progress-2', 'o2-progress-2', 'stops-display-2', 'dive-details-2',
         'lang-toggle', 'theme-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
-        'help-modal', 'help-link', 'app-version', 'install-app-container',
+        'help-modal', 'help-link', 'checklist-modal', 'extra-link', 'app-version', 'install-app-container',
         'install-app-btn', 'installation-section'
     ];
     ids.forEach(id => el[id] = document.getElementById(id));
@@ -149,6 +149,22 @@ function translateUI() {
             .catch(err => {
                 console.error('Failed to load help markdown', err);
                 helpContainer.innerHTML = "<p>Error loading help content.</p>";
+            });
+    }
+
+    const checklistContainer = document.getElementById('checklist-markdown-content');
+    if (checklistContainer && typeof marked !== 'undefined') {
+        fetch(`./assets/checklist_${state.currentLang}.md`)
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.text();
+            })
+            .then(text => {
+                checklistContainer.innerHTML = marked.parse(text);
+            })
+            .catch(err => {
+                console.error('Failed to load checklist markdown', err);
+                checklistContainer.innerHTML = "<p>Error loading checklist content.</p>";
             });
     }
 }
@@ -854,7 +870,8 @@ window.addEventListener('appinstalled', (event) => {
 function setupModal() {
     const helpModal = el['help-modal'];
     const helpBtn = el['help-link'];
-    const gasModal = el['gas-modal'];
+    const checklistModal = el['checklist-modal'];
+    const checklistBtn = el['extra-link'];
 
     // Helper to open modal with focus trap
     function openModal(modal, opener) {
@@ -936,7 +953,17 @@ function setupModal() {
             e.preventDefault();
             openModal(helpModal, helpBtn);
         });
+    }
 
+    if (checklistBtn && checklistModal) {
+        checklistBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (helpModal) closeModal(helpModal);
+            openModal(checklistModal, helpBtn);
+        });
+    }
+
+    if (helpBtn && helpModal) {
         // Show modal on first visit
         if (!localStorage.getItem('hasVisited')) {
             openModal(helpModal, null);

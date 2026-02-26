@@ -69,6 +69,8 @@ window.translations = {
         refDesign: "Design inspiré de <a href='https://oliviernemoz.wixsite.com/site/mn90' target='_blank'>mn•90</a>",
         refMN90: "Tables MN90 : <a href='https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/' target='_blank'>eppeplongee</a>",
         refZHL16C: "Paramètres ZH-L16C : <a href='https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm' target='_blank'>Wikipedia</a>",
+        extra: "Extra",
+        checklistTitle: "Checklist",
     },
     en: {
         firstDive: "First dive",
@@ -141,5 +143,7 @@ window.translations = {
         refDesign: "Design inspired by <a href='https://oliviernemoz.wixsite.com/site/mn90' target='_blank'>mn•90</a>",
         refMN90: "MN90 tables: <a href='https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/' target='_blank'>eppeplongee</a>",
         refZHL16C: "ZH-L16C parameters: <a href='https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm' target='_blank'>Wikipedia</a>",
+        extra: "Extra",
+        checklistTitle: "Checklist",
     }
 };
