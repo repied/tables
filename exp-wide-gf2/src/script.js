@@ -1086,7 +1086,9 @@ function calculatePPO2Tick(depth, o2Pct) {
 }
 
 function calculateStopTicks(depth, o2Pct, majoration = 0) {
-    if (state.isGFMode) return []; // Only MN90 for now
+    if (state.isGFMode) {
+        return calculateGFTicks(depth, o2Pct);
+    }
 
     const ead = Planning.calculateEquivalentAirDepth(depth, o2Pct);
 
@@ -1150,5 +1152,78 @@ function calculateStopTicks(depth, o2Pct, majoration = 0) {
         }
     }
 
+    return ticks;
+}
+
+function calculateGFTicks(depth, o2Pct) {
+    const gfLow = state.currentGFLow;
+    const gfHigh = state.currentGFHigh;
+    const MAX_SEARCH_TIME = 120; // Minutes
+
+    // 1. Initial Check at Max Time
+    const maxPlan = Planning.calculateBuhlmannPlan({
+        bottomTime: MAX_SEARCH_TIME,
+        maxDepth: depth,
+        gfLow: gfLow,
+        gfHigh: gfHigh,
+        fN2: (100 - o2Pct) / 100,
+        ascentRate: Planning.ASCENT_RATE_GF
+    });
+    
+    const stopsAtMax = maxPlan.profile.stops;
+    const stopDepths = Object.keys(stopsAtMax)
+        .map(Number)
+        .filter(d => d <= 15) // Only consider stops <= 15m
+        .sort((a, b) => b - a); // Deepest first (e.g. 15, 12, 9, 6, 3)
+
+    if (stopDepths.length === 0) return [];
+
+    const bounds = {};
+    stopDepths.forEach(d => {
+        bounds[d] = { low: 0, high: MAX_SEARCH_TIME, candidate: null };
+    });
+
+    for (const targetDepth of stopDepths) {
+        let { low, high } = bounds[targetDepth];
+        
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            
+            const result = Planning.calculateBuhlmannPlan({
+                bottomTime: mid,
+                maxDepth: depth,
+                gfLow: gfLow,
+                gfHigh: gfHigh,
+                fN2: (100 - o2Pct) / 100,
+                ascentRate: Planning.ASCENT_RATE_GF
+            });
+
+            const stops = result.profile.stops;
+            const depths = Object.keys(stops).map(Number);
+            const maxStopDepth = depths.length > 0 ? Math.max(...depths) : 0;
+
+            if (stops[targetDepth]) {
+                 // Found the specific stop. It appears at 'mid' or earlier.
+                 bounds[targetDepth].candidate = mid;
+                 high = mid - 1;
+            } else {
+                 // Stop not found. It appears later.
+                 low = mid + 1;
+            }
+        }
+    }
+
+    const ticks = [];
+    stopDepths.forEach(d => {
+        const time = bounds[d].candidate;
+        if (time !== null && time > 0) {
+             ticks.push({
+                value: time,
+                label: `${d}m`,
+                className: 'gauge-tick-stop'
+            });
+        }
+    });
+    
     return ticks;
 }
