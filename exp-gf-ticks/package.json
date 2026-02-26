@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "live-server --port=5500",
+    "dev2": "live-server --port=5502",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node tests/unit_planning.js",
     "genGFplans": "node ./src/generate_gf_plans.js",

@@ -8,7 +8,8 @@
         "ghcr.io/devcontainers/features/github-cli:1": {}
     },
     "forwardPorts": [
-        5500
+        5500,
+        5502
     ],
     "customizations": {
         "vscode": {
@@ -30,5 +31,5 @@
         }
     },
     "remoteUser": "node",
-    "postCreateCommand": "sudo mkdir -p /workspaces/tables.worktrees && sudo chown node:node /workspaces/tables.worktrees && npm install && npx playwright install"
+    "postCreateCommand": "bash .devcontainer/post-create.sh"
 }

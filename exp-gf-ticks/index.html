@@ -18,7 +18,7 @@
 </head>
 
 <script>
-    window.APP_VERSION = "0810a5d";
+    window.APP_VERSION = "147320d";
 </script>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-W2YD6XQDM5"></script>
@@ -302,8 +302,6 @@
                 </label>
                 <img src="./assets/uk-flag-800.png" alt="UK" class="flag-icon">
             </div>
-            <!-- <a href="https://www.buymeacoffee.com/repied" target="_blank" rel="noopener noreferrer"
-                data-i18n="donate"></a> -->
             <a href="#" id="help-link" data-i18n="help"></a>
 
             <div class="theme-selector">
@@ -351,6 +349,17 @@
                 <div id="app-version" style="display: flex; justify-content: center; margin-top: 30px; opacity: 0.8;">
                 </div>
 
+            </div>
+        </div>
+
+        <!-- Checklist Modal -->
+        <div id="checklist-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="checklist-modal-title"
+            aria-hidden="true">
+            <div class="modal-content">
+                <button class="modal-close" aria-label="Close"
+                    onclick="window.__closeModal(document.getElementById('checklist-modal'))">&times;</button>
+                <h1 id="checklist-modal-title" data-i18n="checklistTitle" tabindex="-1"></h1>
+                <div id="checklist-markdown-content"></div>
             </div>
         </div>
     </div>

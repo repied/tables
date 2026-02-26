@@ -11,7 +11,8 @@
     const AIR_FN2 = 0.79; // fraction of N2 in AIR, ie 79% of the air is N2
     const SURFACE_AIR_ALV_PPN2 = AIR_FN2 * (SURFACE_PRESSURE - WATER_VAPOR_PRESSURE); // alveolar partial pressure of N2 at surface (bar)
     const DESCENT_RATE = 20; // m/min 20m/min is recommended
-    const ASCENT_RATE = 15; // m/min  15m/min is recommended
+    const ASCENT_RATE_MN90 = 15; // m/min
+    const ASCENT_RATE_GF = 10; // m/min
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
     const MAX_SURFACE_INTERVAL = 12 * 60; // minutes, 12h is a MN90 threshold for "no residual nitrogen"
 
@@ -112,7 +113,7 @@
             timeStep = BUEHLMANN_timeStep,
             fN2: gaz_fN2,
             initialTensions,
-            ascentRate = ASCENT_RATE,
+            ascentRate,
             descentRate = DESCENT_RATE
         } = diveParams;
         const surfaceTensions = Array(N_COMPARTMENTS).fill(SURFACE_AIR_ALV_PPN2)
@@ -276,7 +277,7 @@
         };
     }
 
-    function calculateGasConsumptionLiters(depth, time, profile, sac) {
+    function calculateGasConsumptionLiters(depth, time, profile, sac, ascentRate) {
         if (depth <= 0) return { total: 0, breakdown: { descent: 0, bottom: 0, ascent: 0, stops: {} } };
 
         // Helper to get pressure at depth
@@ -304,7 +305,7 @@
 
         // Ascent from bottom to first target
         if (depth > firstTargetDepth) {
-            const travelTime = (depth - firstTargetDepth) / ASCENT_RATE;
+            const travelTime = (depth - firstTargetDepth) / ascentRate;
             const avgPressure = (getP(depth) + getP(firstTargetDepth)) / 2;
             breakdown.ascent += travelTime * avgPressure * sac;
         }
@@ -330,7 +331,7 @@
         };
     }
 
-    function calculateDTR(depth, stops) { // Use ceiling for stops and ascent times (safer)
+    function calculateDTR(depth, stops, ascentRate) { // Use ceiling for stops and ascent times (safer)
         let dtr_ceil = 0;
         const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
         let hasStops = stopDepths.length > 0;
@@ -338,11 +339,11 @@
         for (let d in stops) totalStopTime += Math.ceil(stops[d]);
 
         if (!hasStops) {
-            const ascentTime = depth / ASCENT_RATE;
+            const ascentTime = depth / ascentRate;
             dtr_ceil = Math.ceil(ascentTime);
         } else {
             const firstStopDepth = stopDepths[0];
-            const ascentToFirst = (depth - firstStopDepth) / ASCENT_RATE;
+            const ascentToFirst = (depth - firstStopDepth) / ascentRate;
             const ascentFromFirst = firstStopDepth / ASCENT_RATE_FROM_FIRST_STOP;
             // dtr_ceil = Math.ceil(ascentToFirst) + totalStopTime + Math.ceil(ascentFromFirst);
             dtr_ceil = Math.ceil(ascentToFirst + totalStopTime + ascentFromFirst);
@@ -445,6 +446,8 @@
     // Expose Planning API
     window.Planning = {
         SURFACE_AIR_ALV_PPN2,
+        ASCENT_RATE_MN90,
+        ASCENT_RATE_GF,
         getMN90Profile,
         calculateGasConsumptionLiters,
         calculateDTR,

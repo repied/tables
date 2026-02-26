@@ -120,7 +120,7 @@ function cacheElements() {
         'depth-gauge-container-2', 'o2-gauge-container-2', 'time-display-2', 'depth-display-2', 'o2-display-2',
         'time-progress-2', 'depth-progress-2', 'o2-progress-2', 'stops-display-2', 'dive-details-2',
         'lang-toggle', 'theme-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
-        'help-modal', 'help-link', 'app-version', 'install-app-container',
+        'help-modal', 'help-link', 'checklist-modal', 'app-version', 'install-app-container',
         'install-app-btn', 'installation-section'
     ];
     ids.forEach(id => el[id] = document.getElementById(id));
@@ -149,6 +149,22 @@ function translateUI() {
             .catch(err => {
                 console.error('Failed to load help markdown', err);
                 helpContainer.innerHTML = "<p>Error loading help content.</p>";
+            });
+    }
+
+    const checklistContainer = document.getElementById('checklist-markdown-content');
+    if (checklistContainer && typeof marked !== 'undefined') {
+        fetch(`./assets/checklist_${state.currentLang}.md`)
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.text();
+            })
+            .then(text => {
+                checklistContainer.innerHTML = marked.parse(text);
+            })
+            .catch(err => {
+                console.error('Failed to load checklist markdown', err);
+                checklistContainer.innerHTML = "<p>Error loading checklist content.</p>";
             });
     }
 }
@@ -397,14 +413,14 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
     overlay.appendChild(content);
     document.body.appendChild(overlay);
 
+    // Show immediately
+    overlay.classList.add('visible');
+
     // Scroll to selected
-    setTimeout(() => {
-        const selected = content.querySelector('.selected');
-        if (selected) {
-            selected.scrollIntoView({ block: 'center' });
-        }
-        overlay.classList.add('visible');
-    }, 10);
+    const selected = content.querySelector('.selected');
+    if (selected) {
+        selected.scrollIntoView({ block: 'center' });
+    }
 
     // Close on overlay click
     overlay.onclick = (e) => {
@@ -451,9 +467,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
     function closeDropdown() {
         overlay.classList.remove('visible');
         overlay.removeEventListener('keydown', onOverlayKeyDown);
-        setTimeout(() => {
-            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        }, 200);
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
     }
 }
 
@@ -518,7 +532,8 @@ function updateUI() {
         result1 = Planning.calculateBuhlmannPlan({
             bottomTime: state.dive1Time, maxDepth: state.dive1Depth,
             gfLow: state.currentGFLow, gfHigh: state.currentGFHigh,
-            fN2: (100 - state.gazO2pct) / 100
+            fN2: (100 - state.gazO2pct) / 100,
+            ascentRate: Planning.ASCENT_RATE_GF
         });
     } else {
         const ead1 = Planning.calculateEquivalentAirDepth(state.dive1Depth, state.gazO2pct);
@@ -564,7 +579,8 @@ function updateUI() {
             bottomTime: state.dive2Time, maxDepth: state.dive2Depth,
             gfLow: state.currentGFLow, gfHigh: state.currentGFHigh,
             fN2: (100 - state.gazO2pct2) / 100,
-            initialTensions: currentTensions
+            initialTensions: currentTensions,
+            ascentRate: Planning.ASCENT_RATE_GF
         });
 
     } else {
@@ -678,10 +694,11 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
         return;
     }
 
-    const dtr = Planning.calculateDTR(diveDepth, result.profile.stops);
+    const ascentRate = state.isGFMode ? Planning.ASCENT_RATE_GF : Planning.ASCENT_RATE_MN90;
+    const dtr = Planning.calculateDTR(diveDepth, result.profile.stops, ascentRate);
     const dtrFormatted = formatTime(dtr);
 
-    const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, state.sac);
+    const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, state.sac, ascentRate);
     const gasUsed = consoLiters.total;
     const pressureUsed = gasUsed / state.tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
@@ -854,7 +871,20 @@ window.addEventListener('appinstalled', (event) => {
 function setupModal() {
     const helpModal = el['help-modal'];
     const helpBtn = el['help-link'];
-    const gasModal = el['gas-modal'];
+    const checklistModal = el['checklist-modal'];
+    const helpContainer = document.getElementById('help-markdown-content');
+
+    // Handle clicks on links inside the help markdown (like the checklist link)
+    if (helpContainer) {
+        helpContainer.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href="#checklist"]');
+            if (link) {
+                e.preventDefault();
+                closeModal(helpModal);
+                openModal(checklistModal, helpBtn);
+            }
+        });
+    }
 
     // Helper to open modal with focus trap
     function openModal(modal, opener) {
@@ -936,7 +966,9 @@ function setupModal() {
             e.preventDefault();
             openModal(helpModal, helpBtn);
         });
+    }
 
+    if (helpBtn && helpModal) {
         // Show modal on first visit
         if (!localStorage.getItem('hasVisited')) {
             openModal(helpModal, null);
