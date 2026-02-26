@@ -936,7 +936,7 @@ input:checked+.slider:before {
     .results-container {
         grid-column: 1;
         grid-row: 4;
-        margin-top: 10px;
+        margin-top: 0;
     }
 
     .successive-container {
