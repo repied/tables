@@ -14,6 +14,8 @@ const state = {
     currentGFHigh: 85,
     currentGFLow2: 85,
     currentGFHigh2: 85,
+    isGFLow2Locked: true,
+    isGFHigh2Locked: true,
     surfaceInterval: 60 * 3,
     currentLang: localStorage.getItem('selectedLang') || 'fr',
     theme: localStorage.getItem('theme') || 'light'
@@ -118,6 +120,7 @@ function cacheElements() {
         'gf-low-display', 'gf-high-display', 'gf-low-progress', 'gf-high-progress',
         'gf-low-gauge-container-2', 'gf-high-gauge-container-2',
         'gf-low-display-2', 'gf-high-display-2', 'gf-low-progress-2', 'gf-high-progress-2',
+        'gf-low-lock-2', 'gf-high-lock-2',
         'stops-display', 'dive-details', 'gps-display-1', 'successive-controls',
         'majoration-display', 'successive-header-text', 'interval-gauge-container',
         'interval-display', 'interval-progress', 'time-gauge-container-2',
@@ -206,6 +209,24 @@ function setupInteractions() {
     setupGaugeInteraction(el['gf-high-gauge-container'], () => state.currentGFHigh, (val) => state.currentGFHigh = val, MIN_GF_pct, MAX_GF_pct, 0.5);
     setupGaugeInteraction(el['gf-low-gauge-container-2'], () => state.currentGFLow2, (val) => state.currentGFLow2 = val, MIN_GF_pct, MAX_GF_pct, 0.5);
     setupGaugeInteraction(el['gf-high-gauge-container-2'], () => state.currentGFHigh2, (val) => state.currentGFHigh2 = val, MIN_GF_pct, MAX_GF_pct, 0.5);
+
+    // Lock Logic Listeners
+    if (el['gf-low-lock-2']) {
+        el['gf-low-lock-2'].addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.isGFLow2Locked = !state.isGFLow2Locked;
+            triggerUpdate();
+        });
+        el['gf-low-lock-2'].addEventListener('pointerdown', (e) => e.stopPropagation());
+    }
+    if (el['gf-high-lock-2']) {
+        el['gf-high-lock-2'].addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.isGFHigh2Locked = !state.isGFHigh2Locked;
+            triggerUpdate();
+        });
+        el['gf-high-lock-2'].addEventListener('pointerdown', (e) => e.stopPropagation());
+    }
 
     if (el['mode-mn90'] && el['mode-gf']) {
         el['mode-mn90'].addEventListener('click', () => {
@@ -504,6 +525,19 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
     }
 }
 
+const LOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2z"/></svg>`;
+const UNLOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`;
+
+function updateLockState(container, lockIcon, isLocked) {
+    if (container) {
+        if (isLocked) container.classList.add('locked');
+        else container.classList.remove('locked');
+    }
+    if (lockIcon) {
+        lockIcon.innerHTML = isLocked ? LOCK_SVG : UNLOCK_SVG;
+    }
+}
+
 function updateUI() {
     try {
         _updateUI_impl();
@@ -514,6 +548,20 @@ function updateUI() {
 
 function _updateUI_impl() {
     document.body.classList.toggle('gf-mode', state.isGFMode);
+
+    // Lock Logic for GF2
+    if (state.isGFMode) {
+        if (state.isGFLow2Locked) {
+            state.currentGFLow2 = state.currentGFLow;
+        }
+        if (state.isGFHigh2Locked) {
+            state.currentGFHigh2 = state.currentGFHigh;
+        }
+    }
+
+    // Update Lock Icons & Classes
+    updateLockState(el['gf-low-gauge-container-2'], el['gf-low-lock-2'], state.isGFLow2Locked);
+    updateLockState(el['gf-high-gauge-container-2'], el['gf-high-lock-2'], state.isGFHigh2Locked);
 
     // Common Calcs
     const length = el['time-progress'] ? el['time-progress'].getTotalLength() : 0;
@@ -1187,7 +1235,7 @@ function calculateGFTicks(depth, o2Pct, context = {}) {
         initialTensions: initialTensions,
         ascentRate: Planning.ASCENT_RATE_GF
     });
-    
+
     const stopsAtMax = maxPlan.profile.stops;
     const stopDepths = Object.keys(stopsAtMax)
         .map(Number)
@@ -1203,10 +1251,10 @@ function calculateGFTicks(depth, o2Pct, context = {}) {
 
     for (const targetDepth of stopDepths) {
         let { low, high } = bounds[targetDepth];
-        
+
         while (low <= high) {
             const mid = Math.floor((low + high) / 2);
-            
+
             const result = Planning.calculateBuhlmannPlan({
                 bottomTime: mid,
                 maxDepth: depth,
@@ -1222,12 +1270,12 @@ function calculateGFTicks(depth, o2Pct, context = {}) {
             const maxStopDepth = depths.length > 0 ? Math.max(...depths) : 0;
 
             if (stops[targetDepth]) {
-                 // Found the specific stop. It appears at 'mid' or earlier.
-                 bounds[targetDepth].candidate = mid;
-                 high = mid - 1;
+                // Found the specific stop. It appears at 'mid' or earlier.
+                bounds[targetDepth].candidate = mid;
+                high = mid - 1;
             } else {
-                 // Stop not found. It appears later.
-                 low = mid + 1;
+                // Stop not found. It appears later.
+                low = mid + 1;
             }
         }
     }
@@ -1236,13 +1284,13 @@ function calculateGFTicks(depth, o2Pct, context = {}) {
     stopDepths.forEach(d => {
         const time = bounds[d].candidate;
         if (time !== null && time > 0) {
-             ticks.push({
+            ticks.push({
                 value: time,
                 label: `${d}m`,
                 className: 'gauge-tick-stop'
             });
         }
     });
-    
+
     return ticks;
 }
