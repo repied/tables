@@ -46,7 +46,8 @@ body.dark-mode {
 
 .gauges-row {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    gap: 15px;
     align-items: center;
     width: 100%;
     margin-bottom: 0px;
@@ -96,7 +97,9 @@ body.dark-mode {
 }
 
 body:not(.gf-mode) #gf-low-gauge-container,
-body:not(.gf-mode) #gf-high-gauge-container {
+body:not(.gf-mode) #gf-high-gauge-container,
+body:not(.gf-mode) #gf-low-gauge-container-2,
+body:not(.gf-mode) #gf-high-gauge-container-2 {
     opacity: 0.3;
     filter: grayscale(1);
     pointer-events: none;
@@ -631,7 +634,10 @@ input:checked+.slider:before {
 }
 
 .toggle-wrapper input[type="radio"] {
-    display: none;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
 .toggle-option {
@@ -864,4 +870,76 @@ input:checked+.slider:before {
 
 .gauge-dropdown-close:hover {
     opacity: 1;
+}
+
+#interval-row {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Widescreen Layout */
+@media (min-width: 900px) {
+    .app-container {
+        max-width: 1200px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: min-content;
+        column-gap: 40px;
+        row-gap: 30px;
+        align-items: start;
+    }
+
+    #gas-settings-row,
+    .toggle-container,
+    .install-app-container,
+    .footer-links {
+        grid-column: 1 / -1;
+    }
+
+    /* Limit size of top gauges */
+    #gas-settings-row .gauge-wrapper.small {
+        width: 120px;
+    }
+
+    .toggle-container {
+        display: flex;
+        justify-content: center;
+        margin: 10px 0;
+    }
+
+    #first-dive-params-row {
+        grid-column: 1;
+        grid-row: 3;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 0;
+    }
+
+    #first-dive-params-row .gauge-wrapper,
+    #second-dive-params-row .gauge-wrapper {
+        width: 100px;
+    }
+
+    #second-dive-params-row {
+        grid-column: 2;
+        grid-row: 3;
+        margin-top: 0;
+        border-top: none;
+        padding-top: 0;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .results-container {
+        grid-column: 1;
+        grid-row: 4;
+        margin-top: 10px;
+    }
+
+    .successive-container {
+        grid-column: 2;
+        grid-row: 4;
+        margin-top: 0;
+    }
 }
