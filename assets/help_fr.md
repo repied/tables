@@ -12,7 +12,7 @@ Application gratuite et open source pour planifier des plongées, avec les table
 
 *   Plongée loisir carrée au niveau de la mer, eau salée
 *   **Descente :** 20 m/min
-*   **Remontée :** 15 m/min
+*   **Remontée :** 15 m/min (MN90) 10 m/min (GF)
 *   **Entre paliers :** 6 m/min
 *   **Pas de palier de sécurité**
 

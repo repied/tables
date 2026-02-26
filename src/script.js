@@ -532,7 +532,8 @@ function updateUI() {
         result1 = Planning.calculateBuhlmannPlan({
             bottomTime: state.dive1Time, maxDepth: state.dive1Depth,
             gfLow: state.currentGFLow, gfHigh: state.currentGFHigh,
-            fN2: (100 - state.gazO2pct) / 100
+            fN2: (100 - state.gazO2pct) / 100,
+            ascentRate: Planning.ASCENT_RATE_GF
         });
     } else {
         const ead1 = Planning.calculateEquivalentAirDepth(state.dive1Depth, state.gazO2pct);
@@ -578,7 +579,8 @@ function updateUI() {
             bottomTime: state.dive2Time, maxDepth: state.dive2Depth,
             gfLow: state.currentGFLow, gfHigh: state.currentGFHigh,
             fN2: (100 - state.gazO2pct2) / 100,
-            initialTensions: currentTensions
+            initialTensions: currentTensions,
+            ascentRate: Planning.ASCENT_RATE_GF
         });
 
     } else {
@@ -692,10 +694,11 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
         return;
     }
 
-    const dtr = Planning.calculateDTR(diveDepth, result.profile.stops);
+    const ascentRate = state.isGFMode ? Planning.ASCENT_RATE_GF : Planning.ASCENT_RATE_MN90;
+    const dtr = Planning.calculateDTR(diveDepth, result.profile.stops, ascentRate);
     const dtrFormatted = formatTime(dtr);
 
-    const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, state.sac);
+    const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, state.sac, ascentRate);
     const gasUsed = consoLiters.total;
     const pressureUsed = gasUsed / state.tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);

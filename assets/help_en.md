@@ -12,7 +12,7 @@ A free and open source application for planning dives, using either MN90 tables 
 
 *   Recreational square dive at sea level, in salt water
 *   **Descent:** 20 m/min
-*   **Ascent:** 15 m/min
+*   **Ascent:** 15 m/min (MN90) 10 m/min (GF)
 *   **Between stops:** 6 m/min
 *   **No safety stop**
 
