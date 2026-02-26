@@ -42,7 +42,6 @@ window.translations = {
         low: "Bas",
         high: "Haut",
         checklistTitle: "Checklist",
-        ExperimentsTitle: "Experiments",
     },
     en: {
         firstDive: "First dive",
@@ -87,7 +86,5 @@ window.translations = {
         low: "Low",
         high: "High",
         checklistTitle: "Checklist",
-        ExperimentsTitle: "Experiments",
-
     }
 };

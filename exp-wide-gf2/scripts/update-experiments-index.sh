@@ -24,10 +24,8 @@ echo "<!DOCTYPE html>
     <h1>Deployed Experiments</h1>
     <ul>" > "$OUTPUT_FILE"
 
-# Fetch list of successful experiment branches
-# This uses gh CLI to list runs of the deploy workflow
-# Filters for successful runs on branches starting with 'exp-'
-experiments=$(gh run list --workflow deploy.yml --limit 500 --json headBranch,conclusion --jq '.[] | select(.conclusion=="success" and (.headBranch | startswith("exp-"))) | .headBranch' | sort | uniq)
+# Fetch list of experiment branches on origin
+experiments=$(git ls-remote --heads origin 'exp-*' | awk -F'refs/heads/' '{print $2}' | sort | uniq)
 
 if [ -z "$experiments" ]; then
     echo "        <li>No active experiments found.</li>" >> "$OUTPUT_FILE"

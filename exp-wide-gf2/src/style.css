@@ -16,7 +16,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--bg-color);
-    background-image: url('../assets/background-table-grey.png');
+    background-image: url('../assets/background-table.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -131,7 +131,9 @@ body:not(.gf-mode) #gf-high-gauge-container-2 {
 }
 
 #gf-low-progress,
-#gf-high-progress {
+#gf-high-progress,
+#gf-low-progress-2,
+#gf-high-progress-2 {
     stroke: var(--gauge-color-secondary);
 }
 
