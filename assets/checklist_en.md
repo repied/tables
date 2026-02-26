@@ -1,14 +1,3 @@
-## Gear (Boat)
-* Mask, fins, snorkel
-* Wetsuit, boots, gloves
-* Weights (belt/pockets)
-* BCD (Buoyancy Control Device)
-* Regulators (primary + octopus)
-* Dive computer & compass
-* SMB (Surface Marker Buoy) & reel
-* Light, knife, whistle
-* Logbook, certification card, medical
-
 ## Buddy Check (BWRAF)
 * **B**CD : inflator and dumps tested
 * **W**eights : right hand release, secure

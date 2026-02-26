@@ -1,35 +1,37 @@
-Application gratuite et open source pour planifier des plongées, avec les tables MN90 ou les Facteurs de Gradient.
-
-### Utilisation
-
-*   **Glisser haut/bas** ou  **Tap :** Ajuster la valeur
-*   **Double tap :** Réinitialiser la valeur
-*   **Modes :** MN90 (Tables) ou GF (Bühlmann ZHL-16C)
-*   **Calculs :** Durée Totale de Remontée et pression en fin de plongée
-*   **Alertes :** Réserve < 50b (rouge), ppO2 > 1.5 (orange)
-
-### Hypothèses de calcul
-
-*   Plongée loisir carrée au niveau de la mer, eau salée
-*   **Descente :** 20 m/min
-*   **Remontée :** 15 m/min (MN90) 10 m/min (GF)
-*   **Entre paliers :** 6 m/min
-*   **Pas de palier de sécurité**
+Application gratuite et open source pour planifier des plongées, avec les tables MN90 ou les Facteurs de Gradient (Bühlmann ZHL-16C).
 
 <div class="disclaimer-box">
 
 **AVERTISSEMENT DE SÉCURITÉ**
 
-Cette application est un outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un ordinateur de plongée certifié et suivez les règles de sécurité.
+Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un ordinateur de plongée certifié et suivez les règles de sécurité.
 
 </div>
+
+### Utilisation
+
+*   **Glisser haut/bas** ou **Tap** pour ajuster
+* **Double tap** pour réinitialiser
+*   **Calculs :** 
+    * DTR : Durée Totale de Remontée 
+    * Pression en fin de plongée (alerte si <50 bar)
+    * Pression partielle O<sub>2</sub> max (alert si > 1.5 bar)
+
+### Hypothèses
+
+*   Plongée loisir carrée au niveau de la mer, eau salée, sans palier de sécurité
+*   **Descente :** 20 m/min
+*   **Remontée :** **15 m/min** pour MN90, **10 m/min** pour GF et **6 m/min** entre paliers pour les deux
+
 
 ### Installation
 
 Installation directe depuis le navigateur (pas de PlayStore/AppStore) pour utilisation hors ligne.
 
-*   **Android/Ordinateur :** Utilisez l'invite d'installation ou l'icône '+' dans la barre d'adresse.
-*   **iOS :** Dans Safari, appuyez sur Partager -> 'Sur l'écran d'accueil'.
+*   **Android/Ordinateur :** 
+    * Utilisez l'invite d'installation ou l'icône '+' dans la barre d'adresse.
+*   **iOS :** 
+    * Dans Safari, appuyez sur Partager -> 'Sur l'écran d'accueil'.
 
 ### Références
 
