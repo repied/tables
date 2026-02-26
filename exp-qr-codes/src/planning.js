@@ -11,7 +11,8 @@
     const AIR_FN2 = 0.79; // fraction of N2 in AIR, ie 79% of the air is N2
     const SURFACE_AIR_ALV_PPN2 = AIR_FN2 * (SURFACE_PRESSURE - WATER_VAPOR_PRESSURE); // alveolar partial pressure of N2 at surface (bar)
     const DESCENT_RATE = 20; // m/min 20m/min is recommended
-    const ASCENT_RATE = 15; // m/min  15m/min is recommended
+    const ASCENT_RATE_MN90 = 15; // m/min
+    const ASCENT_RATE_GF = 10; // m/min
     const ASCENT_RATE_FROM_FIRST_STOP = 6; // m/min 6m/min is recommended
     const MAX_SURFACE_INTERVAL = 12 * 60; // minutes, 12h is a MN90 threshold for "no residual nitrogen"
 
@@ -44,6 +45,17 @@
     const HALF_LIVES = BUEHLMANN.map(c => c.t12);
     const MAX_STOP_TIME_BEFORE_INFTY = 720;
 
+    // Optimized constants
+    const COMPARTMENTS = BUEHLMANN.map(c => {
+        const k = Math.log(2) / c.t12;
+        return {
+            k: k,
+            decayTimeStep: Math.exp(-k * BUEHLMANN_timeStep),
+            A: c.A,
+            B: c.B
+        };
+    });
+
     function depthToPressure(depth, surfacePressure) {
         return surfacePressure + depth * WATER_DENSITY * GRAVITY / 100_000; // convert Pa to bar
     }
@@ -52,22 +64,21 @@
         return (depthToPressure(depth, surfacePressure) - WATER_VAPOR_PRESSURE) * fN2;
     }
 
-    function updateTension(t0, pn2, t, compartment_t12) {
-        const k = Math.log(2) / compartment_t12;
-        return pn2 + (t0 - pn2) * Math.exp(-k * t);
-    }
+    // function updateTension(t0, pn2, t, compartment_t12) {
+    //     const k = Math.log(2) / compartment_t12;
+    //     return pn2 + (t0 - pn2) * Math.exp(-k * t);
+    // }
 
     function updateAllTensions(tensions, PN2, t) {
-        return HALF_LIVES.map((t12, i) => updateTension(tensions[i], PN2, t, t12));
-    }
+        const res = new Float64Array(N_COMPARTMENTS);
+        const isStandardStep = (t === BUEHLMANN_timeStep);
 
-    function getMValue(A, B, pressure) {
-        return A + pressure / B;
-    }
-
-    function getModifiedMValue(A, B, pressure, GF) {
-        const M_orig = getMValue(A, B, pressure);
-        return M_orig * GF + pressure * (1 - GF);
+        for (let i = 0; i < N_COMPARTMENTS; i++) {
+            const comp = COMPARTMENTS[i];
+            const decay = isStandardStep ? comp.decayTimeStep : Math.exp(-comp.k * t);
+            res[i] = PN2 + (tensions[i] - PN2) * decay;
+        }
+        return res;
     }
 
     function getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh) {
@@ -88,16 +99,22 @@
         // simulate tensions at depth with given GF and check if any compartment exceeds its M-value
         const gf = getInterpolatedGF(depth, firstStopDepth, gfLow, gfHigh);
         const p = depthToPressure(depth, surfacePressure);
-        let isSafe = true;
-        let satsCompIdx = [];
+
+        // Optimized:
+        // M_mod = (A + p/B)*GF + p*(1-GF)
+        // M_mod = A*GF + p*GF/B + p*(1-GF)
+        const p_term = p * (1 - gf);
+        const p_gf_div_B_factor = p * gf;
+
         for (let i = 0; i < N_COMPARTMENTS; i++) {
-            const M_mod = getModifiedMValue(BUEHLMANN[i].A, BUEHLMANN[i].B, p, gf);
+            const comp = COMPARTMENTS[i];
+            const M_mod = comp.A * gf + p_gf_div_B_factor / comp.B + p_term;
+
             if (tensions[i] > M_mod) {
-                isSafe = false;
-                satsCompIdx.push(i);
+                return { isSafe: false };
             }
         }
-        return { isSafe, satsCompIdx };
+        return { isSafe: true };
     }
 
     function calculateBuhlmannPlan(diveParams) {
@@ -112,16 +129,16 @@
             timeStep = BUEHLMANN_timeStep,
             fN2: gaz_fN2,
             initialTensions,
-            ascentRate = ASCENT_RATE,
+            ascentRate,
             descentRate = DESCENT_RATE
         } = diveParams;
-        const surfaceTensions = Array(N_COMPARTMENTS).fill(SURFACE_AIR_ALV_PPN2)
+        const surfaceTensions = new Float64Array(N_COMPARTMENTS).fill(SURFACE_AIR_ALV_PPN2);
 
         if (bottomTime <= 0 || maxDepth <= 0) {
-            return { profile: { stops: {} }, finalTensions: initialTensions || surfaceTensions, dtr: 0 };
+            return { profile: { stops: {} }, finalTensions: Array.from(initialTensions || surfaceTensions), dtr: 0 };
         }
         // Initial tensions are at equilibrium with Air (PN2 = 0.79 * surfacePressure)
-        let tensions = initialTensions ? [...initialTensions] : [...surfaceTensions]; // deep copy
+        let tensions = initialTensions ? new Float64Array(initialTensions) : surfaceTensions;
 
         // Convert gfLow/High to 0-1 if passed as 0-100
         const _gfLow = gfLow > 1 ? gfLow / 100 : gfLow;
@@ -239,7 +256,7 @@
             else stopsObj[d] = t;
         });
         // format output for the app
-        return { profile: { stops: stopsObj }, finalTensions: tensions, dtr: dtr_Buhlmann };
+        return { profile: { stops: stopsObj }, finalTensions: Array.from(tensions), dtr: dtr_Buhlmann };
     }
     // --- END BUEHLMANN ---
 
@@ -276,7 +293,7 @@
         };
     }
 
-    function calculateGasConsumptionLiters(depth, time, profile, sac) {
+    function calculateGasConsumptionLiters(depth, time, profile, sac, ascentRate) {
         if (depth <= 0) return { total: 0, breakdown: { descent: 0, bottom: 0, ascent: 0, stops: {} } };
 
         // Helper to get pressure at depth
@@ -304,7 +321,7 @@
 
         // Ascent from bottom to first target
         if (depth > firstTargetDepth) {
-            const travelTime = (depth - firstTargetDepth) / ASCENT_RATE;
+            const travelTime = (depth - firstTargetDepth) / ascentRate;
             const avgPressure = (getP(depth) + getP(firstTargetDepth)) / 2;
             breakdown.ascent += travelTime * avgPressure * sac;
         }
@@ -330,7 +347,7 @@
         };
     }
 
-    function calculateDTR(depth, stops) { // Use ceiling for stops and ascent times (safer)
+    function calculateDTR(depth, stops, ascentRate) { // Use ceiling for stops and ascent times (safer)
         let dtr_ceil = 0;
         const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
         let hasStops = stopDepths.length > 0;
@@ -338,11 +355,11 @@
         for (let d in stops) totalStopTime += Math.ceil(stops[d]);
 
         if (!hasStops) {
-            const ascentTime = depth / ASCENT_RATE;
+            const ascentTime = depth / ascentRate;
             dtr_ceil = Math.ceil(ascentTime);
         } else {
             const firstStopDepth = stopDepths[0];
-            const ascentToFirst = (depth - firstStopDepth) / ASCENT_RATE;
+            const ascentToFirst = (depth - firstStopDepth) / ascentRate;
             const ascentFromFirst = firstStopDepth / ASCENT_RATE_FROM_FIRST_STOP;
             // dtr_ceil = Math.ceil(ascentToFirst) + totalStopTime + Math.ceil(ascentFromFirst);
             dtr_ceil = Math.ceil(ascentToFirst + totalStopTime + ascentFromFirst);
@@ -445,6 +462,8 @@
     // Expose Planning API
     window.Planning = {
         SURFACE_AIR_ALV_PPN2,
+        ASCENT_RATE_MN90,
+        ASCENT_RATE_GF,
         getMN90Profile,
         calculateGasConsumptionLiters,
         calculateDTR,
