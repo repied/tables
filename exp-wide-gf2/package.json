@@ -1,0 +1,18 @@
+{
+  "name": "tables",
+  "version": "3.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "live-server --port=5500",
+    "dev2": "live-server --port=5502",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node tests/unit_planning.js",
+    "test:e2e": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "live-server": "^1.2.0"
+  }
+}
