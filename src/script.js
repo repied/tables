@@ -46,6 +46,10 @@ const MAX_INTERVAL = 60 * 12;
 const MIN_INTERVAL = 30;
 const STEP_INTERVAL = 15;
 
+const SHARE_ANDROID_SVG = `<svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`;
+const SHARE_APPLE_SVG = `<svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
+const CAMERA_SVG = `<svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`;
+
 // PWA logic
 let deferredPrompt;
 
@@ -83,6 +87,7 @@ async function init() {
             state.currentLang = el['lang-toggle'].checked ? 'en' : 'fr';
             localStorage.setItem('selectedLang', state.currentLang);
             translateUI();
+            updateFooterIcons();
             triggerUpdate();
         });
     }
@@ -98,6 +103,18 @@ async function init() {
     }
 
     translateUI();
+    updateFooterIcons();
+}
+
+function updateFooterIcons() {
+    const shareLink = document.getElementById('share-link');
+    const trans = window.translations[state.currentLang];
+
+    if (shareLink) {
+        shareLink.innerHTML = isIOS() ? SHARE_APPLE_SVG : SHARE_ANDROID_SVG;
+        shareLink.title = trans.share;
+        shareLink.setAttribute('aria-label', trans.share);
+    }
 }
 
 function updateTheme() {
@@ -1072,6 +1089,7 @@ function setupModal() {
     // Replace simple style-based show/hide in other functions by exposing helpers
     window.__openModal = openModal;
     window.__closeModal = closeModal;
+    window.closeScanModal = closeScanModal;
 }
 
 // ----------------------------------------------------------------------------
@@ -1314,10 +1332,15 @@ function setupSharing() {
         });
     }
 
-    const scanLink = document.getElementById('scan-link');
-    if (scanLink) {
-        scanLink.addEventListener('click', (e) => {
+    const modalScanBtn = document.getElementById('modal-scan-btn');
+    if (modalScanBtn) {
+        const scanIconContainer = document.getElementById('scan-icon-container');
+        if (scanIconContainer) scanIconContainer.innerHTML = CAMERA_SVG;
+        modalScanBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            // Close share modal first
+            const shareModal = document.getElementById('share-modal');
+            if (window.__closeModal) window.__closeModal(shareModal);
             openScanModal();
         });
     }
@@ -1336,44 +1359,50 @@ function setupSharing() {
 function openShareModal() {
     const modal = document.getElementById('share-modal');
     if (!modal) return;
-    
-    // Generate Link
+
+    // Generate Compact Link
+    const data = [
+        state.dive1Depth,
+        state.dive1Time,
+        state.dive2Depth,
+        state.dive2Time,
+        state.surfaceInterval,
+        state.gazO2pct,
+        state.gazO2pct2,
+        state.initTankPressure,
+        state.sac,
+        state.tankVolume,
+        state.isGFMode ? 1 : 0,
+        state.currentGFLow,
+        state.currentGFHigh
+    ].join(',');
+
+    const encoded = btoa(data);
     const params = new URLSearchParams();
-    params.set('d1', state.dive1Depth);
-    params.set('t1', state.dive1Time);
-    params.set('d2', state.dive2Depth);
-    params.set('t2', state.dive2Time);
-    params.set('si', state.surfaceInterval);
-    params.set('g1', state.gazO2pct);
-    params.set('g2', state.gazO2pct2);
-    params.set('p', state.initTankPressure);
-    params.set('s', state.sac);
-    params.set('v', state.tankVolume);
-    
-    if(state.isGFMode) {
-        params.set('gf', '1');
-        params.set('gl', state.currentGFLow);
-        params.set('gh', state.currentGFHigh);
-    }
+    params.set('p', encoded);
 
     const url = window.location.origin + window.location.pathname + '?' + params.toString();
-    
+
     const input = document.getElementById('share-link-input');
     if (input) input.value = url;
 
     const container = document.getElementById('qrcode-container');
     if (container) {
         container.innerHTML = '';
-        if (typeof QRCode !== 'undefined') {
-            new QRCode(container, {
-                text: url,
-                width: 200,
-                height: 200
-            });
+        if (typeof qrcode !== 'undefined') {
+            try {
+                const qr = qrcode(0, 'M');
+                qr.addData(url);
+                qr.make();
+                // Create SVG with scalable option for better quality
+                container.innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+            } catch (e) {
+                console.error("QR Code generation failed", e);
+            }
         }
     }
 
-    if(window.__openModal) window.__openModal(modal);
+    if (window.__openModal) window.__openModal(modal);
 }
 
 function copyShareLink() {
@@ -1381,14 +1410,14 @@ function copyShareLink() {
     if (!input) return;
     input.select();
     input.setSelectionRange(0, 99999);
-    
+
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(input.value).then(() => {
             const btn = document.getElementById('copy-link-btn');
             const originalText = btn.getAttribute('data-i18n') ? window.translations[state.currentLang][btn.getAttribute('data-i18n')] : btn.innerText;
             btn.innerText = "Copied!";
             setTimeout(() => {
-                 btn.innerText = originalText;
+                btn.innerText = originalText;
             }, 2000);
         });
     } else {
@@ -1403,8 +1432,8 @@ let scanInterval = null;
 async function openScanModal() {
     const modal = document.getElementById('scan-modal');
     if (!modal) return;
-    
-    if(window.__openModal) window.__openModal(modal);
+
+    if (window.__openModal) window.__openModal(modal);
 
     const video = document.getElementById('scan-video');
     const canvas = document.getElementById('scan-canvas');
@@ -1417,7 +1446,7 @@ async function openScanModal() {
         video.srcObject = scanStream;
         video.setAttribute("playsinline", true);
         video.play();
-        
+
         scanInterval = setInterval(() => {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvas.height = video.videoHeight;
@@ -1425,7 +1454,7 @@ async function openScanModal() {
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                
+
                 if (typeof jsQR !== 'undefined') {
                     const code = jsQR(imageData.data, imageData.width, imageData.height, {
                         inversionAttempts: "dontInvert",
@@ -1437,28 +1466,28 @@ async function openScanModal() {
                 }
             }
         }, 200);
-        
-        if(status) status.innerText = window.translations[state.currentLang].scanStatusWaiting || "Waiting...";
+
+        if (status) status.innerText = window.translations[state.currentLang].scanStatusWaiting || "Waiting...";
 
     } catch (err) {
         console.error(err);
-        if(status) status.innerText = (window.translations[state.currentLang].cameraError || "Camera Error") + ": " + err.message;
+        if (status) status.innerText = (window.translations[state.currentLang].cameraError || "Camera Error") + ": " + err.message;
     }
 }
 
 function closeScanModal() {
     const modal = document.getElementById('scan-modal');
-    
+
     if (scanStream) {
         scanStream.getTracks().forEach(track => track.stop());
         scanStream = null;
     }
-    
+
     if (scanInterval) {
         clearInterval(scanInterval);
         scanInterval = null;
     }
-    
+
     if (modal && window.__closeModal) window.__closeModal(modal);
 }
 
@@ -1467,9 +1496,8 @@ function handleScan(data) {
         const url = new URL(data);
         const params = url.searchParams;
         if (applyParams(params)) {
-             closeScanModal();
-             triggerUpdate();
-             alert("Plan loaded successfully!");
+            closeScanModal();
+            triggerUpdate();
         }
     } catch (e) {
         console.error("Invalid QR Code", e);
@@ -1478,6 +1506,35 @@ function handleScan(data) {
 
 function applyParams(params) {
     let changed = false;
+
+    // Handle Compact Format
+    if (params.has('p')) {
+        try {
+            const decoded = atob(params.get('p')).split(',');
+            if (decoded.length >= 10) {
+                state.dive1Depth = parseInt(decoded[0]);
+                state.dive1Time = parseInt(decoded[1]);
+                state.dive2Depth = parseInt(decoded[2]);
+                state.dive2Time = parseInt(decoded[3]);
+                state.surfaceInterval = parseInt(decoded[4]);
+                state.gazO2pct = parseInt(decoded[5]);
+                state.gazO2pct2 = parseInt(decoded[6]);
+                state.initTankPressure = parseInt(decoded[7]);
+                state.sac = parseInt(decoded[8]);
+                state.tankVolume = parseInt(decoded[9]);
+                if (decoded.length >= 13) {
+                    state.isGFMode = decoded[10] === '1';
+                    state.currentGFLow = parseInt(decoded[11]);
+                    state.currentGFHigh = parseInt(decoded[12]);
+                }
+                changed = true;
+            }
+        } catch (e) {
+            console.error("Failed to decode compact params", e);
+        }
+    }
+
+    // Fallback/Legacy Format
     if (params.has('d1')) { state.dive1Depth = parseInt(params.get('d1')); changed = true; }
     if (params.has('t1')) { state.dive1Time = parseInt(params.get('t1')); changed = true; }
     if (params.has('d2')) { state.dive2Depth = parseInt(params.get('d2')); changed = true; }
@@ -1488,7 +1545,7 @@ function applyParams(params) {
     if (params.has('p')) { state.initTankPressure = parseInt(params.get('p')); changed = true; }
     if (params.has('s')) { state.sac = parseInt(params.get('s')); changed = true; }
     if (params.has('v')) { state.tankVolume = parseInt(params.get('v')); changed = true; }
-    
+
     if (params.has('gf')) {
         state.isGFMode = true;
         if (params.has('gl')) state.currentGFLow = parseInt(params.get('gl'));
@@ -1504,4 +1561,3 @@ function loadStateFromUrl() {
         triggerUpdate();
     }
 }
-
