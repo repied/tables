@@ -1,11 +1,10 @@
-// App State
-const state = {
+const DEFAULT_STATE = {
     dive1Depth: 40,
     dive1Time: 15,
     dive2Depth: 40,
     dive2Time: 15,
     initTankPressure: 200,
-    sac: 15,
+    sac: 20,
     tankVolume: 15,
     gazO2pct: 21,
     gazO2pct2: 21,
@@ -16,7 +15,12 @@ const state = {
     currentGFHigh2: 85,
     isGFLow2Locked: true,
     isGFHigh2Locked: true,
-    surfaceInterval: 60 * 3,
+    surfaceInterval: 60 * 3
+};
+
+// App State
+const state = {
+    ...DEFAULT_STATE,
     currentLang: localStorage.getItem('selectedLang') || 'fr',
     theme: localStorage.getItem('theme') || 'light'
 };
@@ -219,17 +223,17 @@ function initGauges() {
 }
 
 function setupInteractions() {
-    setupGaugeInteraction(el['time-gauge-container'], () => state.dive1Time, (val) => state.dive1Time = val, MIN_TIME, MAX_TIME, 1);
-    setupGaugeInteraction(el['depth-gauge-container'], () => state.dive1Depth, (val) => state.dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.2);
-    setupGaugeInteraction(el['pressure-gauge-container'], () => state.initTankPressure, (val) => state.initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 1);
-    setupGaugeInteraction(el['sac-gauge-container'], () => state.sac, (val) => state.sac = val, MIN_SAC, MAX_SAC, 0.5);
-    setupGaugeInteraction(el['volume-gauge-container'], () => state.tankVolume, (val) => state.tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 1);
-    setupGaugeInteraction(el['o2-gauge-container'], () => state.gazO2pct, (val) => state.gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 1);
+    setupGaugeInteraction(el['time-gauge-container'], () => state.dive1Time, (val) => state.dive1Time = val, MIN_TIME, MAX_TIME, 1, DEFAULT_STATE.dive1Time);
+    setupGaugeInteraction(el['depth-gauge-container'], () => state.dive1Depth, (val) => state.dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.2, DEFAULT_STATE.dive1Depth);
+    setupGaugeInteraction(el['pressure-gauge-container'], () => state.initTankPressure, (val) => state.initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 1, DEFAULT_STATE.initTankPressure);
+    setupGaugeInteraction(el['sac-gauge-container'], () => state.sac, (val) => state.sac = val, MIN_SAC, MAX_SAC, 0.5, DEFAULT_STATE.sac);
+    setupGaugeInteraction(el['volume-gauge-container'], () => state.tankVolume, (val) => state.tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 1, DEFAULT_STATE.tankVolume);
+    setupGaugeInteraction(el['o2-gauge-container'], () => state.gazO2pct, (val) => state.gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 1, DEFAULT_STATE.gazO2pct);
 
-    setupGaugeInteraction(el['gf-low-gauge-container'], () => state.currentGFLow, (val) => state.currentGFLow = val, MIN_GF_pct, MAX_GF_pct, 0.5);
-    setupGaugeInteraction(el['gf-high-gauge-container'], () => state.currentGFHigh, (val) => state.currentGFHigh = val, MIN_GF_pct, MAX_GF_pct, 0.5);
-    setupGaugeInteraction(el['gf-low-gauge-container-2'], () => state.currentGFLow2, (val) => state.currentGFLow2 = val, MIN_GF_pct, MAX_GF_pct, 0.5);
-    setupGaugeInteraction(el['gf-high-gauge-container-2'], () => state.currentGFHigh2, (val) => state.currentGFHigh2 = val, MIN_GF_pct, MAX_GF_pct, 0.5);
+    setupGaugeInteraction(el['gf-low-gauge-container'], () => state.currentGFLow, (val) => state.currentGFLow = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFLow);
+    setupGaugeInteraction(el['gf-high-gauge-container'], () => state.currentGFHigh, (val) => state.currentGFHigh = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFHigh);
+    setupGaugeInteraction(el['gf-low-gauge-container-2'], () => state.currentGFLow2, (val) => state.currentGFLow2 = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFLow2);
+    setupGaugeInteraction(el['gf-high-gauge-container-2'], () => state.currentGFHigh2, (val) => state.currentGFHigh2 = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFHigh2);
 
     // Lock Logic Listeners
     if (el['gf-low-lock-2']) {
@@ -260,14 +264,14 @@ function setupInteractions() {
         });
     }
 
-    setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 1);
-    setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1);
-    setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 1);
-    setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 5);
+    setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 1, DEFAULT_STATE.dive2Time);
+    setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1, DEFAULT_STATE.dive2Depth);
+    setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 1, DEFAULT_STATE.gazO2pct2);
+    setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 5, DEFAULT_STATE.surfaceInterval);
 }
 
 
-function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5) {
+function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5, defaultVal = null) {
     if (!gaugeElement) return;
 
     // Make the gauge keyboard-focusable and expose ARIA slider attributes
@@ -289,7 +293,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
     let hasMoved = false;
 
     // Default value capture
-    const defaultValue = getValue();
+    const effectiveDefault = defaultVal !== null ? defaultVal : getValue();
 
     // Interaction state
     let lastTapTime = 0;
@@ -306,7 +310,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
             if (singleTapTimer) clearTimeout(singleTapTimer);
 
             // Reset to default
-            setValue(defaultValue);
+            setValue(effectiveDefault);
             triggerUpdate();
 
             // Reset state
@@ -1025,12 +1029,11 @@ function setupModal() {
             }
         }
 
-        // Click on anywhere to close, except on links
+        // Click on backdrop to close
         function onClick(e) {
-            if (e.target.tagName === 'A' || e.target.closest('a')) {
-                return;
+            if (e.target === modal) {
+                closeModal(modal, previouslyFocused);
             }
-            closeModal(modal, previouslyFocused);
         }
 
         modal.__previouslyFocused = previouslyFocused;
@@ -1413,19 +1416,50 @@ function copyShareLink() {
     input.select();
     input.setSelectionRange(0, 99999);
 
+    const msg = (window.translations && window.translations[state.currentLang] && window.translations[state.currentLang].linkCopied) ? window.translations[state.currentLang].linkCopied : "Link copied!";
+
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(input.value).then(() => {
-            const btn = document.getElementById('copy-link-btn');
-            const originalText = btn.getAttribute('data-i18n') ? window.translations[state.currentLang][btn.getAttribute('data-i18n')] : btn.innerText;
-            btn.innerText = "Copied!";
-            setTimeout(() => {
-                btn.innerText = originalText;
-            }, 2000);
+            showToast(msg);
         });
     } else {
         document.execCommand('copy');
-        alert("Copied to clipboard");
+        showToast(msg);
     }
+}
+
+function showToast(message) {
+    const btn = document.getElementById('copy-link-btn');
+    const toast = document.createElement('div');
+    toast.className = 'toast-popup';
+    toast.textContent = message;
+
+    document.body.appendChild(toast);
+
+    if (btn) {
+        const rect = btn.getBoundingClientRect();
+        const top = rect.top - 40 + window.scrollY;
+        const left = rect.left + (rect.width / 2) + window.scrollX;
+
+        toast.style.top = `${top}px`;
+        toast.style.left = `${left}px`;
+        toast.style.transform = 'translate(-50%, 0)';
+    } else {
+        toast.style.top = '50%';
+        toast.style.left = '50%';
+        toast.style.transform = 'translate(-50%, -50%)';
+    }
+
+    // Force reflow
+    toast.offsetHeight;
+    toast.classList.add('visible');
+
+    setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 1000);
+    }, 1000);
 }
 
 let scanStream = null;
@@ -1508,6 +1542,7 @@ function handleScan(data) {
 
 function applyParams(params) {
     let changed = false;
+    let compactSuccess = false;
 
     // Handle Compact Format
     if (params.has('p')) {
@@ -1530,6 +1565,7 @@ function applyParams(params) {
                     state.currentGFHigh = parseInt(decoded[12]);
                 }
                 changed = true;
+                compactSuccess = true;
             }
         } catch (e) {
             console.error("Failed to decode compact params", e);
@@ -1544,7 +1580,7 @@ function applyParams(params) {
     if (params.has('si')) { state.surfaceInterval = parseInt(params.get('si')); changed = true; }
     if (params.has('g1')) { state.gazO2pct = parseInt(params.get('g1')); changed = true; }
     if (params.has('g2')) { state.gazO2pct2 = parseInt(params.get('g2')); changed = true; }
-    if (params.has('p')) { state.initTankPressure = parseInt(params.get('p')); changed = true; }
+    if (!compactSuccess && params.has('p')) { state.initTankPressure = parseInt(params.get('p')); changed = true; }
     if (params.has('s')) { state.sac = parseInt(params.get('s')); changed = true; }
     if (params.has('v')) { state.tankVolume = parseInt(params.get('v')); changed = true; }
 
