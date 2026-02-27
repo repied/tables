@@ -11,6 +11,8 @@ const urlsToCache = [
     'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
     './assets/help_fr.md',
     './assets/help_en.md',
+    './src/qrcode.min.js',
+    './src/jsQR.min.js',
     './data/mn90_stops.csv',
     './data/mn90-n2.csv',
     './data/mn90-majoration.csv',

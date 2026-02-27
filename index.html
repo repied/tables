@@ -340,6 +340,7 @@
                 </label>
                 <img src="./assets/uk-flag-800.png" alt="UK" class="flag-icon">
             </div>
+            <a href="#" id="share-link" title="Share"></a>
             <a href="#" id="help-link" data-i18n="help"></a>
 
             <div class="theme-selector">
@@ -364,6 +365,48 @@
                 <ul id="gas-breakdown-list" style="text-align: left; display: inline-block; margin-top: 20px;">
                     <!-- Breakdown will be inserted here -->
                 </ul>
+            </div>
+        </div>
+
+        <!-- Share Modal -->
+        <div id="share-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title"
+            aria-hidden="true">
+            <div class="modal-content" style="max-width: 350px;">
+                <button class="modal-close" aria-label="Close"
+                    onclick="window.__closeModal(document.getElementById('share-modal'))">&times;</button>
+                <h1 id="share-modal-title" data-i18n="shareModalTitle"></h1>
+                <div style="text-align: center;">
+                    <div id="qrcode-container"></div>
+                </div>
+                <div class="share-link-container">
+                    <p data-i18n="shareLinkText" style="margin-bottom: 0; opacity: 0.7;"></p>
+                    <input type="text" id="share-link-input" readonly>
+                    <button class="action-btn" id="copy-link-btn" data-i18n="copyLink"></button>
+                </div>
+                <div
+                    style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                    <p data-i18n="scanActionText" style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px;"></p>
+                    <button class="action-btn" id="modal-scan-btn"
+                        style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                        <span id="scan-icon-container"></span>
+                        <span data-i18n="scan"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Modal -->
+        <div id="scan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="scan-modal-title"
+            aria-hidden="true">
+            <div class="modal-content" style="max-width: 350px;">
+                <button class="modal-close" aria-label="Close" onclick="window.closeScanModal()">&times;</button>
+                <h1 id="scan-modal-title" data-i18n="scanModalTitle"></h1>
+                <div id="camera-container">
+                    <video id="scan-video" playsinline></video>
+                    <canvas id="scan-canvas" style="display: none;"></canvas>
+                    <div class="scan-overlay"></div>
+                </div>
+                <p id="scan-status" data-i18n="scanStatusWaiting"></p>
             </div>
         </div>
 
@@ -402,6 +445,8 @@
         </div>
     </div>
 
+    <script src="./src/qrcode.min.js"></script>
+    <script src="./src/jsQR.min.js"></script>
     <script src="./src/dataManager.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="./src/translations.js"></script>
