@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tables-cache-ve3f123f';
+const CACHE_NAME = 'tables-cache-v362a165';
 const urlsToCache = [
     './',
     './index.html',
@@ -11,6 +11,8 @@ const urlsToCache = [
     'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
     './assets/help_fr.md',
     './assets/help_en.md',
+    './src/qrcode.min.js',
+    './src/jsQR.min.js',
     './data/mn90_stops.csv',
     './data/mn90-n2.csv',
     './data/mn90-majoration.csv',
