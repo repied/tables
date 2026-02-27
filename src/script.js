@@ -5,7 +5,7 @@ const state = {
     dive2Depth: 40,
     dive2Time: 15,
     initTankPressure: 200,
-    sac: 15,
+    sac: 20,
     tankVolume: 15,
     gazO2pct: 21,
     gazO2pct2: 21,
