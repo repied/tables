@@ -383,9 +383,11 @@
                     <input type="text" id="share-link-input" readonly>
                     <button class="action-btn" id="copy-link-btn" data-i18n="copyLink"></button>
                 </div>
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                <div
+                    style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
                     <p data-i18n="scanActionText" style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px;"></p>
-                    <button class="action-btn" id="modal-scan-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                    <button class="action-btn" id="modal-scan-btn"
+                        style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
                         <span id="scan-icon-container"></span>
                         <span data-i18n="scan"></span>
                     </button>
@@ -397,8 +399,7 @@
         <div id="scan-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="scan-modal-title"
             aria-hidden="true">
             <div class="modal-content" style="max-width: 350px;">
-                <button class="modal-close" aria-label="Close"
-                    onclick="window.closeScanModal()">&times;</button>
+                <button class="modal-close" aria-label="Close" onclick="window.closeScanModal()">&times;</button>
                 <h1 id="scan-modal-title" data-i18n="scanModalTitle"></h1>
                 <div id="camera-container">
                     <video id="scan-video" playsinline></video>

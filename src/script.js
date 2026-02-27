@@ -61,6 +61,7 @@ function triggerUpdate() {
     updateRequested = true;
     requestAnimationFrame(() => {
         updateUI();
+        saveStateToLocalStorage();
         updateRequested = false;
     });
 }
@@ -73,6 +74,7 @@ async function init() {
         return;
     }
 
+    loadStateFromLocalStorage();
     cacheElements();
     initGauges();
     setupInteractions();
@@ -1559,5 +1561,33 @@ function loadStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
     if (applyParams(params)) {
         triggerUpdate();
+    }
+}
+
+function saveStateToLocalStorage() {
+    const stateToSave = { ...state };
+    // Theme and Lang are already managed separately but including them for completeness
+    localStorage.setItem('divePlannerState', JSON.stringify(stateToSave));
+}
+
+function loadStateFromLocalStorage() {
+    const saved = localStorage.getItem('divePlannerState');
+    if (!saved) return;
+    try {
+        const parsed = JSON.parse(saved);
+        // Explicitly map keys to ensure we only load valid data and maintain types
+        const keys = [
+            'dive1Depth', 'dive1Time', 'dive2Depth', 'dive2Time',
+            'initTankPressure', 'sac', 'tankVolume', 'gazO2pct', 'gazO2pct2',
+            'isGFMode', 'currentGFLow', 'currentGFHigh', 'currentGFLow2', 'currentGFHigh2',
+            'isGFLow2Locked', 'isGFHigh2Locked', 'surfaceInterval'
+        ];
+        keys.forEach(key => {
+            if (parsed[key] !== undefined) {
+                state[key] = parsed[key];
+            }
+        });
+    } catch (e) {
+        console.error("Failed to load state from localStorage", e);
     }
 }
