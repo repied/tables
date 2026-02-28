@@ -3,10 +3,10 @@
 
 # Usage
 - Visit [https://repied.github.io/tables](https://repied.github.io/tables). 
-- Toggle between French Navy MN90 and gradient factor (GF) modes. 
+- Toggle between MN90 and GF modes. 
 - Set depth, time, surface interval and gases parameters to plan 2 successive dives.
-- The app computes dives plans and checks gaz usage. 
-- Dives plans can be shared with QR codes. 
+- The app computes plans and checks gaz usage. 
+- Plans can be shared with QR code and link. 
 
 # Installation
 PWA can be installed on mobile/laptop/desktop and used offline. Direct installation from the browsers (no PlayStore, no AppStore). 
@@ -27,10 +27,9 @@ PWA can be installed on mobile/laptop/desktop and used offline. Direct installat
 
 # Deployments
 - To test on github pages:
-    - push to any branch starting with `exp-` (e.g. `exp-new-feature`) will deploy to a subfolder (e.g. [https://repied.github.io/tables/exp-new-feature/](https://repied.github.io/tables/exp-new-feature/))
+    - push to any branch starting with `exp-` (e.g. `exp-new-feature`) will deploy to [https://repied.github.io/tables/exp.html](https://repied.github.io/tables/exp.html)
 - To deploy to users:
-    - first make sure all tests pass with `npm test`
-    - push to `main` branch will deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
+    - push to `main` branch will test in CI and deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
 
 Version number are git hash to make sure updates invalidate service workers cache. 
 
