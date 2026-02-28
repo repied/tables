@@ -12,7 +12,7 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 
 *   **Glisser haut/bas** ou **Tap** pour ajuster
 *   **Double tap** pour réinitialiser
-*   **Cadenas** pour avoir différents GFs
+*   **Cadenas** tap pour déverrouiller seconds GFs
 *   **Partager :** une plongée par lien ou QR code
 * Les derniers paramètres sont mémorisés
 *   **Calculs :** 
@@ -39,9 +39,9 @@ Installation directe depuis le navigateur (pas de PlayStore/AppStore) pour utili
 
 ### Références
 
-*   Design inspiré de [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
+*   Inspiration : [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
 *   Tables MN90 : [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
 *   Paramètres ZH-L16C : [Subsurface](https://github.com/subsurface/subsurface/blob/dfd5e20d3d2b7105e89ded44222dc6f1631d2a39/core/deco.cpp#L86)
-*   Tables : [Code source](https://github.com/repied/tables)
-*   Autheur : [pierre.dangauthier@gmail.com](mailto:pierre.dangauthier@gmail.com?subject=Tables%20app%20feedback) 
+*   Code : [source](https://github.com/repied/tables)
+*   Contact : [pierre.dangauthier@gmail.com](mailto:pierre.dangauthier+tables@gmail.com?subject=Tables%20app%20feedback) 
 *   Extra : [Checklist](#checklist)
