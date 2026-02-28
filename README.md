@@ -31,7 +31,8 @@ PWA can be installed on mobile/laptop/desktop and used offline. Direct installat
 - To deploy to users:
     - push to `main` branch will test in CI and deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
 
-Version number are git hash to make sure updates invalidate service workers cache. 
+Version number is the git hash to make sure updates invalidate service workers cache. 
+It's inserted in relevant places during Github action CI. 
 
 # Donations
 Donations welcomed to support development costs.
