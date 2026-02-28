@@ -3,8 +3,10 @@
 
 # Usage
 - Visit [https://repied.github.io/tables](https://repied.github.io/tables). 
-- Toggle between MN90 and GF modes. 
+- Toggle between French Navy MN90 and gradient factor (GF) modes. 
 - Set depth, time, surface interval and gases parameters to plan 2 successive dives.
+- The app computes dives plans and checks gaz usage. 
+- Dives plans can be shared with QR codes. 
 
 # Installation
 PWA can be installed on mobile/laptop/desktop and used offline. Direct installation from the browsers (no PlayStore, no AppStore). 
