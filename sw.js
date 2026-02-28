@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tables-cache-ve8796af';
+const CACHE_NAME = 'tables-cache-v21f75cc';
 const urlsToCache = [
     './',
     './index.html',
