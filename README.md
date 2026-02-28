@@ -26,8 +26,8 @@ PWA can be installed on mobile/laptop/desktop and used offline. Direct installat
 - Run tests: `npm test`.
 
 # Deployments
-- To test on github pages, push to any branch starting with `exp-` will deploy to [https://repied.github.io/tables/exp.html](https://repied.github.io/tables/exp.html)
-- To deploy to users, push to `main` branch will test in CI and deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
+- To test, push to any branch starting with `exp-` to deploy a [link](https://repied.github.io/tables/exp.html) to a Github subpage. 
+- To deploy to users, push to `main` branch to test in CI and deploy to [https://repied.github.io/tables](https://repied.github.io/tables/)
 
 Version number is the git hash to make sure updates invalidate cache. 
 It's inserted in relevant places during CI. 
