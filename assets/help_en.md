@@ -13,7 +13,7 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 *   **Drag up/down** or **Tap** to adjust
 * **Double tap** to reset
 *   **Lock icon** to unlock second dive GFs
-*   **Share icon:** to share via link or QR code
+*   **Share icon** to share dive via link or QR code
 * Latest settings are remembered
 *   **Calculations :** 
     * TTS : Time To Surface 
