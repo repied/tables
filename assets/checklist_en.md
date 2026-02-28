@@ -23,4 +23,4 @@
 * **Out of Air:** Signal, take buddy's octopus, ascend together
 * **Lost Buddy:** Look for 1 min, safe ascent, reunite on surface
 * **Breathlessness:** Signal, stop, calm down, breathe
-* **Decompression Incident:** Alert (VHF/112), Oxygen, hydration, evacuation
+* **Desaturation Incident:** Alert (VHF/112), Oxygen, hydration, evacuation

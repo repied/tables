@@ -74,7 +74,7 @@ test('GF gradient factors control visibility and effect', async ({ page }) => {
     expect(parseInt(gfLowText)).toBeLessThanOrEqual(parseInt(gfHighText));
 });
 
-test('GF mode shows decompression stop display', async ({ page }) => {
+test('GF mode shows desaturation stop display', async ({ page }) => {
     await page.addInitScript(() => {
         window.localStorage.setItem('hasVisited', 'true');
     });
@@ -85,10 +85,10 @@ test('GF mode shows decompression stop display', async ({ page }) => {
     await page.click('label[for="mode-gf"]');
     await page.waitForTimeout(500);
 
-    // Set a deeper dive to ensure decompression stops
+    // Set a deeper dive to ensure desaturation stops
     // Using JavaScript to set values since gauge interaction is complex
     await page.evaluate(() => {
-        // Access dive parameters and set to a profile that needs decompression
+        // Access dive parameters and set to a profile that needs desaturation
         (window as any).dive1Depth = 50;
         (window as any).dive1Time = 30;
         // Trigger UI update

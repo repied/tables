@@ -12,6 +12,9 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 
 *   **Drag up/down** or **Tap** to adjust
 * **Double tap** to reset
+*   **Lock icon** to have different GFs
+*   **Share:** a dive via link or QR code
+* Latest settings are remembered
 *   **Calculations :** 
     * TTS : Time To Surface 
     * End-of-dive pressure (alert if <50 bar)
@@ -35,10 +38,9 @@ Direct installation from the browser (no PlayStore/AppStore) for offline usage.
 
 ### References
 
-*   Source code [Github](https://github.com/repied/tables)
 *   Design inspired by [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
 *   MN90 tables : [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
-*   ZH-L16C parameters : [Wikipedia](https://en.wikipedia.org/wiki/B%C3%BChlmann_decompression_algorithm) and [Subsurface](https://github.com/subsurface)
-
-### Extra
-*   [Checklist](#checklist)
+*   ZH-L16C parameters : [Subsurface](https://github.com/subsurface/subsurface/blob/dfd5e20d3d2b7105e89ded44222dc6f1631d2a39/core/deco.cpp#L86)
+*   Tables : [Source code](https://github.com/repied/tables)
+*   Author : [pierre.dangauthier@gmail.com](mailto:pierre.dangauthier@gmail.com?subject=Tables%20app%20feedback) 
+*   Extra : [Checklist](#checklist)

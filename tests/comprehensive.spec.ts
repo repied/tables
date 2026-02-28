@@ -17,7 +17,7 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
             expect(depth).toMatch(/\d+/);
         });
 
-        test('displays decompression stops', async ({ page }) => {
+        test('displays desaturation stops', async ({ page }) => {
             const stops = page.locator('#stops-display .stop-item');
             const count = await stops.count();
             expect(count).toBeGreaterThan(0);
@@ -39,7 +39,7 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
         test('switches to GF mode', async ({ page }) => {
             await page.click('label[for="mode-gf"]');
             await page.waitForTimeout(400);
-            const isGF = await page.evaluate(() => 
+            const isGF = await page.evaluate(() =>
                 document.body.classList.contains('gf-mode')
             );
             expect(isGF).toBe(true);
@@ -50,10 +50,10 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
             await page.waitForTimeout(400);
             await expect(page.locator('#gf-low-gauge-container')).toBeVisible();
             await expect(page.locator('#gf-high-gauge-container')).toBeVisible();
-            
+
             const gfLowDisplay = page.locator('#gf-low-display');
             const gfHighDisplay = page.locator('#gf-high-display');
-            
+
             await expect(gfLowDisplay).toContainText(/\d+/);
             await expect(gfHighDisplay).toContainText(/\d+/);
         });
@@ -107,12 +107,12 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
                     errors.push(msg.text());
                 }
             });
-            
+
             await page.click('label[for="mode-gf"]');
             await page.waitForTimeout(300);
             await page.click('label[for="mode-mn90"]');
             await page.waitForTimeout(300);
-            
+
             const critical = errors.filter(e =>
                 !e.includes('favicon') &&
                 !e.includes('manifest') &&
@@ -123,16 +123,16 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
 
         test('recalculates on mode switch', async ({ page }) => {
             const initial = await page.locator('#dive-details .result-value').first().innerText();
-            
+
             await page.click('label[for="mode-gf"]');
             await page.waitForTimeout(500);
-            
+
             const gf = await page.locator('#dive-details .result-value').first().innerText();
             expect(gf).toMatch(/\d+:\d+/);
-            
+
             await page.click('label[for="mode-mn90"]');
             await page.waitForTimeout(300);
-            
+
             const final = await page.locator('#dive-details .result-value').first().innerText();
             expect(final).toBe(initial);
         });
@@ -148,7 +148,7 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
                 '#time-gauge-container',
                 '#depth-gauge-container',
             ];
-            
+
             for (const gauge of gauges) {
                 await expect(page.locator(gauge)).toBeVisible();
             }
@@ -157,10 +157,10 @@ test.describe('Dive Planner - Comprehensive Lean Planning Tests', () => {
         test('mobile responsive layout', async ({ page }) => {
             await page.setViewportSize({ width: 375, height: 667 });
             await page.waitForTimeout(300);
-            
+
             await expect(page.locator('#pressure-gauge-container')).toBeVisible();
             await expect(page.locator('#time-gauge-container')).toBeVisible();
-            
+
             await page.setViewportSize({ width: 1280, height: 720 });
         });
 
