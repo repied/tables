@@ -21,7 +21,7 @@ echo "<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <h1>Deployed Experiments</h1>
+    <h1>Deployed Experiments (list generated in CI)</h1>
     <ul>" > "$OUTPUT_FILE"
 
 # Fetch list of experiment branches on origin
