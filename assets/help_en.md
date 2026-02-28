@@ -17,8 +17,8 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 * Latest settings are remembered
 *   **Calculations :** 
     * TTS : Time To Surface 
-    * End-of-dive pressure (alert if <50 bar)
-    * Max ppO<sub>2</sub> (alert if > 1.5 bar)
+    * End-of-dive pressure
+    * Max ppO<sub>2</sub>
 
 ### Assumptions
 
