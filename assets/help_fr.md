@@ -12,8 +12,8 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 
 *   **Glisser haut/bas** ou **Tap** pour ajuster
 *   **Double tap** pour réinitialiser
-*   **Cadenas** tap pour déverrouiller seconds GFs
-*   **Partager :** une plongée par lien ou QR code
+*   **Cadenas :** tap pour déverrouiller seconds GFs
+*   **Partager** une plongée par lien ou QR code
 * Les derniers paramètres sont mémorisés
 *   **Calculs :** 
     * DTR : Durée Totale de Remontée 
