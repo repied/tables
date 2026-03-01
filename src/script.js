@@ -30,7 +30,7 @@ const el = {};
 
 // Constants
 const RESERVE_PRESSURE_THRESHOLD = 50;
-const PPO2_THRESHOLD_ORANGE = 1.5;
+const PPO2_THRESHOLD_ORANGE = 1.6;
 
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 1; // do not put 0, makes no sense
