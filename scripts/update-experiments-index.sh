@@ -25,7 +25,7 @@ echo "<!DOCTYPE html>
     <ul>" > "$OUTPUT_FILE"
 
 # Fetch list of experiment branches on origin
-experiments=$(git ls-remote --heads origin 'exp-*' | awk -F'refs/heads/' '{print $2}' | sort | uniq)
+experiments=$(git ls-remote --heads origin '(exp|feature)-*' | awk -F'refs/heads/' '{print $2}' | sort | uniq)
 
 if [ -z "$experiments" ]; then
     echo "        <li>No active experiments found.</li>" >> "$OUTPUT_FILE"
