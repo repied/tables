@@ -15,7 +15,8 @@ const DEFAULT_STATE = {
     currentGFHigh2: 85,
     isGFLow2Locked: true,
     isGFHigh2Locked: true,
-    surfaceInterval: 60 * 3
+    surfaceInterval: 60 * 3,
+    ppo2Max: 1.6
 };
 
 // App State
@@ -30,7 +31,6 @@ const el = {};
 
 // Constants
 const RESERVE_PRESSURE_THRESHOLD = 50;
-const PPO2_THRESHOLD_ORANGE = 1.6;
 
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 1; // do not put 0, makes no sense
@@ -153,8 +153,10 @@ function cacheElements() {
         'time-progress-2', 'depth-progress-2', 'o2-progress-2', 'stops-display-2', 'dive-details-2',
         'lang-toggle', 'theme-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
         'saturation-modal',
+        'time-modal', 'time-breakdown-list', 'time-breakdown-total',
+        'depth-warning', 'depth-warning-2',
         'help-modal', 'help-link', 'checklist-modal', 'app-version', 'install-app-container',
-        'install-app-btn', 'installation-section'
+        'install-app-btn', 'installation-section', 'ppo2-14', 'ppo2-16'
     ];
     ids.forEach(id => el[id] = document.getElementById(id));
 }
@@ -278,6 +280,21 @@ function setupInteractions() {
     setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 0.1, DEFAULT_STATE.gazO2pct2);
     setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 0.5, DEFAULT_STATE.surfaceInterval);
 
+    if (el['ppo2-14'] && el['ppo2-16']) {
+        el['ppo2-14'].addEventListener('change', () => {
+            if (el['ppo2-14'].checked) {
+                state.ppo2Max = 1.4;
+                triggerUpdate();
+            }
+        });
+        el['ppo2-16'].addEventListener('change', () => {
+            if (el['ppo2-16'].checked) {
+                state.ppo2Max = 1.6;
+                triggerUpdate();
+            }
+        });
+    }
+
     if (el['majoration-display']) {
         el['majoration-display'].addEventListener('click', () => {
             if (state.isGFMode && el['saturation-modal']) {
@@ -287,7 +304,6 @@ function setupInteractions() {
         });
     }
 }
-
 
 function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5, defaultVal = null) {
     if (!gaugeElement) return;
@@ -557,7 +573,24 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
     const progressEl = el[`${type}-progress${suffix}`];
     if (progressEl) {
         const length = progressEl.getTotalLength();
-        progressEl.style.strokeDashoffset = length * (1 - Math.min(value / max, 1));
+        let displayValue = value;
+
+        // For depth, if we are beyond MOD, the progress arc (red/green) stops at MOD
+        // and the warning arc (orange) takes over.
+        if (type === 'depth') {
+            const o2 = suffix === '' ? state.gazO2pct : state.gazO2pct2;
+            const fractionO2 = o2 / 100;
+            const maxDepth = ((state.ppo2Max / fractionO2) - 1) * 10;
+            if (value > maxDepth) {
+                displayValue = maxDepth;
+            }
+        }
+
+        progressEl.style.strokeDashoffset = length * (1 - Math.min(displayValue / max, 1));
+    }
+
+    if (type === 'depth') {
+        updateDepthWarning(suffix);
     }
 
     const displayEl = el[`${type}-display${suffix}`];
@@ -594,8 +627,50 @@ function updateUI() {
     }
 }
 
+function updateDepthWarning(suffix = '') {
+    const warningEl = el[`depth-warning${suffix}`];
+    if (!warningEl) return;
+
+    const currentDepth = suffix === '' ? state.dive1Depth : state.dive2Depth;
+    const o2 = suffix === '' ? state.gazO2pct : state.gazO2pct2;
+    const fractionO2 = o2 / 100;
+    const maxDepth = ((state.ppo2Max / fractionO2) - 1) * 10;
+
+    const ticks = [];
+    if (maxDepth < MAX_DEPTH && maxDepth >= MIN_DEPTH) {
+        ticks.push({
+            value: maxDepth,
+            label: 'MOD',
+            className: 'gauge-tick-warning'
+        });
+    }
+    updateGaugeTicks(`depth-gauge-container${suffix}`, ticks, MIN_DEPTH, MAX_DEPTH);
+
+    if (currentDepth > maxDepth && maxDepth < MAX_DEPTH) {
+        const length = warningEl.getTotalLength();
+        const startFraction = Math.max(0, (maxDepth - MIN_DEPTH) / (MAX_DEPTH - MIN_DEPTH));
+        const endFraction = Math.min(1, (currentDepth - MIN_DEPTH) / (MAX_DEPTH - MIN_DEPTH));
+
+        const gapBefore = length * startFraction;
+        const dashLength = length * (endFraction - startFraction);
+
+        // We use a dash starting after gapBefore. 
+        // strokeDasharray starts with a dash, so we use a 0-length dash, then a gap, then our real dash.
+        // To avoid the round cap artifact at the start of the path from the 0-length dash,
+        // we use a different approach: dash-array = [dashLength, totalLength] and negative offset.
+        warningEl.style.strokeDasharray = `${dashLength} ${length}`;
+        warningEl.style.strokeDashoffset = -gapBefore;
+        warningEl.style.visibility = 'visible';
+    } else {
+        warningEl.style.visibility = 'hidden';
+    }
+}
+
 function _updateUI_impl() {
     document.body.classList.toggle('gf-mode', state.isGFMode);
+
+    if (el['ppo2-14']) el['ppo2-14'].checked = (state.ppo2Max === 1.4);
+    if (el['ppo2-16']) el['ppo2-16'].checked = (state.ppo2Max === 1.6);
 
     // Lock Logic for GF2
     if (state.isGFMode) {
@@ -631,9 +706,6 @@ function _updateUI_impl() {
 
     // --- DIVE 1 CALCULATION ---
     const ppo2_1 = Planning.calculatePPO2(state.dive1Depth, state.gazO2pct);
-    const ppo2Ticks1 = calculatePPO2Tick(state.dive1Depth, state.gazO2pct);
-
-    updateGaugeTicks('depth-gauge-container', ppo2Ticks1, MIN_DEPTH, MAX_DEPTH);
 
     const timeTicks1 = calculateStopTicks(state.dive1Depth, state.gazO2pct, 0, {
         gfLow: state.currentGFLow,
@@ -671,7 +743,6 @@ function _updateUI_impl() {
 
     // --- DIVE 2 UI ---
     if (el['successive-header-text']) el['successive-header-text'].textContent = window.translations[state.currentLang].secondDive;
-
 
     let result2, currentMajoration = 0;
     let currentTensions = null;
@@ -738,8 +809,6 @@ function _updateUI_impl() {
     }
 
     const ppo2_2 = Planning.calculatePPO2(state.dive2Depth, state.gazO2pct2);
-    const ppo2Ticks2 = calculatePPO2Tick(state.dive2Depth, state.gazO2pct2);
-    updateGaugeTicks('depth-gauge-container-2', ppo2Ticks2, MIN_DEPTH, MAX_DEPTH);
 
     const timeTicks2 = calculateStopTicks(state.dive2Depth, state.gazO2pct2, currentMajoration, {
         gfLow: state.currentGFLow2,
@@ -751,8 +820,6 @@ function _updateUI_impl() {
     renderStops(result2, el['stops-display-2']);
     renderDiveDetails(el['dive-details-2'], result2, state.dive2Depth, state.dive2Time, state.initTankPressure, ppo2_2);
 }
-
-
 
 function renderStops(result, containerElement) {
     if (!containerElement) return;
@@ -824,19 +891,23 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
     }
 
     const ascentRate = state.isGFMode ? Planning.ASCENT_RATE_GF : Planning.ASCENT_RATE_MN90;
-    const dtr = Planning.calculateDTR(diveDepth, result.profile.stops, ascentRate);
-    const dtrFormatted = formatTime(dtr);
+    const timeBreakdown = Planning.calculateTimeBreakdown(diveDepth, diveTime, result.profile, ascentRate);
+    const dtrFormatted = formatTime(timeBreakdown.dtr);
 
     const consoLiters = Planning.calculateGasConsumptionLiters(diveDepth, diveTime, result.profile, state.sac, ascentRate);
     const gasUsed = consoLiters.total;
     const pressureUsed = gasUsed / state.tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
 
-    const dtrHtml = `<div class="result-box important"><span class="result-label">${trans[state.currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-    const reserveHtml = `<div class="result-box important reserve-box" style="cursor: pointer;"><span class="result-label">${trans[state.currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+    const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${trans[state.currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
+    const reserveHtml = `<div class="result-box important clickable reserve-box"><span class="result-label">${trans[state.currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
 
-    let nitroxHtml = `<div class="result-box important nitroxBox"><span class="result-label">ppO2 max</span><span class="result-value">${ppo2.toFixed(2)}</span></div>`;
-    container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}${nitroxHtml}</div>`;
+    container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}</div>`;
+
+    const dtrBox = container.querySelector('.dtr-box');
+    if (dtrBox) {
+        dtrBox.onclick = () => showTimeBreakdown(timeBreakdown);
+    }
 
     const reserveBox = container.querySelector('.reserve-box');
     if (reserveBox) {
@@ -848,9 +919,8 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
         reserveBox.onclick = () => showGasBreakdown(consoLiters, remainingPressure);
     }
 
-    if (ppo2 > PPO2_THRESHOLD_ORANGE) {
-        const rb = container.querySelector('.nitroxBox');
-        if (rb) rb.style.backgroundColor = '#ff9800';
+    if (ppo2 > state.ppo2Max) {
+        // PPO2 warning is handled visually on the depth gauge arc.
     }
 }
 
@@ -858,16 +928,13 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     if (!consoLiters || !consoLiters.breakdown) return;
     const breakdown = consoLiters.breakdown;
 
-    // Fallbacks for critical elements
-    const modal = el['gas-modal'] || document.getElementById('gas-modal');
-    const list = el['gas-breakdown-list'] || document.getElementById('gas-breakdown-list');
-    const total = el['gas-breakdown-total'] || document.getElementById('gas-breakdown-total');
+    const modal = el['gas-modal'];
+    const list = el['gas-breakdown-list'];
+    const total = el['gas-breakdown-total'];
 
     if (!modal || !list || !total) return;
 
     const trans = window.translations[state.currentLang];
-    if (!trans) return;
-
     list.innerHTML = '';
 
     const addLine = (label, liters) => {
@@ -910,15 +977,42 @@ function showGasBreakdown(consoLiters, remainingPressure) {
         list.appendChild(msg);
     }
 
-    if (typeof window.__openModal === 'function') {
-        window.__openModal(modal);
-    } else {
-        modal.style.display = "block";
-        modal.onclick = (e) => {
-            if (e.target.tagName === 'A' || e.target.closest('a')) return;
-            modal.style.display = "none";
-        };
+    if (window.__openModal) window.__openModal(modal);
+}
+
+function showTimeBreakdown(timeBreakdown) {
+    if (!timeBreakdown) return;
+
+    const modal = el['time-modal'];
+    const list = el['time-breakdown-list'];
+    const total = el['time-breakdown-total'];
+
+    if (!modal || !list || !total) return;
+
+    const trans = window.translations[state.currentLang];
+    list.innerHTML = '';
+
+    const addLine = (label, minutes) => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        li.innerHTML = `<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
+        list.appendChild(li);
+    };
+
+    total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)}`;
+
+    if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent);
+    if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom);
+    if (timeBreakdown.ascent > 0) addLine(trans.ascent, timeBreakdown.ascent);
+
+    if (timeBreakdown.stops) {
+        const stopDepths = Object.keys(timeBreakdown.stops).map(Number).sort((a, b) => b - a);
+        stopDepths.forEach(d => {
+            addLine(`${trans.stopAt} ${d}m`, timeBreakdown.stops[d]);
+        });
     }
+
+    if (window.__openModal) window.__openModal(modal);
 }
 
 // Start
@@ -1192,19 +1286,6 @@ function updateGaugeTicks(gaugeContainerId, ticks, min, max) {
     });
 }
 
-function calculatePPO2Tick(depth, o2Pct) {
-    // PPO2 = (1 + D/10) * (O2/100)
-    // D_max = ( (PPO2_max / (O2/100)) - 1 ) * 10
-    const limit = PPO2_THRESHOLD_ORANGE; // 1.6
-    const fractionO2 = o2Pct / 100;
-    const maxDepth = ((limit / fractionO2) - 1) * 10;
-
-    return [{
-        value: maxDepth,
-        label: `${Math.floor(maxDepth)}m`,
-        className: 'gauge-tick-warning'
-    }];
-}
 
 function calculateStopTicks(depth, o2Pct, majoration = 0, gfContext = {}) {
     if (state.isGFMode) {
@@ -1404,7 +1485,8 @@ function openShareModal() {
         state.tankVolume,
         state.isGFMode ? 1 : 0,
         state.currentGFLow,
-        state.currentGFHigh
+        state.currentGFHigh,
+        state.ppo2Max === 1.4 ? 0 : 1
     ].join(',');
 
     const encoded = btoa(data);
@@ -1589,6 +1671,9 @@ function applyParams(params) {
                     state.currentGFLow = parseInt(decoded[11]);
                     state.currentGFHigh = parseInt(decoded[12]);
                 }
+                if (decoded.length >= 14) {
+                    state.ppo2Max = decoded[13] === '0' ? 1.4 : 1.6;
+                }
                 changed = true;
                 compactSuccess = true;
             }
@@ -1641,7 +1726,7 @@ function loadStateFromLocalStorage() {
             'dive1Depth', 'dive1Time', 'dive2Depth', 'dive2Time',
             'initTankPressure', 'sac', 'tankVolume', 'gazO2pct', 'gazO2pct2',
             'isGFMode', 'currentGFLow', 'currentGFHigh', 'currentGFLow2', 'currentGFHigh2',
-            'isGFLow2Locked', 'isGFHigh2Locked', 'surfaceInterval'
+            'isGFLow2Locked', 'isGFHigh2Locked', 'surfaceInterval', 'ppo2Max'
         ];
         keys.forEach(key => {
             if (parsed[key] !== undefined) {

@@ -348,23 +348,44 @@
     }
 
     function calculateDTR(depth, stops, ascentRate) { // Use ceiling for stops and ascent times (safer)
-        let dtr_ceil = 0;
-        const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
-        let hasStops = stopDepths.length > 0;
-        let totalStopTime = 0;
-        for (let d in stops) totalStopTime += Math.ceil(stops[d]);
+        const breakdown = calculateTimeBreakdown(depth, 0, { stops }, ascentRate);
+        return breakdown.dtr;
+    }
 
-        if (!hasStops) {
-            const ascentTime = depth / ascentRate;
-            dtr_ceil = Math.ceil(ascentTime);
-        } else {
-            const firstStopDepth = stopDepths[0];
-            const ascentToFirst = (depth - firstStopDepth) / ascentRate;
-            const ascentFromFirst = firstStopDepth / ASCENT_RATE_FROM_FIRST_STOP;
-            // dtr_ceil = Math.ceil(ascentToFirst) + totalStopTime + Math.ceil(ascentFromFirst);
-            dtr_ceil = Math.ceil(ascentToFirst + totalStopTime + ascentFromFirst);
+    function calculateTimeBreakdown(depth, bottomTime, profile, ascentRate) {
+        const stops = profile ? profile.stops : {};
+        const stopDepths = Object.keys(stops).map(Number).sort((a, b) => b - a);
+
+        const t_descent = depth / DESCENT_RATE;
+        const t_at_depth = Math.max(0, bottomTime - t_descent);
+
+        let t_ascent = 0;
+        const firstTargetDepth = stopDepths.length > 0 ? stopDepths[0] : 0;
+
+        if (depth > firstTargetDepth) {
+            t_ascent += (depth - firstTargetDepth) / ascentRate;
         }
-        return dtr_ceil;
+
+        const stopBreakdown = {};
+        stopDepths.forEach((d, i) => {
+            const stopDuration = stops[d];
+            stopBreakdown[d] = stopDuration;
+
+            const nextTarget = (i + 1 < stopDepths.length) ? stopDepths[i + 1] : SURFACE_DEPTH;
+            t_ascent += (d - nextTarget) / ASCENT_RATE_FROM_FIRST_STOP;
+        });
+
+        const totalStopTime = Object.values(stops).reduce((a, b) => a + b, 0);
+        const dtr = Math.ceil(t_ascent + totalStopTime);
+
+        return {
+            descent: t_descent,
+            bottom: t_at_depth,
+            ascent: t_ascent,
+            stops: stopBreakdown,
+            dtr: dtr,
+            totalDuration: Math.ceil(t_descent + t_at_depth + t_ascent + totalStopTime)
+        };
     }
 
     // Nitrox Helpers
@@ -468,6 +489,7 @@
         getMN90Profile,
         calculateGasConsumptionLiters,
         calculateDTR,
+        calculateTimeBreakdown,
         calculateEquivalentAirDepth,
         calculatePPO2,
         calculateSuccessive,
