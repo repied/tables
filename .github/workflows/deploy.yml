@@ -5,6 +5,7 @@ on:
     branches:
       - main # Deploys to production
       - 'exp-*' # Deploys to experiment folders
+      - 'feature-*'
 
 concurrency:
   group: gh-pages
