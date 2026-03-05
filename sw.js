@@ -27,13 +27,13 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
                 console.log('Opened cache');
                 return cache.addAll(urlsToCache.map(url => new Request(url, { cache: 'reload' })));
             })
+            .then(() => self.skipWaiting())
     );
 });
 
