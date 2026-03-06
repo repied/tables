@@ -462,6 +462,7 @@
     // Expose Planning API
     window.Planning = {
         SURFACE_AIR_ALV_PPN2,
+        DESCENT_RATE,
         ASCENT_RATE_MN90,
         ASCENT_RATE_GF,
         getMN90Profile,

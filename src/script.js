@@ -223,8 +223,12 @@ function initGauges() {
 }
 
 function setupInteractions() {
-    setupGaugeInteraction(el['time-gauge-container'], () => state.dive1Time, (val) => state.dive1Time = val, MIN_TIME, MAX_TIME, 0.2, DEFAULT_STATE.dive1Time);
-    setupGaugeInteraction(el['depth-gauge-container'], () => state.dive1Depth, (val) => state.dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.05, DEFAULT_STATE.dive1Depth);
+    setupGaugeInteraction(el['time-gauge-container'], () => state.dive1Time, (val) => state.dive1Time = val, () => Math.ceil(state.dive1Depth / Planning.DESCENT_RATE), MAX_TIME, 0.2, DEFAULT_STATE.dive1Time);
+    setupGaugeInteraction(el['depth-gauge-container'], () => state.dive1Depth, (val) => {
+        state.dive1Depth = val;
+        const minTime = Math.ceil(state.dive1Depth / Planning.DESCENT_RATE);
+        if (state.dive1Time < minTime) state.dive1Time = minTime;
+    }, MIN_DEPTH, MAX_DEPTH, 0.05, DEFAULT_STATE.dive1Depth);
     setupGaugeInteraction(el['pressure-gauge-container'], () => state.initTankPressure, (val) => state.initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 0.2, DEFAULT_STATE.initTankPressure);
     setupGaugeInteraction(el['sac-gauge-container'], () => state.sac, (val) => state.sac = val, MIN_SAC, MAX_SAC, 0.1, DEFAULT_STATE.sac);
     setupGaugeInteraction(el['volume-gauge-container'], () => state.tankVolume, (val) => state.tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 0.1, DEFAULT_STATE.tankVolume);
@@ -264,8 +268,12 @@ function setupInteractions() {
         });
     }
 
-    setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 0.2, DEFAULT_STATE.dive2Time);
-    setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.05, DEFAULT_STATE.dive2Depth);
+    setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, () => Math.ceil(state.dive2Depth / Planning.DESCENT_RATE), MAX_TIME, 0.2, DEFAULT_STATE.dive2Time);
+    setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => {
+        state.dive2Depth = val;
+        const minTime = Math.ceil(state.dive2Depth / Planning.DESCENT_RATE);
+        if (state.dive2Time < minTime) state.dive2Time = minTime;
+    }, MIN_DEPTH, MAX_DEPTH, 0.05, DEFAULT_STATE.dive2Depth);
     setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 0.1, DEFAULT_STATE.gazO2pct2);
     setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 0.5, DEFAULT_STATE.surfaceInterval);
 }
@@ -274,12 +282,15 @@ function setupInteractions() {
 function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5, defaultVal = null) {
     if (!gaugeElement) return;
 
+    const getMin = () => (typeof min === 'function' ? min() : min);
+    const getMax = () => (typeof max === 'function' ? max() : max);
+
     // Make the gauge keyboard-focusable and expose ARIA slider attributes
     try {
         gaugeElement.tabIndex = 0;
         gaugeElement.setAttribute('role', 'slider');
-        gaugeElement.setAttribute('aria-valuemin', String(min));
-        gaugeElement.setAttribute('aria-valuemax', String(max));
+        gaugeElement.setAttribute('aria-valuemin', String(getMin()));
+        gaugeElement.setAttribute('aria-valuemax', String(getMax()));
         gaugeElement.setAttribute('aria-valuenow', String(getValue()));
         const label = gaugeElement.getAttribute('aria-label') || gaugeElement.id.replace('-gauge-container', '').replace('-2', '').replace(/-/g, ' ');
         gaugeElement.setAttribute('aria-label', label);
@@ -344,8 +355,10 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
             const deltaY = startY - e.clientY;
             const change = Math.round(deltaY * sensitivity);
             let newValue = startValue + change;
-            if (newValue < min) newValue = min;
-            if (newValue > max) newValue = max;
+            const currentMin = getMin();
+            const currentMax = getMax();
+            if (newValue < currentMin) newValue = currentMin;
+            if (newValue > currentMax) newValue = currentMax;
             if (newValue !== getValue()) {
                 setValue(newValue);
                 triggerUpdate();
@@ -365,7 +378,7 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
             // It was a short tap
             // Schedule single tap action
             singleTapTimer = setTimeout(() => {
-                showGaugeValueDropdown(gaugeElement, getValue(), setValue, min, max);
+                showGaugeValueDropdown(gaugeElement, getValue(), setValue, getMin(), getMax());
             }, DOUBLE_TAP_DELAY);
         }
     });
@@ -385,14 +398,14 @@ function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensi
             'ArrowUp': cur + step, 'ArrowRight': cur + step,
             'ArrowDown': cur - step, 'ArrowLeft': cur - step,
             'PageUp': cur + Math.max(1, step * 5), 'PageDown': cur - Math.max(1, step * 5),
-            'Home': min, 'End': max
+            'Home': getMin(), 'End': getMax()
         };
         if (map[e.key] !== undefined) {
-            setValue(Math.max(min, Math.min(max, map[e.key])));
+            setValue(Math.max(getMin(), Math.min(getMax(), map[e.key])));
             triggerUpdate();
             e.preventDefault();
         } else if (e.key === 'Enter' || e.key === ' ') {
-            showGaugeValueDropdown(gaugeElement, getValue(), setValue, min, max);
+            showGaugeValueDropdown(gaugeElement, getValue(), setValue, getMin(), getMax());
             e.preventDefault();
         }
     });
