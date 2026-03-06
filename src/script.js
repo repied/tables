@@ -223,17 +223,17 @@ function initGauges() {
 }
 
 function setupInteractions() {
-    setupGaugeInteraction(el['time-gauge-container'], () => state.dive1Time, (val) => state.dive1Time = val, MIN_TIME, MAX_TIME, 1, DEFAULT_STATE.dive1Time);
-    setupGaugeInteraction(el['depth-gauge-container'], () => state.dive1Depth, (val) => state.dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.2, DEFAULT_STATE.dive1Depth);
-    setupGaugeInteraction(el['pressure-gauge-container'], () => state.initTankPressure, (val) => state.initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 1, DEFAULT_STATE.initTankPressure);
-    setupGaugeInteraction(el['sac-gauge-container'], () => state.sac, (val) => state.sac = val, MIN_SAC, MAX_SAC, 0.5, DEFAULT_STATE.sac);
-    setupGaugeInteraction(el['volume-gauge-container'], () => state.tankVolume, (val) => state.tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 1, DEFAULT_STATE.tankVolume);
-    setupGaugeInteraction(el['o2-gauge-container'], () => state.gazO2pct, (val) => state.gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 1, DEFAULT_STATE.gazO2pct);
+    setupGaugeInteraction(el['time-gauge-container'], () => state.dive1Time, (val) => state.dive1Time = val, MIN_TIME, MAX_TIME, 0.2, DEFAULT_STATE.dive1Time);
+    setupGaugeInteraction(el['depth-gauge-container'], () => state.dive1Depth, (val) => state.dive1Depth = val, MIN_DEPTH, MAX_DEPTH, 0.05, DEFAULT_STATE.dive1Depth);
+    setupGaugeInteraction(el['pressure-gauge-container'], () => state.initTankPressure, (val) => state.initTankPressure = val, MIN_TANK_PRESSURE, MAX_TANK_PRESSURE, 0.2, DEFAULT_STATE.initTankPressure);
+    setupGaugeInteraction(el['sac-gauge-container'], () => state.sac, (val) => state.sac = val, MIN_SAC, MAX_SAC, 0.1, DEFAULT_STATE.sac);
+    setupGaugeInteraction(el['volume-gauge-container'], () => state.tankVolume, (val) => state.tankVolume = val, MIN_TANK_VOLUME, MAX_TANK_VOLUME, 0.1, DEFAULT_STATE.tankVolume);
+    setupGaugeInteraction(el['o2-gauge-container'], () => state.gazO2pct, (val) => state.gazO2pct = val, MIN_O2_pct, MAX_O2_pct, 0.1, DEFAULT_STATE.gazO2pct);
 
-    setupGaugeInteraction(el['gf-low-gauge-container'], () => state.currentGFLow, (val) => state.currentGFLow = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFLow);
-    setupGaugeInteraction(el['gf-high-gauge-container'], () => state.currentGFHigh, (val) => state.currentGFHigh = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFHigh);
-    setupGaugeInteraction(el['gf-low-gauge-container-2'], () => state.currentGFLow2, (val) => state.currentGFLow2 = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFLow2);
-    setupGaugeInteraction(el['gf-high-gauge-container-2'], () => state.currentGFHigh2, (val) => state.currentGFHigh2 = val, MIN_GF_pct, MAX_GF_pct, 0.5, DEFAULT_STATE.currentGFHigh2);
+    setupGaugeInteraction(el['gf-low-gauge-container'], () => state.currentGFLow, (val) => state.currentGFLow = val, MIN_GF_pct, MAX_GF_pct, 0.1, DEFAULT_STATE.currentGFLow);
+    setupGaugeInteraction(el['gf-high-gauge-container'], () => state.currentGFHigh, (val) => state.currentGFHigh = val, MIN_GF_pct, MAX_GF_pct, 0.1, DEFAULT_STATE.currentGFHigh);
+    setupGaugeInteraction(el['gf-low-gauge-container-2'], () => state.currentGFLow2, (val) => state.currentGFLow2 = val, MIN_GF_pct, MAX_GF_pct, 0.1, DEFAULT_STATE.currentGFLow2);
+    setupGaugeInteraction(el['gf-high-gauge-container-2'], () => state.currentGFHigh2, (val) => state.currentGFHigh2 = val, MIN_GF_pct, MAX_GF_pct, 0.1, DEFAULT_STATE.currentGFHigh2);
 
     // Lock Logic Listeners
     if (el['gf-low-lock-2']) {
@@ -264,10 +264,10 @@ function setupInteractions() {
         });
     }
 
-    setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 1, DEFAULT_STATE.dive2Time);
-    setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.1, DEFAULT_STATE.dive2Depth);
-    setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 1, DEFAULT_STATE.gazO2pct2);
-    setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 5, DEFAULT_STATE.surfaceInterval);
+    setupGaugeInteraction(el['time-gauge-container-2'], () => state.dive2Time, (val) => state.dive2Time = val, MIN_TIME, MAX_TIME, 0.2, DEFAULT_STATE.dive2Time);
+    setupGaugeInteraction(el['depth-gauge-container-2'], () => state.dive2Depth, (val) => state.dive2Depth = val, MIN_DEPTH, MAX_DEPTH, 0.05, DEFAULT_STATE.dive2Depth);
+    setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 0.1, DEFAULT_STATE.gazO2pct2);
+    setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 0.5, DEFAULT_STATE.surfaceInterval);
 }
 
 
