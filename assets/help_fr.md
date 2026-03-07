@@ -14,7 +14,7 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 *   **Double tap** pour réinitialiser
 *   Icone **Cadenas :** pour déverrouiller GFs seconde plongée 
 *   Icone **Partager :** partager une plongée par lien ou QR code
-*   **Sélecteur ppO<sub>2</sub> max :** Basculez entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
+*   Basculer **ppO<sub>2</sub> max** entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
 * Les derniers paramètres sont mémorisés
 *   **Calculs :**
     * **DTR :** Durée Totale de Remontée
