@@ -14,12 +14,12 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 *   **Double tap** pour réinitialiser
 *   Icone **Cadenas :** pour déverrouiller GFs seconde plongée 
 *   Icone **Partager :** partager une plongée par lien ou QR code
-*   **Sélecteur ppO<sub>2</sub> max :** Basculez entre 1.4 et 1.6 pour ajuster la profondeur maximale d'utilisation (PMU).
+*   **Sélecteur ppO<sub>2</sub> max :** Basculez entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
 * Les derniers paramètres sont mémorisés
 *   **Calculs et détails :**
-    * **DTR :** Durée Totale de Remontée. Appuyez sur le résultat pour voir le détail (descente, fond, remontée, paliers).
-    * **Pression finale :** Appuyez sur le résultat pour voir le détail de la consommation de gaz.
-    * **Alerte PMU :** Un arc orange apparaît sur le manomètre de profondeur en cas de dépassement de la ppO<sub>2</sub> limite choisie.
+    * **DTR :** Durée Totale de Remontée.
+    * **Pression finale :**
+    * **Alerte MOD :** Un arc orange apparaît en cas de dépassement de la ppO<sub>2</sub> max.
 
 ### Hypothèses
 
