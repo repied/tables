@@ -513,6 +513,23 @@ body.gf-mode .majoration-display {
     background: rgba(0, 0, 0, 0.3);
     padding: 8px 15px;
     border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.help-icon-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 0.7rem;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .glass-input {

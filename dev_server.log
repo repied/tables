@@ -1,0 +1,9 @@
+
+> tables@3.2.0 dev
+> live-server --port=5500
+
+[33mhttp://0.0.0.0:5500 is already in use. Trying another port.[39m
+[36mReady for changes[39m
+[36mChange detected[39m /app/dev_server.log
+[32mServing "/app" at http://127.0.0.1:44067[39m
+[36mChange detected[39m /app/dev_server.log

@@ -152,6 +152,7 @@ function cacheElements() {
         'depth-gauge-container-2', 'o2-gauge-container-2', 'time-display-2', 'depth-display-2', 'o2-display-2',
         'time-progress-2', 'depth-progress-2', 'o2-progress-2', 'stops-display-2', 'dive-details-2',
         'lang-toggle', 'theme-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
+        'saturation-modal',
         'help-modal', 'help-link', 'checklist-modal', 'app-version', 'install-app-container',
         'install-app-btn', 'installation-section'
     ];
@@ -276,6 +277,15 @@ function setupInteractions() {
     }, MIN_DEPTH, MAX_DEPTH, 0.05, DEFAULT_STATE.dive2Depth);
     setupGaugeInteraction(el['o2-gauge-container-2'], () => state.gazO2pct2, (val) => state.gazO2pct2 = val, MIN_O2_pct, MAX_O2_pct, 0.1, DEFAULT_STATE.gazO2pct2);
     setupGaugeInteraction(el['interval-gauge-container'], () => state.surfaceInterval, (val) => state.surfaceInterval = val, MIN_INTERVAL, MAX_INTERVAL, 0.5, DEFAULT_STATE.surfaceInterval);
+
+    if (el['majoration-display']) {
+        el['majoration-display'].addEventListener('click', () => {
+            if (state.isGFMode && el['saturation-modal']) {
+                if (window.__openModal) window.__openModal(el['saturation-modal'], el['majoration-display']);
+                else el['saturation-modal'].style.display = "block";
+            }
+        });
+    }
 }
 
 
@@ -677,8 +687,10 @@ function _updateUI_impl() {
 
         if (el['majoration-display']) {
             const tensionEvolutionLabel = window.translations[state.currentLang].tensionEvolution;
-            el['majoration-display'].innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%`;
-            el['majoration-display'].style.display = 'block';
+            const helpIcon = `<span class="help-icon-inline">?</span>`;
+            el['majoration-display'].innerHTML = tensionEvolutionLabel + `${sursaturationBeforePct.toFixed(0)}%` + ` → ${sursaturationAfterPct.toFixed(0)}%` + helpIcon;
+            el['majoration-display'].style.display = 'flex';
+            el['majoration-display'].style.cursor = 'pointer';
         }
 
         result2 = Planning.calculateBuhlmannPlan({
@@ -703,7 +715,7 @@ function _updateUI_impl() {
             if (succResult && !succResult.error) {
                 majText = `+${currentMajoration} min`;
                 el['majoration-display'].textContent = `${window.translations[state.currentLang].majoration}: ${majText} `;
-                el['majoration-display'].style.display = 'block';
+                el['majoration-display'].style.display = 'flex';
             } else if (succResult && succResult.error) {
                 el['majoration-display'].style.display = 'none';
                 result2.second_dive_not_authorized = true;
