@@ -1,4 +1,4 @@
-# Coding agents instructions for `tables` 
+# Coding agents instructions for repo `tables` 
 
 First read `./README.md` file. Remember that your are most likely developing in a devcontainer.
 
