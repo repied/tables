@@ -14,11 +14,13 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 * **Double tap** to reset
 *   **Lock icon** to unlock second dive GFs
 *   **Share icon** to share dive via link or QR code
+*   **ppO<sub>2</sub> max toggle :** Switch between 1.4 and 1.6 to adjust the Maximum Operating Depth (MOD).
 * Latest settings are remembered
-*   **Calculations :** 
-    * TTS : Time To Surface 
-    * End-of-dive pressure
-    * Max ppO<sub>2</sub>
+*   **Calculations & Details :**
+    * **TTS :** Time To Surface. Tap the result box to see the duration breakdown (descent, bottom, ascent, stops).
+    * **End pressure :** Final tank pressure. Tap the result box to see the gas consumption breakdown.
+    * **MOD Warning :** An orange arc appears on the depth gauge when exceeding the selected ppO<sub>2</sub> limit.
+
 
 ### Assumptions
 

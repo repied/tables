@@ -82,6 +82,20 @@
                     </div>
                 </div>
             </div>
+
+            <!-- PPO2 Toggle -->
+            <div class="gauge-wrapper small">
+                <div class="toggle-wrapper ppo2-toggle">
+                    <input type="radio" name="ppo2-toggle" id="ppo2-14" value="1.4">
+                    <label for="ppo2-14" class="toggle-option">1.4</label>
+
+                    <input type="radio" name="ppo2-toggle" id="ppo2-16" value="1.6" checked>
+                    <label for="ppo2-16" class="toggle-option">1.6</label>
+
+                    <div class="toggle-slider"></div>
+                </div>
+                <div class="ppo2-label">PPO<sub>2</sub> max</div>
+            </div>
         </div>
 
         <!-- Mode Toggle -->
@@ -177,11 +191,14 @@
                     <!-- Depth Gauge 1 -->
                     <div class="gauge-wrapper medium">
                         <div class="gauge-container" id="depth-gauge-container">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
+                            <svg id="depth-gauge" class="gauge-ring" viewBox="0 0 120 120">
                                 <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
                                     stroke-linecap="round" />
                                 <path class="ring-progress" id="depth-progress" d="M 30 100 A 50 50 0 1 1 90 100"
                                     fill="none" stroke-width="8" stroke-linecap="round" />
+                                <path class="ring-warning" id="depth-warning" d="M 30 100 A 50 50 0 1 1 90 100"
+                                    fill="none" stroke-width="8" stroke-linecap="round" stroke="#ffa500"
+                                    visibility="hidden" />
                             </svg>
                             <div class="gauge-content">
                                 <div class="gauge-value" id="depth-display">0</div>
@@ -300,11 +317,14 @@
                     <!-- Depth Gauge 2 -->
                     <div class="gauge-wrapper medium">
                         <div class="gauge-container" id="depth-gauge-container-2">
-                            <svg class="gauge-ring" viewBox="0 0 120 120">
+                            <svg id="depth-gauge-2" class="gauge-ring" viewBox="0 0 120 120">
                                 <path class="ring-bg" d="M 30 100 A 50 50 0 1 1 90 100" fill="none" stroke-width="8"
                                     stroke-linecap="round" />
                                 <path class="ring-progress" id="depth-progress-2" d="M 30 100 A 50 50 0 1 1 90 100"
                                     fill="none" stroke-width="8" stroke-linecap="round" />
+                                <path class="ring-warning" id="depth-warning-2" d="M 30 100 A 50 50 0 1 1 90 100"
+                                    fill="none" stroke-width="8" stroke-linecap="round" stroke="#ffa500"
+                                    visibility="hidden" />
                             </svg>
                             <div class="gauge-content">
                                 <div class="gauge-value" id="depth-display-2">0</div>
@@ -374,6 +394,20 @@
                 <h1 id="gas-breakdown-title" data-i18n="gasBreakdownTitle" tabindex="-1"></h1>
                 <h2 id="gas-breakdown-total"></h2>
                 <ul id="gas-breakdown-list" style="text-align: left; display: inline-block; margin-top: 20px;">
+                    <!-- Breakdown will be inserted here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Time Breakdown Modal -->
+        <div id="time-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="time-breakdown-title"
+            aria-hidden="true">
+            <div class="modal-content">
+                <button class="modal-close" aria-label="Close"
+                    onclick="window.__closeModal(document.getElementById('time-modal'))">&times;</button>
+                <h1 id="time-breakdown-title" data-i18n="timeBreakdownTitle" tabindex="-1"></h1>
+                <h2 id="time-breakdown-total"></h2>
+                <ul id="time-breakdown-list" style="text-align: left; display: inline-block; margin-top: 20px;">
                     <!-- Breakdown will be inserted here -->
                 </ul>
             </div>
