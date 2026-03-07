@@ -16,8 +16,8 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 *   Icone **Partager :** partager une plongée par lien ou QR code
 *   **Sélecteur ppO<sub>2</sub> max :** Basculez entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
 * Les derniers paramètres sont mémorisés
-*   **Calculs et détails :**
-    * **DTR :** Durée Totale de Remontée.
+*   **Calculs :**
+    * **DTR :** Durée Totale de Remontée
     * **Pression finale** en bouteille 
     * **Alerte MOD :** Un arc orange apparaît en cas de dépassement de la ppO<sub>2</sub> max.
 
