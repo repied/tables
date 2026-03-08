@@ -330,55 +330,46 @@ function updateSaturationTable(beforeTensions, afterTensions) {
         return `hsla(${hue}, 70%, 45%, 0.8)`;
     };
 
-    const createTable = (startIdx, endIdx, includeHeader = true) => {
-        const table = document.createElement('table');
-        table.className = 'saturation-table';
-        if (includeHeader) {
-            const thead = document.createElement('thead');
-            thead.innerHTML = `
-                <tr>
-                    <th>${trans.compartment} #</th>
-                    <th>${trans.tensionBefore} (bar)</th>
-                    <th>${trans.tensionAfter} (bar)</th>
-                </tr>
-            `;
-            table.appendChild(thead);
-        }
-        const tbody = document.createElement('tbody');
-        for (let i = startIdx; i < endIdx; i++) {
-            const row = document.createElement('tr');
-            const cellComp = document.createElement('td');
-            cellComp.textContent = i + 1;
-            row.appendChild(cellComp);
-
-            const cellBefore = document.createElement('td');
-            cellBefore.textContent = beforeTensions[i].toFixed(2);
-            cellBefore.style.backgroundColor = getColor(beforeTensions[i]);
-            if (i === maxBeforeIdx) cellBefore.className = 'leading-compartment';
-            row.appendChild(cellBefore);
-
-            const cellAfter = document.createElement('td');
-            cellAfter.textContent = afterTensions[i].toFixed(2);
-            cellAfter.style.backgroundColor = getColor(afterTensions[i]);
-            if (i === maxAfterIdx) cellAfter.className = 'leading-compartment';
-            row.appendChild(cellAfter);
-            tbody.appendChild(row);
-        }
-        table.appendChild(tbody);
-        return table;
-    };
-
-    // First part of the table (first 8 compartments)
-    container.appendChild(createTable(0, 8));
-
-    // Explanatory sentence between the table parts
+    // Explanatory sentence above the single table
     const sentence = document.createElement('p');
     sentence.className = 'saturation-table-sentence';
     sentence.textContent = trans.saturationTableSentence;
     container.appendChild(sentence);
 
-    // Second part of the table (next 8 compartments)
-    container.appendChild(createTable(8, 16, false));
+    const table = document.createElement('table');
+    table.className = 'saturation-table';
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>${trans.compartment} #</th>
+            <th>${trans.tensionBefore} (bar)</th>
+            <th>${trans.tensionAfter} (bar)</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    for (let i = 0; i < 16; i++) {
+        const row = document.createElement('tr');
+        const cellComp = document.createElement('td');
+        cellComp.textContent = i + 1;
+        row.appendChild(cellComp);
+
+        const cellBefore = document.createElement('td');
+        cellBefore.textContent = beforeTensions[i].toFixed(2);
+        cellBefore.style.backgroundColor = getColor(beforeTensions[i]);
+        if (i === maxBeforeIdx) cellBefore.className = 'leading-compartment';
+        row.appendChild(cellBefore);
+
+        const cellAfter = document.createElement('td');
+        cellAfter.textContent = afterTensions[i].toFixed(2);
+        cellAfter.style.backgroundColor = getColor(afterTensions[i]);
+        if (i === maxAfterIdx) cellAfter.className = 'leading-compartment';
+        row.appendChild(cellAfter);
+        tbody.appendChild(row);
+    }
+    table.appendChild(tbody);
+    container.appendChild(table);
 }
 
 function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5, defaultVal = null) {
