@@ -14,8 +14,8 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 * **Double tap** to reset
 *   **Lock icon** to unlock second dive GFs
 *   **Share icon** to share dive via link or QR code
-*  Toggle **ppO<sub>2</sub> max** between 1.4 and 1.6 to adjust the Maximum Operating Depth (MOD).
 * Latest settings are remembered
+*  Toggle **ppO<sub>2</sub> max** between 1.4 and 1.6 to adjust the Maximum Operating Depth (MOD).
 *   **Calculations & Details :**
     * **TTS :** Time To Surface
     * **End pressure :** Final tank pressure
