@@ -154,6 +154,7 @@ function cacheElements() {
         'lang-toggle', 'theme-toggle', 'gas-modal', 'gas-breakdown-list', 'gas-breakdown-total',
         'saturation-modal',
         'time-modal', 'time-breakdown-list', 'time-breakdown-total',
+        'saturation-table-container',
         'depth-warning', 'depth-warning-2',
         'help-modal', 'help-link', 'checklist-modal', 'app-version', 'install-app-container',
         'install-app-btn', 'installation-section', 'ppo2-14', 'ppo2-16'
@@ -303,6 +304,81 @@ function setupInteractions() {
             }
         });
     }
+}
+
+function updateSaturationTable(beforeTensions, afterTensions) {
+    const container = el['saturation-table-container'];
+    if (!container || !beforeTensions || !afterTensions) return;
+
+    const trans = window.translations[state.currentLang];
+    const surface_air_alv_ppn2 = Planning.SURFACE_AIR_ALV_PPN2;
+
+    container.innerHTML = '';
+
+    let maxBeforeIdx = 0;
+    let maxAfterIdx = 0;
+    for (let i = 1; i < beforeTensions.length; i++) {
+        if (beforeTensions[i] > beforeTensions[maxBeforeIdx]) maxBeforeIdx = i;
+        if (afterTensions[i] > afterTensions[maxAfterIdx]) maxAfterIdx = i;
+    }
+
+    const getColor = (val) => {
+        const min = surface_air_alv_ppn2;
+        const max = 4.0;
+        const ratio = Math.min(Math.max((val - min) / (max - min), 0), 1);
+        const hue = 120 * (1 - ratio);
+        return `hsla(${hue}, 70%, 45%, 0.8)`;
+    };
+
+    const createTable = (startIdx, endIdx, includeHeader = true) => {
+        const table = document.createElement('table');
+        table.className = 'saturation-table';
+        if (includeHeader) {
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>${trans.compartment} #</th>
+                    <th>${trans.tensionBefore} (bar)</th>
+                    <th>${trans.tensionAfter} (bar)</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+        }
+        const tbody = document.createElement('tbody');
+        for (let i = startIdx; i < endIdx; i++) {
+            const row = document.createElement('tr');
+            const cellComp = document.createElement('td');
+            cellComp.textContent = i + 1;
+            row.appendChild(cellComp);
+
+            const cellBefore = document.createElement('td');
+            cellBefore.textContent = beforeTensions[i].toFixed(2);
+            cellBefore.style.backgroundColor = getColor(beforeTensions[i]);
+            if (i === maxBeforeIdx) cellBefore.className = 'leading-compartment';
+            row.appendChild(cellBefore);
+
+            const cellAfter = document.createElement('td');
+            cellAfter.textContent = afterTensions[i].toFixed(2);
+            cellAfter.style.backgroundColor = getColor(afterTensions[i]);
+            if (i === maxAfterIdx) cellAfter.className = 'leading-compartment';
+            row.appendChild(cellAfter);
+            tbody.appendChild(row);
+        }
+        table.appendChild(tbody);
+        return table;
+    };
+
+    // First part of the table (first 8 compartments)
+    container.appendChild(createTable(0, 8));
+
+    // Explanatory sentence between the table parts
+    const sentence = document.createElement('p');
+    sentence.className = 'saturation-table-sentence';
+    sentence.textContent = trans.saturationTableSentence;
+    container.appendChild(sentence);
+
+    // Second part of the table (next 8 compartments)
+    container.appendChild(createTable(8, 16, false));
 }
 
 function setupGaugeInteraction(gaugeElement, getValue, setValue, min, max, sensitivity = 0.5, defaultVal = null) {
@@ -749,12 +825,15 @@ function _updateUI_impl() {
     if (state.isGFMode) {
         // Tension evolution
         const surface_air_alv_ppn2 = Planning.SURFACE_AIR_ALV_PPN2;
-        currentTensions = result1 ? result1.finalTensions : null;
+        const beforeTensions = result1 ? result1.finalTensions : null;
+        currentTensions = beforeTensions ? new Float64Array(beforeTensions) : null;
         const sursaturationBeforePct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
         if (currentTensions) {
             currentTensions = Planning.updateAllTensions(currentTensions, surface_air_alv_ppn2, state.surfaceInterval);
         }
         const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
+
+        updateSaturationTable(beforeTensions, currentTensions);
 
         if (el['majoration-display']) {
             const tensionEvolutionLabel = window.translations[state.currentLang].tensionEvolution;
