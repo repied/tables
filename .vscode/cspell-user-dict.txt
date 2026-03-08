@@ -2,6 +2,7 @@ BUEHLMANN
 Buhlmann
 Bühlmann
 github
+Icone
 linspace
 succ
 worktree
