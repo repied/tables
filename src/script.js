@@ -751,6 +751,9 @@ function updateDepthWarning(suffix = '') {
 function _updateUI_impl() {
     document.body.classList.toggle('gf-mode', state.isGFMode);
 
+    if (el['mode-mn90']) el['mode-mn90'].checked = !state.isGFMode;
+    if (el['mode-gf']) el['mode-gf'].checked = state.isGFMode;
+
     if (el['ppo2-14']) el['ppo2-14'].checked = (state.ppo2Max === 1.4);
     if (el['ppo2-16']) el['ppo2-16'].checked = (state.ppo2Max === 1.6);
 
