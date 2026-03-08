@@ -18,6 +18,7 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 *  Toggle **ppO<sub>2</sub> max** between 1.4 and 1.6 to adjust the Maximum Operating Depth (MOD).
 *   **Calculations & Details :**
     * **TTS :** Time To Surface
+    * **Takeoff pressure :** Pressure at the beginning of the ascent. Double-tap on this box to automatically find the maximum bottom time before hitting the reserve
     * **End pressure :** Final tank pressure
     * **MOD Warning :** An orange arc appears on the depth gauge when exceeding the selected ppO<sub>2</sub> limit.
 

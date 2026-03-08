@@ -427,7 +427,12 @@ body.gf-mode .majoration-display {
     text-transform: uppercase;
     opacity: 0.8;
     margin-bottom: 2px;
-    white-space: nowrap;
+    text-align: center;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
 }
 
 .result-box .result-value {
@@ -900,7 +905,8 @@ input:checked+.slider:before {
     color: white;
 }
 
-.saturation-table th, .saturation-table td {
+.saturation-table th,
+.saturation-table td {
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 2px 2px;
     text-align: center;

@@ -987,14 +987,37 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
     const pressureUsed = gasUsed / state.tankVolume;
     const remainingPressure = Math.floor(tankP - pressureUsed);
 
-    const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${trans[state.currentLang].dtr}</span><span class="result-value">${dtrFormatted}</span></div>`;
-    const reserveHtml = `<div class="result-box important clickable reserve-box"><span class="result-label">${trans[state.currentLang].reserve}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+    const descentAndBottomLiters = (consoLiters.breakdown.descent || 0) + (consoLiters.breakdown.bottom || 0);
+    const takeoffPressure = Math.floor(tankP - (descentAndBottomLiters / state.tankVolume));
 
-    container.innerHTML = `<div class="results-row">${dtrHtml}${reserveHtml}</div>`;
+    const dtrLabel = trans[state.currentLang].dtr.replace(/ /g, '<br>');
+    const takeoffLabel = trans[state.currentLang].takeoffPressure.replace(/ /g, '<br>');
+    const reserveLabel = trans[state.currentLang].reserve.replace(/ /g, '<br>');
+
+    const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${dtrLabel}</span><span class="result-value">${dtrFormatted}</span></div>`;
+    const takeoffHtml = `<div class="result-box important clickable takeoff-box" style="user-select: none; touch-action: manipulation;"><span class="result-label">${takeoffLabel}</span><span class="result-value">${takeoffPressure} bar</span></div>`;
+    const reserveHtml = `<div class="result-box important clickable reserve-box"><span class="result-label">${reserveLabel}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+
+    container.innerHTML = `<div class="results-row">${dtrHtml}${takeoffHtml}${reserveHtml}</div>`;
 
     const dtrBox = container.querySelector('.dtr-box');
     if (dtrBox) {
         dtrBox.onclick = () => showTimeBreakdown(timeBreakdown);
+    }
+
+    const takeoffBox = container.querySelector('.takeoff-box');
+    if (takeoffBox) {
+        let lastTap = 0;
+        takeoffBox.addEventListener('pointerup', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                const isDive2 = container.id === 'dive-details-2';
+                optimizeTimeForReserve(isDive2);
+                e.preventDefault();
+            }
+            lastTap = currentTime;
+        });
     }
 
     const reserveBox = container.querySelector('.reserve-box');
@@ -1012,6 +1035,51 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
     }
 }
 
+async function optimizeTimeForReserve(isDive2) {
+    if (window.isOptimizing) return;
+    window.isOptimizing = true;
+
+    try {
+        const depth = isDive2 ? state.dive2Depth : state.dive1Depth;
+        let low = Math.ceil(depth / 20); // 20m/min descent rate
+        let high = MAX_TIME;
+        let best = low;
+
+        while (low <= high) {
+            let mid = Math.floor((low + high) / 2);
+            if (isDive2) state.dive2Time = mid;
+            else state.dive1Time = mid;
+
+            _updateUI_impl();
+            await new Promise(r => setTimeout(r, 100)); // allow UI to paint
+
+            const container = isDive2 ? el['dive-details-2'] : el['dive-details'];
+            const reserveBox = container ? container.querySelector('.reserve-box .result-value') : null;
+
+            if (!reserveBox) {
+                // Out of table or error, time is too long
+                high = mid - 1;
+            } else {
+                const remainingPressure = parseInt(reserveBox.textContent);
+                if (remainingPressure >= RESERVE_PRESSURE_THRESHOLD) {
+                    best = mid;
+                    low = mid + 1; // Try to go longer
+                } else {
+                    high = mid - 1; // Too much gas used, reduce time
+                }
+            }
+        }
+
+        // Set to best found
+        if (isDive2) state.dive2Time = best;
+        else state.dive1Time = best;
+        _updateUI_impl();
+        saveStateToLocalStorage();
+    } finally {
+        window.isOptimizing = false;
+    }
+}
+
 function showGasBreakdown(consoLiters, remainingPressure) {
     if (!consoLiters || !consoLiters.breakdown) return;
     const breakdown = consoLiters.breakdown;
@@ -1025,26 +1093,54 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     const trans = window.translations[state.currentLang];
     list.innerHTML = '';
 
-    const addLine = (label, liters) => {
+    const addLine = (label, liters, parent = list) => {
         const bar = Math.ceil(liters / state.tankVolume);
         const li = document.createElement('li');
         li.style.marginBottom = '10px';
-        li.innerHTML = `<strong>${label}:</strong> ${bar} bar (${Math.round(liters)} L)`;
-        list.appendChild(li);
+        li.innerHTML = `<strong>${label}:</strong> ${bar} bar 	&ndash; <small><i>${Math.round(liters)} L</i></small>`;
+        parent.appendChild(li);
+        return li;
     };
 
     const bar_total = Math.ceil(consoLiters.total / state.tankVolume);
-    total.innerHTML = `${trans.total}: ${bar_total} bar (${Math.round(consoLiters.total)} L)`;
+    total.innerHTML = `${trans.total}: ${bar_total} bar 	&ndash; <small><i>${Math.round(consoLiters.total)} L</i></small>`;
 
     if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent);
     if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom);
-    if (breakdown.ascent > 0) addLine(trans.ascent, breakdown.ascent);
 
+    let stopsGas = 0;
     if (breakdown.stops) {
-        const stopDepths = Object.keys(breakdown.stops).map(Number).sort((a, b) => b - a);
-        stopDepths.forEach(d => {
-            addLine(`${trans.stopAt} ${d}m`, breakdown.stops[d]);
-        });
+        stopsGas = Object.values(breakdown.stops).reduce((a, b) => a + b, 0);
+    }
+    const dtrGas = breakdown.ascent + stopsGas;
+
+    if (dtrGas > 0) {
+        const dtrLi = addLine(trans.ascentTitle, dtrGas);
+
+        const subList = document.createElement('ul');
+        subList.style.marginTop = '5px';
+        subList.style.marginBottom = '0';
+        dtrLi.appendChild(subList);
+
+        if (breakdown.ascent > 0) {
+            const li = document.createElement('li');
+            li.style.marginBottom = '5px';
+            li.innerHTML = `${trans.ascent}: ${Math.ceil(breakdown.ascent / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(breakdown.ascent)} L</i></small>`;
+            subList.appendChild(li);
+        }
+
+        if (breakdown.stops) {
+            const stopDepths = Object.keys(breakdown.stops).map(Number).sort((a, b) => b - a);
+            stopDepths.forEach(d => {
+                const gasAtStop = breakdown.stops[d];
+                if (gasAtStop > 0) {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '5px';
+                    li.innerHTML = `${trans.stopAt} ${d}m: ${Math.ceil(gasAtStop / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(gasAtStop)} L</i></small>`;
+                    subList.appendChild(li);
+                }
+            });
+        }
     }
 
     if (remainingPressure < 0) {
@@ -1080,24 +1176,43 @@ function showTimeBreakdown(timeBreakdown) {
     const trans = window.translations[state.currentLang];
     list.innerHTML = '';
 
-    const addLine = (label, minutes) => {
+    const addLine = (label, minutes, parent = list) => {
         const li = document.createElement('li');
         li.style.marginBottom = '10px';
         li.innerHTML = `<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
-        list.appendChild(li);
+        parent.appendChild(li);
+        return li;
     };
 
     total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)}`;
 
     if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent);
     if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom);
-    if (timeBreakdown.ascent > 0) addLine(trans.ascent, timeBreakdown.ascent);
 
-    if (timeBreakdown.stops) {
-        const stopDepths = Object.keys(timeBreakdown.stops).map(Number).sort((a, b) => b - a);
-        stopDepths.forEach(d => {
-            addLine(`${trans.stopAt} ${d}m`, timeBreakdown.stops[d]);
-        });
+    if (timeBreakdown.dtr > 0) {
+        const dtrLi = addLine(trans.dtr.toUpperCase(), timeBreakdown.dtr);
+
+        const subList = document.createElement('ul');
+        subList.style.marginTop = '5px';
+        subList.style.marginBottom = '0';
+        dtrLi.appendChild(subList);
+
+        if (timeBreakdown.ascent > 0) {
+            const li = document.createElement('li');
+            li.style.marginBottom = '5px';
+            li.innerHTML = `${trans.ascent}: ${formatTime(Math.ceil(timeBreakdown.ascent))}`;
+            subList.appendChild(li);
+        }
+
+        if (timeBreakdown.stops) {
+            const stopDepths = Object.keys(timeBreakdown.stops).map(Number).sort((a, b) => b - a);
+            stopDepths.forEach(d => {
+                const li = document.createElement('li');
+                li.style.marginBottom = '5px';
+                li.innerHTML = `${trans.stopAt} ${d}m: ${formatTime(Math.ceil(timeBreakdown.stops[d]))}`;
+                subList.appendChild(li);
+            });
+        }
     }
 
     if (window.__openModal) window.__openModal(modal);
