@@ -892,6 +892,39 @@ input:checked+.slider:before {
     font-size: 0.9rem;
 }
 
+.saturation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 5px;
+    font-size: 0.7rem;
+    color: white;
+}
+
+.saturation-table th, .saturation-table td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2px 2px;
+    text-align: center;
+}
+
+.saturation-table th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+}
+
+.leading-compartment {
+    border: 2px solid #e53935 !important;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.saturation-table-sentence {
+    text-align: center;
+    font-style: italic;
+    font-size: 0.7rem;
+    margin: 5px 0;
+    opacity: 0.8;
+}
+
 .lang-selector,
 .theme-selector {
     display: inline-flex;
