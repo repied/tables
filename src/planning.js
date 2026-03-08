@@ -195,8 +195,8 @@
 
             // Use slower ascent rate only after completing the first stop
             // Ascent to first stop uses normal rate, ascent from first stop uses slower rate
-            const currentAscentRate = hasCompletedFirstStop ? ASCENT_RATE_FROM_FIRST_STOP : ascentRate;
-            const t_ascend = (currentDepth - nextDepth) / currentAscentRate;
+            let currentAscentRate = hasCompletedFirstStop ? ASCENT_RATE_FROM_FIRST_STOP : ascentRate;
+            let t_ascend = (currentDepth - nextDepth) / currentAscentRate;
             const depth_ascend = (nextDepth + currentDepth) / 2;
             const PN2_ascend = depthToPalvN2(depth_ascend, surfacePressure, gaz_fN2);
 
@@ -206,6 +206,14 @@
 
             if (!isSafe) {
                 if (firstStopDepth === null) firstStopDepth = currentDepth;
+
+                // If we must stop, or if we hit the ceiling, the ascent from here (first stop) will be slow.
+                // We must recalculate the ascent time and next tensions using the slower rate.
+                // This ensures we check if we can leave the stop using the correct (slow) ascent speed.
+                currentAscentRate = ASCENT_RATE_FROM_FIRST_STOP;
+                t_ascend = (currentDepth - nextDepth) / currentAscentRate;
+                tensions_next = updateAllTensions(tensions, PN2_ascend, t_ascend);
+                ({ isSafe } = simulAtDepth(nextDepth, tensions_next, firstStopDepth, _gfLow, _gfHigh, surfacePressure));
 
                 let stopTime = 0;
                 const PN2_stop = depthToPalvN2(currentDepth, surfacePressure, gaz_fN2);

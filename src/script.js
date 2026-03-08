@@ -324,7 +324,7 @@ function updateSaturationTable(beforeTensions, afterTensions) {
 
     const getColor = (val) => {
         const min = surface_air_alv_ppn2;
-        const max = 4.0;
+        const max = Math.max(...beforeTensions, ...afterTensions, surface_air_alv_ppn2);
         const ratio = Math.min(Math.max((val - min) / (max - min), 0), 1);
         const hue = 120 * (1 - ratio);
         return `hsla(${hue}, 70%, 45%, 0.8)`;
@@ -341,7 +341,7 @@ function updateSaturationTable(beforeTensions, afterTensions) {
     const thead = document.createElement('thead');
     thead.innerHTML = `
         <tr>
-            <th>${trans.compartment} #</th>
+            <th>${trans.compartment}</th>
             <th>${trans.tensionBefore} (bar)</th>
             <th>${trans.tensionAfter} (bar)</th>
         </tr>
