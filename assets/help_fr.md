@@ -18,7 +18,7 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 * Les derniers paramètres sont mémorisés
 *   **Calculs :**
     * **DTR :** Durée Totale de Remontée
-    * **Pression finale** en bouteille 
+    * **Pression finale** en bouteille
     * **Alerte MOD :** Un arc orange apparaît en cas de dépassement de la ppO<sub>2</sub> max.
 
 ### Hypothèses

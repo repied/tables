@@ -290,6 +290,20 @@
         <div class="results-container successive-container">
             <div class="successive-header" style="justify-content: center;">
                 <span id="successive-header-text" data-i18n="secondDive"></span>
+                <div class="successive-penalty-selector" id="successive-penalty-container" style="display: none;">
+                    <div class="penalty-toggle-wrapper">
+                        <input type="radio" name="penalty-toggle" id="penalty-none" value="None">
+                        <label for="penalty-none" class="penalty-option" data-i18n="penaltyNone">None</label>
+
+                        <input type="radio" name="penalty-toggle" id="penalty-c60" value="C60" checked>
+                        <label for="penalty-c60" class="penalty-option">C60</label>
+
+                        <input type="radio" name="penalty-toggle" id="penalty-c120" value="C120">
+                        <label for="penalty-c120" class="penalty-option">C120</label>
+
+                        <div class="penalty-toggle-slider"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="dive-controls" id="successive-controls">

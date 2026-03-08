@@ -16,7 +16,8 @@ const DEFAULT_STATE = {
     isGFLow2Locked: true,
     isGFHigh2Locked: true,
     surfaceInterval: 60 * 3,
-    ppo2Max: 1.6
+    ppo2Max: 1.6,
+    successivePenalty: 'C60'
 };
 
 // App State
@@ -157,7 +158,8 @@ function cacheElements() {
         'saturation-table-container',
         'depth-warning', 'depth-warning-2',
         'help-modal', 'help-link', 'checklist-modal', 'app-version', 'install-app-container',
-        'install-app-btn', 'installation-section', 'ppo2-14', 'ppo2-16'
+        'install-app-btn', 'installation-section', 'ppo2-14', 'ppo2-16',
+        'successive-penalty-container', 'penalty-none', 'penalty-c60', 'penalty-c120'
     ];
     ids.forEach(id => el[id] = document.getElementById(id));
 }
@@ -304,6 +306,15 @@ function setupInteractions() {
             }
         });
     }
+
+    ['penalty-none', 'penalty-c60', 'penalty-c120'].forEach(id => {
+        if (el[id]) {
+            el[id].addEventListener('change', () => {
+                state.successivePenalty = el[id].value;
+                triggerUpdate();
+            });
+        }
+    });
 }
 
 function updateSaturationTable(beforeTensions, afterTensions, sursaturationBeforePct, sursaturationAfterPct) {
@@ -325,7 +336,7 @@ function updateSaturationTable(beforeTensions, afterTensions, sursaturationBefor
     const getColor = (val) => {
         const min = surface_air_alv_ppn2;
         const max = Math.max(...beforeTensions, ...afterTensions, surface_air_alv_ppn2);
-        const ratio = Math.min(Math.max((val - min) / (max - min), 0), 1);
+        const ratio = (max > min) ? Math.min(Math.max((val - min) / (max - min), 0), 1) : 0;
         const hue = 120 * (1 - ratio);
         return `hsla(${hue}, 70%, 45%, 0.8)`;
     };
@@ -375,12 +386,12 @@ function updateSaturationTable(beforeTensions, afterTensions, sursaturationBefor
 
     const cellBefore = document.createElement('td');
     cellBefore.textContent = sursaturationBeforePct.toFixed(1) + ' %';
-    // cellBefore.style.backgroundColor = getColor(sursaturationBeforePct / 100 * surface_air_alv_ppn2);
+    // cellBefore.style.backgroundColor = getColor(sursaturationBeforePct / 100 * surface_air_alv_ppn2 + surface_air_alv_ppn2);
     row.appendChild(cellBefore);
 
     const cellAfter = document.createElement('td');
     cellAfter.textContent = sursaturationAfterPct.toFixed(1) + ' %';
-    // cellAfter.style.backgroundColor = getColor(sursaturationAfterPct / 100 * surface_air_alv_ppn2);
+    // cellAfter.style.backgroundColor = getColor(sursaturationAfterPct / 100 * surface_air_alv_ppn2 + surface_air_alv_ppn2);
     row.appendChild(cellAfter);
     tbody.appendChild(row);
     table.appendChild(tbody);
@@ -754,6 +765,14 @@ function _updateUI_impl() {
     if (el['ppo2-14']) el['ppo2-14'].checked = (state.ppo2Max === 1.4);
     if (el['ppo2-16']) el['ppo2-16'].checked = (state.ppo2Max === 1.6);
 
+    if (el['successive-penalty-container']) {
+        el['successive-penalty-container'].style.display = state.isGFMode ? 'block' : 'none';
+    }
+
+    if (el['penalty-none']) el['penalty-none'].checked = (state.successivePenalty === 'None');
+    if (el['penalty-c60']) el['penalty-c60'].checked = (state.successivePenalty === 'C60');
+    if (el['penalty-c120']) el['penalty-c120'].checked = (state.successivePenalty === 'C120');
+
     // Lock Logic for GF2
     if (state.isGFMode) {
         if (state.isGFLow2Locked) {
@@ -835,7 +854,11 @@ function _updateUI_impl() {
         currentTensions = beforeTensions ? new Float64Array(beforeTensions) : null;
         const sursaturationBeforePct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
         if (currentTensions) {
-            currentTensions = Planning.updateAllTensions(currentTensions, surface_air_alv_ppn2, state.surfaceInterval);
+            if (state.successivePenalty && state.successivePenalty !== 'None') {
+                currentTensions = Planning.calculatePenalizedTensions(currentTensions, state.surfaceInterval, state.successivePenalty);
+            } else {
+                currentTensions = Planning.updateAllTensions(currentTensions, surface_air_alv_ppn2, state.surfaceInterval);
+            }
         }
         const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
 
@@ -1571,7 +1594,8 @@ function openShareModal() {
         state.isGFMode ? 1 : 0,
         state.currentGFLow,
         state.currentGFHigh,
-        state.ppo2Max === 1.4 ? 0 : 1
+        state.ppo2Max === 1.4 ? 0 : 1,
+        state.successivePenalty === 'None' ? 0 : (state.successivePenalty === 'C60' ? 1 : 2)
     ].join(',');
 
     const encoded = btoa(data);
@@ -1759,6 +1783,10 @@ function applyParams(params) {
                 if (decoded.length >= 14) {
                     state.ppo2Max = decoded[13] === '0' ? 1.4 : 1.6;
                 }
+                if (decoded.length >= 15) {
+                    const pIdx = parseInt(decoded[14]);
+                    state.successivePenalty = pIdx === 0 ? 'None' : (pIdx === 1 ? 'C60' : 'C120');
+                }
                 changed = true;
                 compactSuccess = true;
             }
@@ -1811,7 +1839,7 @@ function loadStateFromLocalStorage() {
             'dive1Depth', 'dive1Time', 'dive2Depth', 'dive2Time',
             'initTankPressure', 'sac', 'tankVolume', 'gazO2pct', 'gazO2pct2',
             'isGFMode', 'currentGFLow', 'currentGFHigh', 'currentGFLow2', 'currentGFHigh2',
-            'isGFLow2Locked', 'isGFHigh2Locked', 'surfaceInterval', 'ppo2Max'
+            'isGFLow2Locked', 'isGFHigh2Locked', 'surfaceInterval', 'ppo2Max', 'successivePenalty'
         ];
         keys.forEach(key => {
             if (parsed[key] !== undefined) {

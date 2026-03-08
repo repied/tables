@@ -45,6 +45,9 @@
     const HALF_LIVES = BUEHLMANN.map(c => c.t12);
     const MAX_STOP_TIME_BEFORE_INFTY = 720;
 
+    const K_LIMIT_60 = Math.log(2) / 60;
+    const K_LIMIT_120 = Math.log(2) / 120;
+
     // Optimized constants
     const COMPARTMENTS = BUEHLMANN.map(c => {
         const k = Math.log(2) / c.t12;
@@ -77,6 +80,21 @@
             const comp = COMPARTMENTS[i];
             const decay = isStandardStep ? comp.decayTimeStep : Math.exp(-comp.k * t);
             res[i] = PN2 + (tensions[i] - PN2) * decay;
+        }
+        return res;
+    }
+
+    function calculatePenalizedTensions(tensions, interval, penaltyType) {
+        const res = new Float64Array(N_COMPARTMENTS);
+        let k_limit = Infinity;
+        if (penaltyType === 'C60') k_limit = K_LIMIT_60;
+        else if (penaltyType === 'C120') k_limit = K_LIMIT_120;
+
+        for (let i = 0; i < N_COMPARTMENTS; i++) {
+            const comp = COMPARTMENTS[i];
+            const effective_k = Math.min(comp.k, k_limit);
+            const decay = Math.exp(-effective_k * interval);
+            res[i] = SURFACE_AIR_ALV_PPN2 + (tensions[i] - SURFACE_AIR_ALV_PPN2) * decay;
         }
         return res;
     }
@@ -502,7 +520,8 @@
         calculatePPO2,
         calculateSuccessive,
         calculateBuhlmannPlan,
-        updateAllTensions
+        updateAllTensions,
+        calculatePenalizedTensions
     };
 
 })(window);

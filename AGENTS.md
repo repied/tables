@@ -29,6 +29,7 @@ First read `./README.md` file. Remember that your are most likely developing in 
 ### 3. Data Processing & Visualization
 *   **MN90 Logic**: Implementing complex lookups (Dive Tables) and algorithms (Air Consumption, DTR) in pure JavaScript.
 *   **Bühlmann ZHL-16C**: Implementing Gradient Factors algorithm for custom desaturation planning, including residual nitrogen calculation for repetitive dives.
+*   **Alain Foret Desaturation Penalty**: Implementing a desaturation rate cap (None/C60/C120) for fast tissues during surface intervals to better align with empirical safety margins for successive dives.
 *   **Dynamic Graphing**: Visualizing desaturation stops as a depth-proportional vertical chart using CSS heights and Flexbox alignment.
 *   **Internationalization (i18n)**: Implementing a custom translation system that handles both text content and HTML-rich segments (like safety disclaimers).
 
@@ -41,6 +42,7 @@ First read `./README.md` file. Remember that your are most likely developing in 
     *   Simulating user interactions (mouse drag/move) to test gauge responsiveness.
     *   Capturing browser console errors within tests to ensure application stability.
     *   **Bypassing State**: Using `page.addInitScript` to mock `localStorage` values (like `hasVisited`) to ensure tests start in a clean, predictable state.
+    *   **URL Parameter Verification**: Testing state persistence and sharing by verifying that complex application states (like PPO2 limits or successive penalties) are correctly encoded and decoded in the URL hash.
 *   **Robustness**: Adding null checks for DOM elements to prevent initialization errors.
 
 ### 5. Deployments
