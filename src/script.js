@@ -306,7 +306,7 @@ function setupInteractions() {
     }
 }
 
-function updateSaturationTable(beforeTensions, afterTensions) {
+function updateSaturationTable(beforeTensions, afterTensions, sursaturationBeforePct, sursaturationAfterPct) {
     const container = el['saturation-table-container'];
     if (!container || !beforeTensions || !afterTensions) return;
 
@@ -349,7 +349,7 @@ function updateSaturationTable(beforeTensions, afterTensions) {
     table.appendChild(thead);
 
     const tbody = document.createElement('tbody');
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < beforeTensions.length; i++) {
         const row = document.createElement('tr');
         const cellComp = document.createElement('td');
         cellComp.textContent = i + 1;
@@ -368,6 +368,21 @@ function updateSaturationTable(beforeTensions, afterTensions) {
         row.appendChild(cellAfter);
         tbody.appendChild(row);
     }
+    const row = document.createElement('tr');
+    const cellComp = document.createElement('td');
+    cellComp.textContent = trans.sursaturationRate;
+    row.appendChild(cellComp);
+
+    const cellBefore = document.createElement('td');
+    cellBefore.textContent = sursaturationBeforePct.toFixed(1) + ' %';
+    // cellBefore.style.backgroundColor = getColor(sursaturationBeforePct / 100 * surface_air_alv_ppn2);
+    row.appendChild(cellBefore);
+
+    const cellAfter = document.createElement('td');
+    cellAfter.textContent = sursaturationAfterPct.toFixed(1) + ' %';
+    // cellAfter.style.backgroundColor = getColor(sursaturationAfterPct / 100 * surface_air_alv_ppn2);
+    row.appendChild(cellAfter);
+    tbody.appendChild(row);
     table.appendChild(tbody);
     container.appendChild(table);
 }
@@ -824,7 +839,7 @@ function _updateUI_impl() {
         }
         const sursaturationAfterPct = currentTensions ? 100 * (Math.max(...currentTensions) - surface_air_alv_ppn2) / surface_air_alv_ppn2 : 0;
 
-        updateSaturationTable(beforeTensions, currentTensions);
+        updateSaturationTable(beforeTensions, currentTensions, sursaturationBeforePct, sursaturationAfterPct);
 
         if (el['majoration-display']) {
             const tensionEvolutionLabel = window.translations[state.currentLang].tensionEvolution;
