@@ -2003,8 +2003,8 @@ function copyShareLink() {
 
   const msg =
     window.translations &&
-      window.translations[state.currentLang] &&
-      window.translations[state.currentLang].linkCopied
+    window.translations[state.currentLang] &&
+    window.translations[state.currentLang].linkCopied
       ? window.translations[state.currentLang].linkCopied
       : 'Link copied!';
 
