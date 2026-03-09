@@ -1681,8 +1681,8 @@ function setupModal() {
   // Display app version
   const versionElement = el['app-version'];
   if (versionElement) {
-    versionElement.textContent = 'Version ' + (window.APP_VERSION || '?');
-    versionElement.textContent += ` (${window.APP_VERSION_DATE || '?'})`;
+    versionElement.innerHTML = 'Version ' + (window.APP_VERSION || '?');
+    versionElement.innerHTML += ` <BR> ${window.APP_VERSION_DATE || '?'}`;
   }
 
   // Replace simple style-based show/hide in other functions by exposing helpers
@@ -2003,8 +2003,8 @@ function copyShareLink() {
 
   const msg =
     window.translations &&
-    window.translations[state.currentLang] &&
-    window.translations[state.currentLang].linkCopied
+      window.translations[state.currentLang] &&
+      window.translations[state.currentLang].linkCopied
       ? window.translations[state.currentLang].linkCopied
       : 'Link copied!';
 
