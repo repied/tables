@@ -38,11 +38,14 @@ jobs:
         id: get_version
         run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Inject Version into files
+      - name: Set current date as env variable
+        run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Inject Version and date into files
         run: |
           sed -i "s/{{APP_VERSION}}/${{ steps.get_version.outputs.VERSION }}/g" index.html
-          sed -i "s/{{APP_VERSION_DATE}}/${{ github.event.pusher.date }}/g" index.html
           sed -i "s/{{APP_VERSION}}/${{ steps.get_version.outputs.VERSION }}/g" sw.js
+          sed -i "s/{{APP_VERSION_DATE}}/${{ steps.get_version.outputs.NOW }}/g" index.html
 
       - name: Get Playwright version
         id: playwright-version
