@@ -1421,6 +1421,7 @@ function setupModal() {
     const versionElement = el['app-version'];
     if (versionElement) {
         versionElement.textContent = 'Version ' + (window.APP_VERSION || '?');
+        versionElement.textContent += ` (${window.APP_VERSION_DATE || '?'})`;
     }
 
     // Replace simple style-based show/hide in other functions by exposing helpers
