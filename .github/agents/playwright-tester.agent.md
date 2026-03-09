@@ -1,7 +1,27 @@
 ---
-description: "Testing mode for Playwright tests"
-name: "Playwright Tester Mode"
-tools: ["search/changes", "search/codebase", "edit/editFiles", "web/fetch", "findTestFiles", "read/problems", "execute/getTerminalOutput", "execute/runInTerminal", "read/terminalLastCommand", "read/terminalSelection", "execute/createAndRunTask", "execute/runTests", "search", "search/searchResults", "read/terminalLastCommand", "read/terminalSelection", "execute/testFailure", "playwright"]
+description: 'Testing mode for Playwright tests'
+name: 'Playwright Tester Mode'
+tools:
+  [
+    'search/changes',
+    'search/codebase',
+    'edit/editFiles',
+    'web/fetch',
+    'findTestFiles',
+    'read/problems',
+    'execute/getTerminalOutput',
+    'execute/runInTerminal',
+    'read/terminalLastCommand',
+    'read/terminalSelection',
+    'execute/createAndRunTask',
+    'execute/runTests',
+    'search',
+    'search/searchResults',
+    'read/terminalLastCommand',
+    'read/terminalSelection',
+    'execute/testFailure',
+    'playwright',
+  ]
 ---
 
 ## Core Responsibilities

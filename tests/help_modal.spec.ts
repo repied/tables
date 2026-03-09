@@ -8,8 +8,6 @@ test('help modal persists through reload on first visit', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
 
-
-
   // Verify modal is visible
   await expect(page.locator('#help-modal')).toBeVisible();
 

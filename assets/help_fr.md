@@ -10,40 +10,39 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 
 ### Utilisation
 
-*   **Glisser haut/bas** ou **Tap** pour ajuster
-*   **Double tap** pour réinitialiser
-*   Icone **Cadenas :** pour déverrouiller GFs seconde plongée 
-*   Basculer **ppO<sub>2</sub> max** entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
-*   Icone **Partager :** partager une plongée par lien ou QR code
-* Les derniers paramètres sont mémorisés
-*   **Calculs :**
-    * **DTR :** Durée Totale de Remontée
-    * **Pression décollage :** Pression au début de la remontée. Double-tapez sur cette case pour trouver automatiquement le temps de fond maximum avant d'entamer la réserve
-    * **Pression finale** en bouteille 
-    * **Alerte MOD :** Un arc orange apparaît en cas de dépassement de la ppO<sub>2</sub> max.
+- **Glisser haut/bas** ou **Tap** pour ajuster
+- **Double tap** pour réinitialiser
+- Icone **Cadenas :** pour déverrouiller GFs seconde plongée
+- Basculer **ppO<sub>2</sub> max** entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
+- Icone **Partager :** partager une plongée par lien ou QR code
+- Les derniers paramètres sont mémorisés
+- **Calculs :**
+  - **DTR :** Durée Totale de Remontée
+  - **Pression décollage :** Pression au début de la remontée. Double-tapez sur cette case pour trouver automatiquement le temps de fond maximum avant d'entamer la réserve
+  - **Pression finale** en bouteille
+  - **Alerte MOD :** Un arc orange apparaît en cas de dépassement de la ppO<sub>2</sub> max.
 
 ### Hypothèses
 
-*   Plongée loisir carrée, sans palier de sécurité
-*   Au niveau de la mer, eau salée
-*   **Descente :** 20 m/min
-*   **Remontée :** **15 m/min** pour MN90, **10 m/min** pour GF et **6 m/min** entre paliers pour les deux
-
+- Plongée loisir carrée, sans palier de sécurité
+- Au niveau de la mer, eau salée
+- **Descente :** 20 m/min
+- **Remontée :** **15 m/min** pour MN90, **10 m/min** pour GF et **6 m/min** entre paliers pour les deux
 
 ### Installation
 
 Installation directe depuis le navigateur (pas de PlayStore/AppStore) pour utilisation hors ligne.
 
-*   **Android/Ordinateur :** 
-    * Utilisez l'invite d'installation ou l'icône '+' dans la barre d'adresse.
-*   **iOS :** 
-    * Dans Safari, appuyez sur Partager -> 'Sur l'écran d'accueil'.
+- **Android/Ordinateur :**
+  - Utilisez l'invite d'installation ou l'icône '+' dans la barre d'adresse.
+- **iOS :**
+  - Dans Safari, appuyez sur Partager -> 'Sur l'écran d'accueil'.
 
 ### Références
 
-*   Inspiration : [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
-*   Tables MN90 : [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
-*   Paramètres ZH-L16C : [Subsurface](https://github.com/subsurface/subsurface/blob/dfd5e20d3d2b7105e89ded44222dc6f1631d2a39/core/deco.cpp#L86)
-*   Code : [source](https://github.com/repied/tables)
-*   Contact : [pierreD](mailto:pierre.dangauthier+tables@gmail.com?subject=Tables%20app%20feedback) 
-*   Extra : [Checklist](#checklist)
+- Inspiration : [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
+- Tables MN90 : [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
+- Paramètres ZH-L16C : [Subsurface](https://github.com/subsurface/subsurface/blob/dfd5e20d3d2b7105e89ded44222dc6f1631d2a39/core/deco.cpp#L86)
+- Code : [source](https://github.com/repied/tables)
+- Contact : [pierreD](mailto:pierre.dangauthier+tables@gmail.com?subject=Tables%20app%20feedback)
+- Extra : [Checklist](#checklist)

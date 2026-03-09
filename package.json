@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "live-server --port=5500",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node tests/unit_planning.js",
     "genGFplans": "node ./src/generate_gf_plans.js",
@@ -13,6 +15,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
-    "live-server": "^1.2.0"
+    "live-server": "^1.2.0",
+    "prettier": "^3.8.1"
   }
 }
