@@ -730,7 +730,7 @@ input:checked + .slider:before {
   left: 3px;
   bottom: 3px;
   width: calc(50% - 3px);
-  /* Assuming 2 options */
+  /* Default for 2 options */
   background: var(--accent-color);
   border-radius: 17px;
   transition:
@@ -742,6 +742,32 @@ input:checked + .slider:before {
 #mode-gf:checked ~ .toggle-slider {
   transform: translateX(100%);
   background: var(--gauge-color-secondary);
+}
+
+/* 3-options surpenalisation toggle */
+.toggle-wrapper.surpenalisation-toggle {
+  width: 160px;
+  min-width: 160px;
+  margin-left: 10px;
+}
+
+.surpenalisation-toggle .toggle-slider {
+  width: calc(33.33% - 3px);
+  background: var(--gauge-color-secondary);
+}
+
+#surpenalisation-c60:checked ~ .toggle-slider {
+  transform: translateX(100%);
+  background: var(--gauge-color-secondary);
+}
+
+#surpenalisation-c120:checked ~ .toggle-slider {
+  transform: translateX(200%);
+  background: var(--gauge-color-secondary);
+}
+
+.toggle-wrapper.surpenalisation-toggle .toggle-option {
+  font-size: 0.7rem;
 }
 
 .toggle-wrapper.ppo2-toggle {

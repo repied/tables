@@ -12,10 +12,10 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 
 - **Glisser haut/bas** ou **Tap** pour ajuster
 - **Double tap** pour réinitialiser
-- Icone **Cadenas :** pour déverrouiller GFs seconde plongée
+- **Cadenas :** pour déverrouiller GFs seconde plongée
 - Basculer **ppO<sub>2</sub> max** entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
-- Icone **Partager :** partager une plongée par lien ou QR code
-- Les derniers paramètres sont mémorisés
+- **Surpénalisation plongée successive** recommandée par [A. Foret](../data/Worldivers-Computers-Repetitive-FR.pdf) : "OFF", "C60" (loisir) ou "C120" (engagée)
+- **Partager :** partager une plongée par lien ou QR code
 - **Calculs :**
   - **DTR :** Durée Totale de Remontée
   - **Pression décollage :** Pression au début de la remontée. Double-tapez sur cette case pour trouver automatiquement le temps de fond maximum avant d'entamer la réserve

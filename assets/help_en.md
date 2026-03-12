@@ -12,10 +12,10 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 
 - **Drag up/down** or **Tap** to adjust
 - **Double tap** to reset
-- **Lock icon** to unlock second dive GFs
-- **Share icon** to share dive via link or QR code
-- Latest settings are remembered
+- **Lock icon :** to unlock second dive GFs
 - Toggle **ppO<sub>2</sub> max** between 1.4 and 1.6 to adjust the Maximum Operating Depth (MOD).
+- **Successive dive penalization** recommended by [A. Foret](../data/Worldivers-Computers-Repetitive-FR.pdf) : "OFF", "C60" (recreational) or "C120" (committed)
+- **Share icon :** to share dive via link or QR code
 - **Calculations & Details :**
   - **TTS :** Time To Surface
   - **Takeoff pressure :** Pressure at the beginning of the ascent. Double-tap on this box to automatically find the maximum bottom time before hitting the reserve

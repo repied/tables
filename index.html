@@ -427,11 +427,69 @@
         </div>
       </div>
       <div class="results-container successive-container">
-        <div class="successive-header" style="justify-content: center">
-          <span id="successive-header-text" data-i18n="secondDive"></span>
+        <div
+          class="successive-header"
+          style="justify-content: center; align-items: center; flex-direction: column"
+        >
+          <span
+            id="successive-header-text"
+            data-i18n="secondDive"
+            style="margin-bottom: 10px"
+          ></span>
+          <div
+            id="surpenalisation-container"
+            style="
+              display: none;
+              flex-direction: row;
+              align-items: center;
+              gap: 10px;
+              width: 100%;
+              justify-content: center;
+            "
+          >
+            <div class="ppo2-label" data-i18n="surpenalisation" style="margin-top: 0">
+              Surpénalisation
+            </div>
+            <div
+              class="toggle-wrapper surpenalisation-toggle"
+              style="margin-left: 0; margin-bottom: 0"
+            >
+              <input
+                type="radio"
+                name="surpenalisation-toggle"
+                id="surpenalisation-off"
+                value="OFF"
+                checked
+              />
+              <label for="surpenalisation-off" class="toggle-option">OFF</label>
+
+              <input
+                type="radio"
+                name="surpenalisation-toggle"
+                id="surpenalisation-c60"
+                value="C60"
+              />
+              <label for="surpenalisation-c60" class="toggle-option">C60</label>
+
+              <input
+                type="radio"
+                name="surpenalisation-toggle"
+                id="surpenalisation-c120"
+                value="C120"
+              />
+              <label for="surpenalisation-c120" class="toggle-option">C120</label>
+
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
         </div>
 
         <div class="dive-controls" id="successive-controls">
+          <div
+            class="majoration-display"
+            id="majoration-display"
+            style="display: none; margin-bottom: 20px"
+          ></div>
           <div class="gauges-row main-gauges">
             <!-- Duration Gauge 2 -->
             <div class="gauge-wrapper medium">
@@ -506,7 +564,6 @@
           <div class="dive-details" id="dive-details-2">
             <!-- DTR, Reserve for Dive 2 -->
           </div>
-          <div class="majoration-display" id="majoration-display">Majoration: +0 min</div>
         </div>
       </div>
 

@@ -17,6 +17,7 @@ const DEFAULT_STATE = {
   isGFHigh2Locked: true,
   surfaceInterval: 60 * 3,
   ppo2Max: 1.6,
+  surpenalisation: 'OFF',
 };
 
 // App State
@@ -212,6 +213,10 @@ function cacheElements() {
     'installation-section',
     'ppo2-14',
     'ppo2-16',
+    'surpenalisation-container',
+    'surpenalisation-off',
+    'surpenalisation-c60',
+    'surpenalisation-c120',
   ];
   ids.forEach((id) => (el[id] = document.getElementById(id)));
 }
@@ -470,6 +475,19 @@ function setupInteractions() {
         triggerUpdate();
       }
     });
+  }
+
+  if (el['surpenalisation-off']) {
+    [el['surpenalisation-off'], el['surpenalisation-c60'], el['surpenalisation-c120']].forEach(
+      (radio) => {
+        radio.addEventListener('change', () => {
+          if (radio.checked) {
+            state.surpenalisation = radio.value;
+            triggerUpdate();
+          }
+        });
+      }
+    );
   }
 
   if (el['majoration-display']) {
@@ -957,6 +975,16 @@ function _updateUI_impl() {
   if (el['ppo2-14']) el['ppo2-14'].checked = state.ppo2Max === 1.4;
   if (el['ppo2-16']) el['ppo2-16'].checked = state.ppo2Max === 1.6;
 
+  if (el['surpenalisation-container']) {
+    el['surpenalisation-container'].style.display = state.isGFMode ? 'flex' : 'none';
+  }
+  if (el['surpenalisation-off'])
+    el['surpenalisation-off'].checked = state.surpenalisation === 'OFF';
+  if (el['surpenalisation-c60'])
+    el['surpenalisation-c60'].checked = state.surpenalisation === 'C60';
+  if (el['surpenalisation-c120'])
+    el['surpenalisation-c120'].checked = state.surpenalisation === 'C120';
+
   // Lock Logic for GF2
   if (state.isGFMode) {
     if (state.isGFLow2Locked) {
@@ -1047,21 +1075,53 @@ function _updateUI_impl() {
     currentMajoration = 0;
   let currentTensions = null;
   if (state.isGFMode) {
-    // Tension evolution
+    //GF MODE
+    el['majoration-display'].style.display = 'none';
+    // Tension evolution with strict Buhlmann desaturation during surface interval
     const surface_air_alv_ppn2 = Planning.SURFACE_AIR_ALV_PPN2;
     const beforeTensions = result1 ? result1.finalTensions : null;
-    currentTensions = beforeTensions ? new Float64Array(beforeTensions) : null;
-    const sursaturationBeforePct = currentTensions
-      ? (100 * (Math.max(...currentTensions) - surface_air_alv_ppn2)) / surface_air_alv_ppn2
+    let afterTensionsBuhlmann = beforeTensions ? new Float64Array(beforeTensions) : null;
+    const sursaturationBeforePct = beforeTensions
+      ? (100 * (Math.max(...beforeTensions) - surface_air_alv_ppn2)) / surface_air_alv_ppn2
       : 0;
-    if (currentTensions) {
-      currentTensions = Planning.updateAllTensions(
-        currentTensions,
+    if (beforeTensions) {
+      afterTensionsBuhlmann = Planning.updateAllTensions(
+        beforeTensions,
         surface_air_alv_ppn2,
         state.surfaceInterval
       );
     }
-    const sursaturationAfterPct = currentTensions
+
+    // Surpenalisation logic: modify afterTensionsBuhlmann for faster than C60 or C120
+    currentTensions = beforeTensions ? new Float64Array(beforeTensions) : null;
+    if (state.surpenalisation !== 'OFF' && beforeTensions && afterTensionsBuhlmann) {
+      const leadingT12 = state.surpenalisation === 'C60' ? 60 : 120;
+      const kLeading = Math.log(2) / leadingT12;
+      const decayLeading = Math.exp(-kLeading * state.surfaceInterval);
+
+      for (let i = 0; i < Planning.HALF_LIVES.length; i++) {
+        const t12 = Planning.HALF_LIVES[i];
+        if (t12 < leadingT12) {
+          // If the compartment is faster than the leading one, we limit its desaturation
+          // to the desaturation rate of the leading compartment.
+          if (beforeTensions[i] > surface_air_alv_ppn2) {
+            currentTensions[i] =
+              surface_air_alv_ppn2 + (beforeTensions[i] - surface_air_alv_ppn2) * decayLeading;
+          }
+        } else {
+          // For compartments slower than the leading one, no limitation is applied
+          currentTensions[i] = afterTensionsBuhlmann[i];
+        }
+      }
+      // Re-calculate after pct
+      // sursaturationAfterPct = currentTensions
+      //   ? (100 * (Math.max(...currentTensions) - surface_air_alv_ppn2)) / surface_air_alv_ppn2
+      //   : 0;
+    } else {
+      // No surpenalisation, we use the strict Buhlmann desaturation
+      currentTensions = afterTensionsBuhlmann;
+    }
+    let sursaturationAfterPct = currentTensions
       ? (100 * (Math.max(...currentTensions) - surface_air_alv_ppn2)) / surface_air_alv_ppn2
       : 0;
 
@@ -1094,6 +1154,7 @@ function _updateUI_impl() {
       ascentRate: Planning.ASCENT_RATE_GF,
     });
   } else {
+    //MN90 Successive logic
     const prevGroup =
       result1 && result1.profile && result1.profile.group ? result1.profile.group : null;
     const ead2 = Planning.calculateEquivalentAirDepth(state.dive2Depth, state.gazO2pct2);

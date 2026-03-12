@@ -549,5 +549,6 @@
     calculateSuccessive,
     calculateBuhlmannPlan,
     updateAllTensions,
+    HALF_LIVES,
   };
 })(window);
