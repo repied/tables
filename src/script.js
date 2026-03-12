@@ -2026,6 +2026,7 @@ function openShareModal() {
     state.currentGFLow,
     state.currentGFHigh,
     state.ppo2Max === 1.4 ? 0 : 1,
+    state.surpenalisation === 'C60' ? 1 : state.surpenalisation === 'C120' ? 2 : 0,
   ].join(',');
 
   const encoded = btoa(data);
@@ -2222,6 +2223,10 @@ function applyParams(params) {
         if (decoded.length >= 14) {
           state.ppo2Max = decoded[13] === '0' ? 1.4 : 1.6;
         }
+        if (decoded.length >= 15) {
+          const s = decoded[14];
+          state.surpenalisation = s === '1' ? 'C60' : s === '2' ? 'C120' : 'OFF';
+        }
         changed = true;
         compactSuccess = true;
       }
@@ -2319,6 +2324,7 @@ function loadStateFromLocalStorage() {
       'isGFHigh2Locked',
       'surfaceInterval',
       'ppo2Max',
+      'surpenalisation',
     ];
     keys.forEach((key) => {
       if (parsed[key] !== undefined) {
