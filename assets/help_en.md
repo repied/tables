@@ -14,7 +14,7 @@ Educational tool. The results presented may be wrong. Use a certified dive compu
 - **Double tap** to reset
 - **Lock icon :** to unlock second dive GFs
 - Toggle **ppO<sub>2</sub> max** between 1.4 and 1.6 to adjust the Maximum Operating Depth (MOD).
-- **Successive dive penalization** recommended by [A. Foret](../data/Worldivers-Computers-Repetitive-FR.pdf) : "OFF", "C60" (recreational) or "C120" (committed)
+- **Successive dive penalization** ([A. Foret](../data/Worldivers-Computers-Repetitive-FR.pdf)) : Enable "C60" (recreational) or "C120" (committed) to limit off-gassing of fast compartments. Click the **?** to see the impact on compartment tensions.
 - **Share icon :** to share dive via link or QR code
 - **Calculations & Details :**
   - **TTS :** Time To Surface

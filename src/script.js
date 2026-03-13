@@ -176,6 +176,8 @@ function cacheElements() {
     'gps-display-1',
     'successive-controls',
     'majoration-display',
+    'majoration-text',
+    'majoration-help-icon',
     'successive-header-text',
     'interval-gauge-container',
     'interval-display',
@@ -490,11 +492,11 @@ function setupInteractions() {
     );
   }
 
-  if (el['majoration-display']) {
-    el['majoration-display'].addEventListener('click', () => {
+  if (el['majoration-help-icon']) {
+    el['majoration-help-icon'].addEventListener('click', () => {
       if (state.isGFMode && el['saturation-modal']) {
         if (window.__openModal)
-          window.__openModal(el['saturation-modal'], el['majoration-display']);
+          window.__openModal(el['saturation-modal'], el['majoration-help-icon']);
         else el['saturation-modal'].style.display = 'block';
       }
     });
@@ -503,12 +505,12 @@ function setupInteractions() {
 
 function updateSaturationTable(
   beforeTensions,
-  afterTensions,
-  sursaturationBeforePct,
-  sursaturationAfterPct
+  afterTensionsBuhlmann,
+  afterTensionsC60,
+  afterTensionsC120
 ) {
   const container = el['saturation-table-container'];
-  if (!container || !beforeTensions || !afterTensions) return;
+  if (!container || !beforeTensions || !afterTensionsBuhlmann) return;
 
   const trans = window.translations[state.currentLang];
   const surface_air_alv_ppn2 = Planning.SURFACE_AIR_ALV_PPN2;
@@ -516,15 +518,29 @@ function updateSaturationTable(
   container.innerHTML = '';
 
   let maxBeforeIdx = 0;
-  let maxAfterIdx = 0;
+  let maxAfterIdxBuhlmann = 0;
+  let maxAfterIdxC60 = 0;
+  let maxAfterIdxC120 = 0;
+
   for (let i = 1; i < beforeTensions.length; i++) {
     if (beforeTensions[i] > beforeTensions[maxBeforeIdx]) maxBeforeIdx = i;
-    if (afterTensions[i] > afterTensions[maxAfterIdx]) maxAfterIdx = i;
+    if (afterTensionsBuhlmann[i] > afterTensionsBuhlmann[maxAfterIdxBuhlmann])
+      maxAfterIdxBuhlmann = i;
+    if (afterTensionsC60 && afterTensionsC60[i] > afterTensionsC60[maxAfterIdxC60])
+      maxAfterIdxC60 = i;
+    if (afterTensionsC120 && afterTensionsC120[i] > afterTensionsC120[maxAfterIdxC120])
+      maxAfterIdxC120 = i;
   }
 
   const getColor = (val) => {
     const min = surface_air_alv_ppn2;
-    const max = Math.max(...beforeTensions, ...afterTensions, surface_air_alv_ppn2);
+    const max = Math.max(
+      ...beforeTensions,
+      ...afterTensionsBuhlmann,
+      ...(afterTensionsC60 || []),
+      ...(afterTensionsC120 || []),
+      surface_air_alv_ppn2
+    );
     const ratio = Math.min(Math.max((val - min) / (max - min), 0), 1);
     const hue = 120 * (1 - ratio);
     return `hsla(${hue}, 70%, 45%, 0.8)`;
@@ -536,14 +552,25 @@ function updateSaturationTable(
   sentence.textContent = trans.saturationTableSentence;
   container.appendChild(sentence);
 
+  const penalisationExplanation = document.createElement('p');
+  penalisationExplanation.className = 'penalisation-explanation';
+  penalisationExplanation.textContent = trans.penalisationExplanation;
+  penalisationExplanation.style.fontSize = '0.9em';
+  penalisationExplanation.style.fontStyle = 'italic';
+  penalisationExplanation.style.marginTop = '10px';
+  penalisationExplanation.style.marginBottom = '20px';
+  container.appendChild(penalisationExplanation);
+
   const table = document.createElement('table');
   table.className = 'saturation-table';
   const thead = document.createElement('thead');
   thead.innerHTML = `
         <tr>
             <th>${trans.compartment}</th>
-            <th>${trans.tensionBefore} (bar)</th>
-            <th>${trans.tensionAfter} (bar)</th>
+            <th>${trans.tensionBefore}</th>
+            <th>${trans.tensionAfter} (Raw)</th>
+            <th>${trans.tensionAfter} (C60)</th>
+            <th>${trans.tensionAfter} (C120)</th>
         </tr>
     `;
   table.appendChild(thead);
@@ -551,6 +578,7 @@ function updateSaturationTable(
   const tbody = document.createElement('tbody');
   for (let i = 0; i < beforeTensions.length; i++) {
     const row = document.createElement('tr');
+
     const cellComp = document.createElement('td');
     cellComp.textContent = i + 1;
     row.appendChild(cellComp);
@@ -561,28 +589,34 @@ function updateSaturationTable(
     if (i === maxBeforeIdx) cellBefore.className = 'leading-compartment';
     row.appendChild(cellBefore);
 
-    const cellAfter = document.createElement('td');
-    cellAfter.textContent = afterTensions[i].toFixed(2);
-    cellAfter.style.backgroundColor = getColor(afterTensions[i]);
-    if (i === maxAfterIdx) cellAfter.className = 'leading-compartment';
-    row.appendChild(cellAfter);
+    const cellAfterRaw = document.createElement('td');
+    cellAfterRaw.textContent = afterTensionsBuhlmann[i].toFixed(2);
+    cellAfterRaw.style.backgroundColor = getColor(afterTensionsBuhlmann[i]);
+    if (i === maxAfterIdxBuhlmann) cellAfterRaw.className = 'leading-compartment';
+    row.appendChild(cellAfterRaw);
+
+    const cellAfterC60 = document.createElement('td');
+    if (afterTensionsC60) {
+      cellAfterC60.textContent = afterTensionsC60[i].toFixed(2);
+      cellAfterC60.style.backgroundColor = getColor(afterTensionsC60[i]);
+      if (i === maxAfterIdxC60) cellAfterC60.className = 'leading-compartment';
+    } else {
+      cellAfterC60.textContent = '-';
+    }
+    row.appendChild(cellAfterC60);
+
+    const cellAfterC120 = document.createElement('td');
+    if (afterTensionsC120) {
+      cellAfterC120.textContent = afterTensionsC120[i].toFixed(2);
+      cellAfterC120.style.backgroundColor = getColor(afterTensionsC120[i]);
+      if (i === maxAfterIdxC120) cellAfterC120.className = 'leading-compartment';
+    } else {
+      cellAfterC120.textContent = '-';
+    }
+    row.appendChild(cellAfterC120);
+
     tbody.appendChild(row);
   }
-  const row = document.createElement('tr');
-  const cellComp = document.createElement('td');
-  cellComp.textContent = trans.sursaturationRate;
-  row.appendChild(cellComp);
-
-  const cellBefore = document.createElement('td');
-  cellBefore.textContent = sursaturationBeforePct.toFixed(1) + ' %';
-  // cellBefore.style.backgroundColor = getColor(sursaturationBeforePct / 100 * surface_air_alv_ppn2);
-  row.appendChild(cellBefore);
-
-  const cellAfter = document.createElement('td');
-  cellAfter.textContent = sursaturationAfterPct.toFixed(1) + ' %';
-  // cellAfter.style.backgroundColor = getColor(sursaturationAfterPct / 100 * surface_air_alv_ppn2);
-  row.appendChild(cellAfter);
-  tbody.appendChild(row);
   table.appendChild(tbody);
   container.appendChild(table);
 }
@@ -1080,68 +1114,59 @@ function _updateUI_impl() {
     // Tension evolution with strict Buhlmann desaturation during surface interval
     const surface_air_alv_ppn2 = Planning.SURFACE_AIR_ALV_PPN2;
     const beforeTensions = result1 ? result1.finalTensions : null;
-    let afterTensionsBuhlmann = beforeTensions ? new Float64Array(beforeTensions) : null;
-    const sursaturationBeforePct = beforeTensions
-      ? (100 * (Math.max(...beforeTensions) - surface_air_alv_ppn2)) / surface_air_alv_ppn2
-      : 0;
+    let afterTensionsBuhlmann = null;
+    let afterTensionsC60 = null;
+    let afterTensionsC120 = null;
+
     if (beforeTensions) {
       afterTensionsBuhlmann = Planning.updateAllTensions(
         beforeTensions,
         surface_air_alv_ppn2,
         state.surfaceInterval
       );
-    }
 
-    // Surpenalisation logic: modify afterTensionsBuhlmann for faster than C60 or C120
-    currentTensions = beforeTensions ? new Float64Array(beforeTensions) : null;
-    if (state.surpenalisation !== 'OFF' && beforeTensions && afterTensionsBuhlmann) {
-      const leadingT12 = state.surpenalisation === 'C60' ? 60 : 120;
-      const kLeading = Math.log(2) / leadingT12;
-      const decayLeading = Math.exp(-kLeading * state.surfaceInterval);
-
+      // C60 Tensions
+      afterTensionsC60 = new Float64Array(afterTensionsBuhlmann);
+      const kLeadingC60 = Math.log(2) / 60;
+      const decayLeadingC60 = Math.exp(-kLeadingC60 * state.surfaceInterval);
       for (let i = 0; i < Planning.HALF_LIVES.length; i++) {
-        const t12 = Planning.HALF_LIVES[i];
-        if (t12 < leadingT12) {
-          // If the compartment is faster than the leading one, we limit its desaturation
-          // to the desaturation rate of the leading compartment.
-          if (beforeTensions[i] > surface_air_alv_ppn2) {
-            currentTensions[i] =
-              surface_air_alv_ppn2 + (beforeTensions[i] - surface_air_alv_ppn2) * decayLeading;
-          }
-        } else {
-          // For compartments slower than the leading one, no limitation is applied
-          currentTensions[i] = afterTensionsBuhlmann[i];
+        if (Planning.HALF_LIVES[i] < 60 && beforeTensions[i] > surface_air_alv_ppn2) {
+          afterTensionsC60[i] =
+            surface_air_alv_ppn2 + (beforeTensions[i] - surface_air_alv_ppn2) * decayLeadingC60;
         }
       }
-      // Re-calculate after pct
-      // sursaturationAfterPct = currentTensions
-      //   ? (100 * (Math.max(...currentTensions) - surface_air_alv_ppn2)) / surface_air_alv_ppn2
-      //   : 0;
+
+      // C120 Tensions
+      afterTensionsC120 = new Float64Array(afterTensionsBuhlmann);
+      const kLeadingC120 = Math.log(2) / 120;
+      const decayLeadingC120 = Math.exp(-kLeadingC120 * state.surfaceInterval);
+      for (let i = 0; i < Planning.HALF_LIVES.length; i++) {
+        if (Planning.HALF_LIVES[i] < 120 && beforeTensions[i] > surface_air_alv_ppn2) {
+          afterTensionsC120[i] =
+            surface_air_alv_ppn2 + (beforeTensions[i] - surface_air_alv_ppn2) * decayLeadingC120;
+        }
+      }
+
+      if (state.surpenalisation === 'C60') currentTensions = afterTensionsC60;
+      else if (state.surpenalisation === 'C120') currentTensions = afterTensionsC120;
+      else currentTensions = afterTensionsBuhlmann;
     } else {
-      // No surpenalisation, we use the strict Buhlmann desaturation
-      currentTensions = afterTensionsBuhlmann;
+      currentTensions = null;
     }
-    let sursaturationAfterPct = currentTensions
-      ? (100 * (Math.max(...currentTensions) - surface_air_alv_ppn2)) / surface_air_alv_ppn2
-      : 0;
 
     updateSaturationTable(
       beforeTensions,
-      currentTensions,
-      sursaturationBeforePct,
-      sursaturationAfterPct
+      afterTensionsBuhlmann,
+      afterTensionsC60,
+      afterTensionsC120
     );
 
     if (el['majoration-display']) {
-      const tensionEvolutionLabel = window.translations[state.currentLang].tensionEvolution;
-      const helpIcon = `<span class="help-icon-inline">?</span>`;
-      el['majoration-display'].innerHTML =
-        tensionEvolutionLabel +
-        `${sursaturationBeforePct.toFixed(0)}%` +
-        ` → ${sursaturationAfterPct.toFixed(0)}%` +
-        helpIcon;
+      if (el['majoration-text']) el['majoration-text'].style.display = 'none';
+      if (el['surpenalisation-container']) el['surpenalisation-container'].style.display = 'flex';
+
       el['majoration-display'].style.display = 'flex';
-      el['majoration-display'].style.cursor = 'pointer';
+      el['majoration-display'].style.cursor = 'default';
     }
 
     result2 = Planning.calculateBuhlmannPlan({
@@ -1168,9 +1193,14 @@ function _updateUI_impl() {
       let majText = 'Error';
       if (succResult && !succResult.error) {
         majText = `+${currentMajoration} min`;
-        el['majoration-display'].textContent =
-          `${window.translations[state.currentLang].majoration}: ${majText} `;
+        if (el['majoration-text']) {
+          el['majoration-text'].textContent =
+            `${window.translations[state.currentLang].majoration}: ${majText} `;
+          el['majoration-text'].style.display = 'inline';
+        }
+        if (el['surpenalisation-container']) el['surpenalisation-container'].style.display = 'none';
         el['majoration-display'].style.display = 'flex';
+        el['majoration-display'].style.cursor = 'default';
       } else if (succResult && succResult.error) {
         el['majoration-display'].style.display = 'none';
         result2.second_dive_not_authorized = true;

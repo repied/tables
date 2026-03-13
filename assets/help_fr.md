@@ -14,7 +14,7 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 - **Double tap** pour réinitialiser
 - **Cadenas :** pour déverrouiller GFs seconde plongée
 - Basculer **ppO<sub>2</sub> max** entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
-- **Surpénalisation plongée successive** recommandée par [A. Foret](../data/Worldivers-Computers-Repetitive-FR.pdf) : "OFF", "C60" (loisir) ou "C120" (engagée)
+- **Surpénalisation plongée successive** ([A. Foret](../data/Worldivers-Computers-Repetitive-FR.pdf)) : Activez "C60" (loisir) ou "C120" (engagée) pour limiter le dégazage des compartiments rapides. Cliquez sur le **?** pour voir l'impact sur les tensions.
 - **Partager :** partager une plongée par lien ou QR code
 - **Calculs :**
   - **DTR :** Durée Totale de Remontée
