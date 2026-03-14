@@ -1361,25 +1361,17 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
 
   const takeoffBox = container.querySelector('.takeoff-box');
   if (takeoffBox) {
-    let lastTap = 0;
-    let tapTimeout;
     takeoffBox.addEventListener('pointerup', (e) => {
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTap;
-      if (tapLength < 300 && tapLength > 0) {
-        clearTimeout(tapTimeout);
-        const isDive2 = container.id === 'dive-details-2';
-        optimizeTimeForReserve(isDive2);
-        e.preventDefault();
-        lastTap = 0;
-        return;
-      } else {
-        if (tapTimeout) clearTimeout(tapTimeout);
-        tapTimeout = setTimeout(() => {
-          if (window.__openModal) window.__openModal(el['takeoff-modal']);
-        }, 300);
+      e.preventDefault();
+      const isDive2 = container.id === 'dive-details-2';
+      const btn = document.getElementById('optimize-btn');
+      if (btn) {
+        btn.onclick = () => {
+          optimizeTimeForReserve(isDive2);
+          if (window.__closeModal) window.__closeModal(document.getElementById('takeoff-modal'));
+        };
       }
-      lastTap = currentTime;
+      if (window.__openModal) window.__openModal(document.getElementById('takeoff-modal'));
     });
   }
 
