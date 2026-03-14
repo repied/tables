@@ -1486,40 +1486,110 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   }
   const dtrGas = breakdown.ascent + stopsGas;
 
-  const pieContainer = document.getElementById('gas-breakdown-pie-container');
-  if (pieContainer) {
-    pieContainer.innerHTML = '';
-    pieContainer.style.display = 'flex';
-    pieContainer.style.justifyContent = 'center';
-    pieContainer.style.marginTop = '20px';
-    pieContainer.style.marginBottom = '20px';
+  const tankContainer = document.getElementById('gas-breakdown-pie-container');
+  if (tankContainer) {
+    tankContainer.innerHTML = '';
+    tankContainer.style.display = 'flex';
+    tankContainer.style.justifyContent = 'center';
+    tankContainer.style.gap = '15px';
+    tankContainer.style.flexWrap = 'wrap';
+    tankContainer.style.marginTop = '20px';
+    tankContainer.style.marginBottom = '20px';
 
-    let startPct = 0;
-    const getSegment = (liters, color) => {
-      if (liters <= 0) return '';
-      const MathMaxLiters = Math.max(0, liters);
-      const pct = (MathMaxLiters / consoLiters.total) * 100;
-      const res = `${color} ${startPct}% ${startPct + pct}%`;
-      startPct += pct;
-      return res;
-    };
+    const barTotal = consoLiters.total / state.tankVolume;
+    const numTanks = Math.max(1, Math.ceil(barTotal / state.initTankPressure));
 
-    const segments = [
-      getSegment(breakdown.descent, '#2196f3'),
-      getSegment(breakdown.bottom, '#4caf50'),
-      getSegment(breakdown.ascent, '#ff9800'),
-      getSegment(stopsGas, '#e53935'),
-    ]
-      .filter(Boolean)
-      .join(', ');
+    const layers = [
+      { bar: breakdown.descent / state.tankVolume, color: '#2196f3' },
+      { bar: breakdown.bottom / state.tankVolume, color: '#4caf50' },
+      { bar: breakdown.ascent / state.tankVolume, color: '#ff9800' },
+      { bar: stopsGas / state.tankVolume, color: '#e53935' },
+    ].filter((l) => l.bar > 0);
 
-    const pie = document.createElement('div');
-    pie.style.width = '120px';
-    pie.style.height = '120px';
-    pie.style.borderRadius = '50%';
-    pie.style.background = `conic-gradient(${segments})`;
-    pie.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-    pieContainer.appendChild(pie);
+    let currentLayerIdx = 0;
+    let currentLayerRemaining = layers[0] ? layers[0].bar : 0;
+
+    for (let t = 0; t < numTanks; t++) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '60');
+      svg.setAttribute('height', '120');
+      svg.setAttribute('viewBox', '0 0 60 120');
+
+      // Tank outline and valve
+      const valve = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      valve.setAttribute('x', '25');
+      valve.setAttribute('y', '5');
+      valve.setAttribute('width', '10');
+      valve.setAttribute('height', '10');
+      valve.setAttribute('fill', '#999');
+      svg.appendChild(valve);
+
+      const body = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      body.setAttribute('x', '10');
+      body.setAttribute('y', '15');
+      body.setAttribute('width', '40');
+      body.setAttribute('height', '100');
+      body.setAttribute('rx', '8');
+      body.setAttribute('fill', '#333');
+      svg.appendChild(body);
+
+      const clipId = `tank-clip-${t}-${Math.random().toString(36).substr(2, 9)}`;
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+      clipPath.setAttribute('id', clipId);
+      const clipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      clipRect.setAttribute('x', '10');
+      clipRect.setAttribute('y', '15');
+      clipRect.setAttribute('width', '40');
+      clipRect.setAttribute('height', '100');
+      clipRect.setAttribute('rx', '8');
+      clipPath.appendChild(clipRect);
+      defs.appendChild(clipPath);
+      svg.appendChild(defs);
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('clip-path', `url(#${clipId})`);
+      svg.appendChild(g);
+
+      let tankPressureRemaining = state.initTankPressure;
+      let currentY = 115; // Bottom of tank body (15 + 100)
+
+      while (tankPressureRemaining > 0 && currentLayerIdx < layers.length) {
+        const use = Math.min(tankPressureRemaining, currentLayerRemaining);
+        const h = (use / state.initTankPressure) * 100;
+
+        const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        r.setAttribute('x', '10');
+        r.setAttribute('y', currentY - h);
+        r.setAttribute('width', '40');
+        r.setAttribute('height', h + 0.5); // Small overlap to avoid gaps
+        r.setAttribute('fill', layers[currentLayerIdx].color);
+        g.appendChild(r);
+
+        currentY -= h;
+        tankPressureRemaining -= use;
+        currentLayerRemaining -= use;
+
+        if (currentLayerRemaining < 0.001) {
+          currentLayerIdx++;
+          currentLayerRemaining = layers[currentLayerIdx] ? layers[currentLayerIdx].bar : 0;
+        }
+      }
+
+      // Remaining air (grey)
+      if (tankPressureRemaining > 0.001) {
+        const h = (tankPressureRemaining / state.initTankPressure) * 100;
+        const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        r.setAttribute('x', '10');
+        r.setAttribute('y', currentY - h);
+        r.setAttribute('width', '40');
+        r.setAttribute('height', h);
+        r.setAttribute('fill', '#666');
+        g.appendChild(r);
+      }
+
+      tankContainer.appendChild(svg);
+    }
   }
 
   if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent, '#2196f3');
