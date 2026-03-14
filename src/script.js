@@ -198,6 +198,7 @@ function cacheElements() {
     'gas-modal',
     'gas-breakdown-list',
     'gas-breakdown-total',
+    'gas-breakdown-tank',
     'saturation-modal',
     'time-modal',
     'time-breakdown-list',
@@ -1466,13 +1467,10 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   const bar_total = Math.ceil(consoLiters.total / state.tankVolume);
   total.innerHTML = `${trans.total}: ${bar_total} bar 	&ndash; <small><i>${Math.round(consoLiters.total)} L</i></small>`;
 
-  const tankInfo = document.createElement('div');
-  tankInfo.style.textAlign = 'center';
-  tankInfo.style.marginTop = '15px';
-  tankInfo.style.fontSize = '0.9rem';
-  tankInfo.style.opacity = '0.8';
-  tankInfo.innerHTML = `<strong>${trans.tank}:</strong> ${state.tankVolume}L @ ${state.initTankPressure} bar`;
-  total.parentNode.insertBefore(tankInfo, total.nextSibling);
+  if (el['gas-breakdown-tank']) {
+    el['gas-breakdown-tank'].innerHTML =
+      `<strong>${trans.tank}:</strong> ${state.tankVolume}L @ ${state.initTankPressure} bar`;
+  }
 
   let stopsGas = 0;
   if (breakdown.stops) {
