@@ -906,7 +906,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
 function formatTime(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return `${h}:${m.toString().padStart(2, '0')}`;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
 function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
