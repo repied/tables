@@ -1391,7 +1391,7 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
   if (reserveBox) {
     if (remainingPressure < 0) {
       reserveBox.style.backgroundColor = '#e53935';
-    } else if (remainingPressure <= RESERVE_PRESSURE_THRESHOLD) {
+    } else if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
       reserveBox.style.backgroundColor = '#ff9800';
     }
     reserveBox.onclick = () => showGasBreakdown(consoLiters, remainingPressure);
@@ -1568,7 +1568,7 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     msg.style.fontWeight = 'bold';
     msg.innerHTML = trans.notEnoughGas;
     list.appendChild(msg);
-  } else if (remainingPressure <= RESERVE_PRESSURE_THRESHOLD) {
+  } else if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
     const msg = document.createElement('div');
     msg.style.color = '#ff9800';
     total.style.color = '#ff9800';
