@@ -45,7 +45,7 @@ window.translations = {
     majoration: 'Majoration',
     tensionEvolution: 'Saturation : ',
     sursaturationRate: 'Taux',
-    saturationExplanationTitle: 'Évolution de la saturation en surface',
+    saturationExplanationTitle: 'Surpénalisation',
     saturationExplanation:
       'Le taux correspond à la différence entre la tension du compartiment directeur (encadré rouge) et la ppN2 alvéolaire en surface (~0.75 bar), exprimée en pourcentage.',
     low: 'Bas',
@@ -116,7 +116,7 @@ window.translations = {
     reserve: 'End Pressure',
     majoration: 'Majoration',
     tensionEvolution: 'Saturation: ',
-    saturationExplanationTitle: 'Surface Saturation Evolution',
+    saturationExplanationTitle: 'Additional Penalty',
     sursaturationRate: 'Rate',
     saturationExplanation:
       'The rate represents the relative difference between the tension of the leading compartment (red box) and the surface alveolar ppN2 (~0.75 bar), expressed as a percentage.',
