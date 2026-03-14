@@ -1261,12 +1261,8 @@ function renderStops(result, containerElement) {
   containerElement.innerHTML = '';
   const trans = window.translations;
 
-  if (result.is_out_of_table || result.is_surface_dive) {
+  if (result.is_out_of_table || result.is_surface_dive || result.second_dive_not_authorized) {
     containerElement.innerHTML = `<div class="placeholder-text">${trans[state.currentLang].outOfTable}</div>`;
-    return;
-  }
-  if (result.second_dive_not_authorized) {
-    containerElement.innerHTML = '';
     return;
   }
 
