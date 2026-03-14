@@ -568,11 +568,11 @@ function updateSaturationTable(
   thead.innerHTML = `
         <tr>
             <th>${trans.compartment}</th>
-            <th>T1/2 (min)</th>
+            <th>T1/2</th>
             <th>${trans.tensionBefore}</th>
-            <th>${trans.tensionAfter} (Raw)</th>
-            <th>${trans.tensionAfter} (C60)</th>
-            <th>${trans.tensionAfter} (C120)</th>
+            <th>OFF</th>
+            <th>C60</th>
+            <th>C120</th>
         </tr>
     `;
   table.appendChild(thead);
@@ -606,6 +606,7 @@ function updateSaturationTable(
       cellAfterC60.textContent = afterTensionsC60[i].toFixed(2);
       cellAfterC60.style.backgroundColor = getColor(afterTensionsC60[i]);
       if (i === maxAfterIdxC60) cellAfterC60.className = 'leading-compartment';
+      if (halfLives[i] < 60) cellAfterC60.style.fontStyle = 'italic';
     } else {
       cellAfterC60.textContent = '-';
     }
@@ -616,6 +617,7 @@ function updateSaturationTable(
       cellAfterC120.textContent = afterTensionsC120[i].toFixed(2);
       cellAfterC120.style.backgroundColor = getColor(afterTensionsC120[i]);
       if (i === maxAfterIdxC120) cellAfterC120.className = 'leading-compartment';
+      if (halfLives[i] < 120) cellAfterC120.style.fontStyle = 'italic';
     } else {
       cellAfterC120.textContent = '-';
     }
