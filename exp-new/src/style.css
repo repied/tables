@@ -404,7 +404,7 @@ body.gf-mode .majoration-display {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
+  flex: 2;
   min-width: 0;
 }
 
@@ -417,8 +417,9 @@ body.gf-mode .majoration-display {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  flex: 2;
+  flex: 3;
   gap: 10px;
+  padding: 6px 12px;
 }
 
 .result-box.group > div {
@@ -451,6 +452,11 @@ body.gf-mode .majoration-display {
 }
 
 .result-box .result-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.result-box .result-value-remaining {
   font-size: 1.1rem;
   font-weight: bold;
   white-space: nowrap;
