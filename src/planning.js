@@ -422,11 +422,11 @@
     const t_at_depth = Math.max(0, bottomTime - t_descent);
 
     let currentT = 0;
-    const profilePoints = [{ t: currentT, d: 0 }];
+    const profilePoints = [{ t: currentT, d: 0, phase: 'start' }];
     currentT += t_descent;
-    profilePoints.push({ t: currentT, d: depth });
+    profilePoints.push({ t: currentT, d: depth, phase: 'descent' });
     currentT += t_at_depth;
-    profilePoints.push({ t: currentT, d: depth });
+    profilePoints.push({ t: currentT, d: depth, phase: 'bottom' });
 
     let t_ascent = 0;
     const firstTargetDepth = stopDepths.length > 0 ? stopDepths[0] : 0;
@@ -437,7 +437,7 @@
       t_ascent += travelT;
       currentT += travelT;
       currentDepth = firstTargetDepth;
-      profilePoints.push({ t: currentT, d: currentDepth });
+      profilePoints.push({ t: currentT, d: currentDepth, phase: 'travel' });
     }
 
     const stopBreakdown = {};
@@ -446,14 +446,14 @@
       stopBreakdown[d] = stopDuration;
 
       currentT += stopDuration;
-      profilePoints.push({ t: currentT, d: d });
+      profilePoints.push({ t: currentT, d: d, phase: 'stop' });
 
       const nextTarget = i + 1 < stopDepths.length ? stopDepths[i + 1] : SURFACE_DEPTH;
       const travelT = (d - nextTarget) / ASCENT_RATE_FROM_FIRST_STOP;
       t_ascent += travelT;
       currentT += travelT;
       currentDepth = nextTarget;
-      profilePoints.push({ t: currentT, d: currentDepth });
+      profilePoints.push({ t: currentT, d: currentDepth, phase: 'travel' });
     });
 
     const totalStopTime = Object.values(stops).reduce((a, b) => a + b, 0);

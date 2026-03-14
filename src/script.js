@@ -1610,11 +1610,43 @@ function showTimeBreakdown(timeBreakdown) {
 
     const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     polygon.setAttribute('points', dStr);
-    polygon.setAttribute('fill', 'rgba(33, 150, 243, 0.2)');
-    polygon.setAttribute('stroke', '#2196f3');
-    polygon.setAttribute('stroke-width', '2');
+    polygon.setAttribute('fill', 'rgba(255, 255, 255, 0.1)');
 
     svg.appendChild(polygon);
+
+    // Draw multi-color stroke lines based on phase
+    const getPhaseColor = (phase) => {
+      switch (phase) {
+        case 'descent':
+          return '#2196f3';
+        case 'bottom':
+          return '#4caf50';
+        case 'travel':
+          return '#ff9800';
+        case 'stop':
+          return '#e53935';
+        default:
+          return '#fff';
+      }
+    };
+
+    for (let i = 1; i < points.length; i++) {
+      const p1 = points[i - 1];
+      const p2 = points[i];
+      const x1 = (p1.t / maxT) * W;
+      const y1 = (p1.d / (maxD * 1.1)) * H + Y_OFFSET;
+      const x2 = (p2.t / maxT) * W;
+      const y2 = (p2.d / (maxD * 1.1)) * H + Y_OFFSET;
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(x1));
+      line.setAttribute('y1', String(y1));
+      line.setAttribute('x2', String(x2));
+      line.setAttribute('y2', String(y2));
+      line.setAttribute('stroke', getPhaseColor(p2.phase));
+      line.setAttribute('stroke-width', '2');
+      svg.appendChild(line);
+    }
 
     // Draw depth labels at bottom and stops
     const drawLabel = (t, d, text) => {
