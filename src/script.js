@@ -202,7 +202,6 @@ function cacheElements() {
     'time-modal',
     'time-breakdown-list',
     'time-breakdown-total',
-    'takeoff-modal',
     'saturation-table-container',
     'depth-warning',
     'depth-warning-2',
@@ -1347,32 +1346,26 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
   const dtrLabel = trans[state.currentLang].dtr.replace(/ /g, '<br>');
   const takeoffLabel = trans[state.currentLang].takeoffPressure.replace(/ /g, '<br>');
   const reserveLabel = trans[state.currentLang].reserve.replace(/ /g, '<br>');
+  const optimizeBtnLabel = trans[state.currentLang].optimizeBtn;
 
   const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${dtrLabel}</span><span class="result-value">${dtrFormatted}</span></div>`;
-  const takeoffHtml = `<div class="result-box important clickable takeoff-box" style="user-select: none; touch-action: manipulation;"><span class="result-label">${takeoffLabel}</span><span class="result-value">${takeoffPressure} bar</span></div>`;
+  const takeoffHtml = `<div class="result-box important takeoff-box" style="user-select: none; touch-action: manipulation;"><span class="result-label">${takeoffLabel}</span><span class="result-value">${takeoffPressure} bar</span></div>`;
   const reserveHtml = `<div class="result-box important clickable reserve-box"><span class="result-label">${reserveLabel}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+  const btnHtml = `<button class="action-btn optimize-btn" style="width: 100%; margin-bottom: 10px;">${optimizeBtnLabel}</button>`;
 
-  container.innerHTML = `<div class="results-row">${dtrHtml}${takeoffHtml}${reserveHtml}</div>`;
+  container.innerHTML = `${btnHtml}<div class="results-row">${dtrHtml}${takeoffHtml}${reserveHtml}</div>`;
+
+  const optimizeBtn = container.querySelector('.optimize-btn');
+  if (optimizeBtn) {
+    optimizeBtn.onclick = () => {
+      const isDive2 = container.id === 'dive-details-2';
+      optimizeTimeForReserve(isDive2);
+    };
+  }
 
   const dtrBox = container.querySelector('.dtr-box');
   if (dtrBox) {
     dtrBox.onclick = () => showTimeBreakdown(timeBreakdown);
-  }
-
-  const takeoffBox = container.querySelector('.takeoff-box');
-  if (takeoffBox) {
-    takeoffBox.addEventListener('pointerup', (e) => {
-      e.preventDefault();
-      const isDive2 = container.id === 'dive-details-2';
-      const btn = document.getElementById('optimize-btn');
-      if (btn) {
-        btn.onclick = () => {
-          optimizeTimeForReserve(isDive2);
-          if (window.__closeModal) window.__closeModal(document.getElementById('takeoff-modal'));
-        };
-      }
-      if (window.__openModal) window.__openModal(document.getElementById('takeoff-modal'));
-    });
   }
 
   const reserveBox = container.querySelector('.reserve-box');

@@ -39,8 +39,6 @@ window.translations = {
     dtr: 'dtr',
     gps: 'gps',
     takeoffPressure: 'Pression décollage',
-    takeoffExplanation:
-      'Calcule la durée maximale de plongée possible avec le gaz disponible, sans consommer la réserve (50 bar).',
     reserve: 'Pression fin',
     majoration: 'Majoration',
     tensionEvolution: 'Saturation : ',
@@ -111,8 +109,6 @@ window.translations = {
     dtr: 'tts',
     gps: 'pg',
     takeoffPressure: 'Takeoff Pressure',
-    takeoffExplanation:
-      'Calculates the maximum possible dive duration with the available gas, without using the reserve (50 bar).',
     reserve: 'End Pressure',
     majoration: 'Majoration',
     tensionEvolution: 'Saturation: ',
