@@ -507,7 +507,8 @@ function updateSaturationTable(
   beforeTensions,
   afterTensionsBuhlmann,
   afterTensionsC60,
-  afterTensionsC120
+  afterTensionsC120,
+  halfLives
 ) {
   const container = el['saturation-table-container'];
   if (!container || !beforeTensions || !afterTensionsBuhlmann) return;
@@ -567,6 +568,7 @@ function updateSaturationTable(
   thead.innerHTML = `
         <tr>
             <th>${trans.compartment}</th>
+            <th>T1/2 (min)</th>
             <th>${trans.tensionBefore}</th>
             <th>${trans.tensionAfter} (Raw)</th>
             <th>${trans.tensionAfter} (C60)</th>
@@ -582,6 +584,10 @@ function updateSaturationTable(
     const cellComp = document.createElement('td');
     cellComp.textContent = i + 1;
     row.appendChild(cellComp);
+
+    const cellHalfLife = document.createElement('td');
+    cellHalfLife.textContent = Math.round(halfLives[i]);
+    row.appendChild(cellHalfLife);
 
     const cellBefore = document.createElement('td');
     cellBefore.textContent = beforeTensions[i].toFixed(2);
@@ -1158,7 +1164,8 @@ function _updateUI_impl() {
       beforeTensions,
       afterTensionsBuhlmann,
       afterTensionsC60,
-      afterTensionsC120
+      afterTensionsC120,
+      window.Planning.HALF_LIVES
     );
 
     if (el['majoration-display']) {
