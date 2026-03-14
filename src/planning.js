@@ -222,7 +222,9 @@
         surfacePressure
       );
 
-      if (!isSafe) {
+      let forceStop = firstStopDepth !== null && currentDepth <= firstStopDepth;
+
+      if (!isSafe || forceStop) {
         if (firstStopDepth === null) firstStopDepth = currentDepth;
 
         // If we must stop, or if we hit the ceiling, the ascent from here (first stop) will be slow.
@@ -243,7 +245,13 @@
         let stopTime = 0;
         const PN2_stop = depthToPalvN2(currentDepth, surfacePressure, gaz_fN2);
 
-        while (!isSafe) {
+        // Force stop to be a multiple of 1 minute, and at least 1 minute if forceStop is true
+        while (
+          !isSafe ||
+          stopTime < (forceStop ? 1 : 0) ||
+          Math.abs(stopTime - Math.round(stopTime)) > 0.01 ||
+          Math.round(stopTime) === 0
+        ) {
           stopTime += timeStep;
           dtr_Buhlmann += timeStep;
           t_dive_total += timeStep;
@@ -262,7 +270,7 @@
 
           if (stopTime > MAX_STOP_TIME_BEFORE_INFTY) break;
         }
-        stopsArr.push({ depth: currentDepth, time: stopTime });
+        stopsArr.push({ depth: currentDepth, time: Math.round(stopTime) });
         // Mark that we've completed the first stop
         if (!hasCompletedFirstStop && firstStopDepth === currentDepth) {
           hasCompletedFirstStop = true;
