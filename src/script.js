@@ -1709,7 +1709,7 @@ function showTimeBreakdown(timeBreakdown) {
     return li;
   };
 
-  total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)} (hh:mm)`;
+  total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)}`;
 
   if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent, '#2196f3');
   if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom, '#4caf50');
