@@ -40,7 +40,7 @@ window.translations = {
     gps: 'gps',
     takeoffPressure: 'Pression décollage',
     takeoffExplanation:
-      'Double-cliquer sur cette case permet de trouver automatiquement la durée maximale de plongée qui ne consomme pas la réserve (50 bar).',
+      'Calcule la durée maximale de plongée possible avec le gaz disponible, sans consommer la réserve (50 bar).',
     reserve: 'Pression fin',
     majoration: 'Majoration',
     tensionEvolution: 'Saturation : ',
@@ -111,7 +111,7 @@ window.translations = {
     gps: 'pg',
     takeoffPressure: 'Takeoff Pressure',
     takeoffExplanation:
-      "Double-clicking on this box will automatically find the longest dive duration that doesn't use the reserve (50 bar).",
+      'Calculates the maximum possible dive duration with the available gas, without using the reserve (50 bar).',
     reserve: 'End Pressure',
     majoration: 'Majoration',
     tensionEvolution: 'Saturation: ',
