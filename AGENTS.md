@@ -53,6 +53,5 @@ See `./README.md` for instructions.
 
 ### 6. Agent Permissions & Workflow
 
-- **Autonomy**: You are authorized to push autonomously to any branch (e.g. `exp-*`) **except `main`**.
+- **Autonomy**: You are authorized to push autonomously to any branch **except `main`**.
 - **Main Branch**: Changes to `main` must be done via Pull Request or user confirmation (unless explicitly instructed otherwise). You need to run tests `npm test` before any commit to `main` branch.
-- **Experiments**: Use branches starting with `exp-` for experimental features. These are automatically deployed to a dedicated subfolder on GitHub Pages.
