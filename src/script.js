@@ -1448,11 +1448,14 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   const trans = window.translations[state.currentLang];
   list.innerHTML = '';
 
-  const addLine = (label, liters, parent = list) => {
+  const addLine = (label, liters, color, parent = list) => {
     const bar = Math.ceil(liters / state.tankVolume);
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    li.innerHTML = `<strong>${label}:</strong> ${bar} bar 	&ndash; <small><i>${Math.round(liters)} L</i></small>`;
+    const dot = color
+      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
+      : '';
+    li.innerHTML = `${dot}<strong>${label}:</strong> ${bar} bar 	&ndash; <small><i>${Math.round(liters)} L</i></small>`;
     parent.appendChild(li);
     return li;
   };
@@ -1460,17 +1463,58 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   const bar_total = Math.ceil(consoLiters.total / state.tankVolume);
   total.innerHTML = `${trans.total}: ${bar_total} bar 	&ndash; <small><i>${Math.round(consoLiters.total)} L</i></small>`;
 
-  if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent);
-  if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom);
-
   let stopsGas = 0;
   if (breakdown.stops) {
     stopsGas = Object.values(breakdown.stops).reduce((a, b) => a + b, 0);
   }
   const dtrGas = breakdown.ascent + stopsGas;
 
+  const pieContainer = document.getElementById('gas-breakdown-pie-container');
+  if (pieContainer) {
+    pieContainer.innerHTML = '';
+    pieContainer.style.display = 'flex';
+    pieContainer.style.justifyContent = 'center';
+    pieContainer.style.marginTop = '20px';
+    pieContainer.style.marginBottom = '20px';
+
+    const totalCapacity = state.tankVolume * state.initTankPressure;
+    const reserveLiters = RESERVE_PRESSURE_THRESHOLD * state.tankVolume;
+    const remainingLiters = Math.max(0, totalCapacity - consoLiters.total - reserveLiters);
+    const actualReserve = Math.max(0, Math.min(reserveLiters, totalCapacity - consoLiters.total));
+
+    let startPct = 0;
+    const getSegment = (liters, color) => {
+      if (liters <= 0) return '';
+      const pct = (liters / totalCapacity) * 100;
+      const res = `${color} ${startPct}% ${startPct + pct}%`;
+      startPct += pct;
+      return res;
+    };
+
+    const segments = [
+      getSegment(breakdown.descent, '#2196f3'),
+      getSegment(breakdown.bottom, '#4caf50'),
+      getSegment(dtrGas, '#ff9800'),
+      getSegment(actualReserve, '#e53935'),
+      getSegment(remainingLiters, 'rgba(255, 255, 255, 0.1)'),
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    const pie = document.createElement('div');
+    pie.style.width = '120px';
+    pie.style.height = '120px';
+    pie.style.borderRadius = '50%';
+    pie.style.background = `conic-gradient(${segments})`;
+    pie.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+    pieContainer.appendChild(pie);
+  }
+
+  if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent, '#2196f3');
+  if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom, '#4caf50');
+
   if (dtrGas > 0) {
-    const dtrLi = addLine(trans.ascentTitle, dtrGas);
+    const dtrLi = addLine(trans.ascentTitle, dtrGas, '#ff9800');
 
     const subList = document.createElement('ul');
     subList.style.marginTop = '5px';
