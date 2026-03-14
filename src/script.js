@@ -1579,6 +1579,87 @@ function showTimeBreakdown(timeBreakdown) {
   const trans = window.translations[state.currentLang];
   list.innerHTML = '';
 
+  const chartContainer = document.getElementById('time-breakdown-chart-container');
+  if (chartContainer && timeBreakdown.profilePoints) {
+    chartContainer.innerHTML = '';
+    const points = timeBreakdown.profilePoints;
+    const maxT = points[points.length - 1].t;
+    const maxD = timeBreakdown.maxDepth;
+
+    // Create SVG
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', 'auto');
+    svg.setAttribute('viewBox', `0 0 400 160`);
+
+    // Build path
+    const W = 400;
+    const H = 130;
+    const Y_OFFSET = 20;
+
+    let dStr = points
+      .map((p) => {
+        const x = (p.t / maxT) * W;
+        const y = (p.d / (maxD * 1.1)) * H + Y_OFFSET; // y=Y_OFFSET is top, y=H+Y_OFFSET is bottom
+        return `${x},${y}`;
+      })
+      .join(' ');
+
+    // Add surface line to close the polygon for a nice fill
+    dStr += ` ${W},${Y_OFFSET} 0,${Y_OFFSET}`;
+
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', dStr);
+    polygon.setAttribute('fill', 'rgba(33, 150, 243, 0.2)');
+    polygon.setAttribute('stroke', '#2196f3');
+    polygon.setAttribute('stroke-width', '2');
+
+    svg.appendChild(polygon);
+
+    // Draw depth labels at bottom and stops
+    const drawLabel = (t, d, text) => {
+      const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const x = (t / maxT) * W;
+      const y = (d / (maxD * 1.1)) * H + Y_OFFSET;
+      textEl.setAttribute('x', `${x}`);
+      textEl.setAttribute('y', `${y - 4}`);
+      textEl.setAttribute('fill', '#fff');
+      textEl.setAttribute('font-size', '10');
+      textEl.setAttribute('text-anchor', 'middle');
+      textEl.textContent = text;
+      svg.appendChild(textEl);
+    };
+
+    drawLabel(timeBreakdown.descent + timeBreakdown.bottom / 2, maxD, `${Math.round(maxD)}m`);
+
+    if (timeBreakdown.stops) {
+      for (const d of Object.keys(timeBreakdown.stops)) {
+        const point = points.find((p) => p.d === Number(d));
+        if (point) {
+          drawLabel(point.t + timeBreakdown.stops[d] / 2, point.d, `${d}m`);
+        }
+      }
+    }
+
+    // Draw time labels
+    const drawTimeLabel = (t, text, align = 'middle') => {
+      const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const x = (t / maxT) * W;
+      textEl.setAttribute('x', `${x}`);
+      textEl.setAttribute('y', `12`);
+      textEl.setAttribute('fill', '#aaa');
+      textEl.setAttribute('font-size', '10');
+      textEl.setAttribute('text-anchor', align);
+      textEl.textContent = text;
+      svg.appendChild(textEl);
+    };
+
+    drawTimeLabel(0, '0', 'start');
+    drawTimeLabel(maxT, formatTime(maxT), 'end');
+
+    chartContainer.appendChild(svg);
+  }
+
   const addLine = (label, minutes, parent = list) => {
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
