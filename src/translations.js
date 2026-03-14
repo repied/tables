@@ -45,7 +45,7 @@ window.translations = {
     sursaturationRate: 'Taux',
     saturationExplanationTitle: 'Surpénalisation',
     saturationExplanation:
-      'Le taux correspond à la différence entre la tension du compartiment directeur (encadré rouge) et la ppN2 alvéolaire en surface (~0.75 bar), exprimée en pourcentage.',
+      'Cette méthode de surpénalisation est issue des travaux de <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>.',
     low: 'Bas',
     high: 'Haut',
     compartment: 'Comp.',
@@ -115,7 +115,7 @@ window.translations = {
     saturationExplanationTitle: 'Additional Penalty',
     sursaturationRate: 'Rate',
     saturationExplanation:
-      'The rate represents the relative difference between the tension of the leading compartment (red box) and the surface alveolar ppN2 (~0.75 bar), expressed as a percentage.',
+      'This method of successive dive penalization comes from <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>.',
     low: 'Low',
     high: 'High',
     compartment: 'Comp.',
