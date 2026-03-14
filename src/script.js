@@ -568,11 +568,11 @@ function updateSaturationTable(
   thead.innerHTML = `
         <tr>
             <th>${trans.compartment}</th>
-            <th>T1/2 (min)</th>
+            <th>T1/2</th>
             <th>${trans.tensionBefore}</th>
-            <th>${trans.tensionAfter} (Raw)</th>
-            <th>${trans.tensionAfter} (C60)</th>
-            <th>${trans.tensionAfter} (C120)</th>
+            <th>OFF</th>
+            <th>C60</th>
+            <th>C120</th>
         </tr>
     `;
   table.appendChild(thead);
