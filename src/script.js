@@ -1480,15 +1480,11 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     pieContainer.style.marginTop = '20px';
     pieContainer.style.marginBottom = '20px';
 
-    const totalCapacity = state.tankVolume * state.initTankPressure;
-    const reserveLiters = RESERVE_PRESSURE_THRESHOLD * state.tankVolume;
-    const remainingLiters = Math.max(0, totalCapacity - consoLiters.total - reserveLiters);
-    const actualReserve = Math.max(0, Math.min(reserveLiters, totalCapacity - consoLiters.total));
-
     let startPct = 0;
     const getSegment = (liters, color) => {
       if (liters <= 0) return '';
-      const pct = (liters / totalCapacity) * 100;
+      const MathMaxLiters = Math.max(0, liters);
+      const pct = (MathMaxLiters / consoLiters.total) * 100;
       const res = `${color} ${startPct}% ${startPct + pct}%`;
       startPct += pct;
       return res;
@@ -1497,9 +1493,8 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     const segments = [
       getSegment(breakdown.descent, '#2196f3'),
       getSegment(breakdown.bottom, '#4caf50'),
-      getSegment(dtrGas, '#ff9800'),
-      getSegment(actualReserve, '#e53935'),
-      getSegment(remainingLiters, 'rgba(255, 255, 255, 0.1)'),
+      getSegment(breakdown.ascent, '#ff9800'),
+      getSegment(stopsGas, '#e53935'),
     ]
       .filter(Boolean)
       .join(', ');
@@ -1517,7 +1512,7 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom, '#4caf50');
 
   if (dtrGas > 0) {
-    const dtrLi = addLine(trans.ascentTitle, dtrGas, '#ff9800');
+    const dtrLi = addLine(trans.ascentTitle, dtrGas, null);
 
     const subList = document.createElement('ul');
     subList.style.marginTop = '5px';
@@ -1525,22 +1520,26 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     dtrLi.appendChild(subList);
 
     if (breakdown.ascent > 0) {
+      const color = '#ff9800';
+      const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
       const li = document.createElement('li');
       li.style.marginBottom = '5px';
-      li.innerHTML = `${trans.ascent}: ${Math.ceil(breakdown.ascent / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(breakdown.ascent)} L</i></small>`;
+      li.innerHTML = `${dot}${trans.ascent}: ${Math.ceil(breakdown.ascent / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(breakdown.ascent)} L</i></small>`;
       subList.appendChild(li);
     }
 
     if (breakdown.stops) {
+      const color = '#e53935';
       const stopDepths = Object.keys(breakdown.stops)
         .map(Number)
         .sort((a, b) => b - a);
       stopDepths.forEach((d) => {
         const gasAtStop = breakdown.stops[d];
         if (gasAtStop > 0) {
+          const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
           const li = document.createElement('li');
           li.style.marginBottom = '5px';
-          li.innerHTML = `${trans.stopAt} ${d}m: ${Math.ceil(gasAtStop / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(gasAtStop)} L</i></small>`;
+          li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${Math.ceil(gasAtStop / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(gasAtStop)} L</i></small>`;
           subList.appendChild(li);
         }
       });
