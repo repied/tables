@@ -1692,21 +1692,24 @@ function showTimeBreakdown(timeBreakdown) {
     chartContainer.appendChild(svg);
   }
 
-  const addLine = (label, minutes, parent = list) => {
+  const addLine = (label, minutes, color, parent = list) => {
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    li.innerHTML = `<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
+    const dot = color
+      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
+      : '';
+    li.innerHTML = `${dot}<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
     parent.appendChild(li);
     return li;
   };
 
   total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)} (hh:mm)`;
 
-  if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent);
-  if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom);
+  if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent, '#2196f3');
+  if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom, '#4caf50');
 
   if (timeBreakdown.dtr > 0) {
-    const dtrLi = addLine(trans.dtr.toUpperCase(), timeBreakdown.dtr);
+    const dtrLi = addLine(trans.dtr.toUpperCase(), timeBreakdown.dtr, null);
 
     const subList = document.createElement('ul');
     subList.style.marginTop = '5px';
@@ -1714,20 +1717,24 @@ function showTimeBreakdown(timeBreakdown) {
     dtrLi.appendChild(subList);
 
     if (timeBreakdown.ascent > 0) {
+      const color = '#ff9800';
+      const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
       const li = document.createElement('li');
       li.style.marginBottom = '5px';
-      li.innerHTML = `${trans.ascent}: ${formatTime(Math.ceil(timeBreakdown.ascent))}`;
+      li.innerHTML = `${dot}${trans.ascent}: ${formatTime(Math.ceil(timeBreakdown.ascent))}`;
       subList.appendChild(li);
     }
 
     if (timeBreakdown.stops) {
+      const color = '#e53935';
       const stopDepths = Object.keys(timeBreakdown.stops)
         .map(Number)
         .sort((a, b) => b - a);
       stopDepths.forEach((d) => {
+        const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
         const li = document.createElement('li');
         li.style.marginBottom = '5px';
-        li.innerHTML = `${trans.stopAt} ${d}m: ${formatTime(Math.ceil(timeBreakdown.stops[d]))}`;
+        li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${formatTime(Math.ceil(timeBreakdown.stops[d]))}`;
         subList.appendChild(li);
       });
     }
