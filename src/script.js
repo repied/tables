@@ -1585,7 +1585,7 @@ function showTimeBreakdown(timeBreakdown) {
     return li;
   };
 
-  total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)}`;
+  total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)} (hh:mm)`;
 
   if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent);
   if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom);
