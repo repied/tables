@@ -1675,7 +1675,7 @@ function showTimeBreakdown(timeBreakdown) {
     // Create SVG
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '100%');
-    svg.setAttribute('height', 'auto');
+    svg.style.height = 'auto';
     svg.setAttribute('viewBox', `0 0 400 160`);
 
     // Build path
@@ -1990,16 +1990,22 @@ function setupModal() {
       modal.__onClose = null;
     }
 
+    // Move focus out BEFORE hiding/aria-hidden to avoid accessibility warnings
+    try {
+      const prev = returnFocus || modal.__previouslyFocused;
+      if (prev && typeof prev.focus === 'function') {
+        prev.focus();
+      } else {
+        document.body.focus();
+      }
+    } catch (e) {
+      // ignore
+    }
+
     modal.style.display = 'none';
     modal.setAttribute('aria-hidden', 'true');
     if (modal.__onKeyDown) document.removeEventListener('keydown', modal.__onKeyDown);
     if (modal.__onClick) modal.removeEventListener('click', modal.__onClick);
-    try {
-      const prev = returnFocus || modal.__previouslyFocused;
-      if (prev && typeof prev.focus === 'function') prev.focus();
-    } catch (e) {
-      // ignore
-    }
   }
 
   if (helpBtn && helpModal) {
