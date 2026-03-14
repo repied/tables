@@ -52,7 +52,7 @@ window.translations = {
     tensionAfter: 'Après IS',
     saturationTableSentence: "Tensions avant et après l'intervalle de surface (IS)",
     penalisationExplanation:
-      'En mode C60 ou C120, le dégazage des compartiments rapides est limité à celui du compartiment 60 ou 120 minutes. Cela correspond à une surpénalisation forfaitaire de sécurité. Source: <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>.',
+      'En mode C60 ou C120, le dégazage des compartiments rapides est limité à celui du compartiment 60 ou 120 minutes. Cela correspond à une surpénalisation forfaitaire de sécurité. Source: <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>. Le compartiment directeur est encadré en rouge.',
     optimizeBtn: 'Optimiser la durée',
     checklistTitle: 'Checklist',
     share: 'Partager',
@@ -121,7 +121,7 @@ window.translations = {
     tensionAfter: 'After SI',
     saturationTableSentence: 'Tensions before and after surface interval (SI).',
     penalisationExplanation:
-      'In C60 or C120 mode, the off-gassing of fast compartments is limited to that of the 60 or 120-minute compartment. Source <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>.',
+      'In C60 or C120 mode, the off-gassing of fast compartments is limited to that of the 60 or 120-minute compartment. Source <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>. Leading compartiment is in red.',
     optimizeBtn: 'Optimize duration',
     checklistTitle: 'Checklist',
     share: 'Share',

@@ -14,11 +14,12 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 - **Double tap** pour réinitialiser
 - **Cadenas :** pour déverrouiller GFs seconde plongée
 - Basculer **ppO<sub>2</sub> max** entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
-- **Surpénalisation plongée successive** ([A. Foret](../data/Worldivers-Computers-Repetitive-FR.pdf)) : Activez "C60" (loisir) ou "C120" (engagée) pour limiter le dégazage des compartiments rapides. Cliquez sur le **?** pour voir l'impact sur les tensions.
+- **Surpénalisation plongée successive** : Activez "C60" (loisir) ou "C120" (engagée) pour limiter le dégazage des compartiments rapides. Cliquez sur le **?** pour voir l'impact sur les tensions.
+- **Optimisez** la durée qui permet de ne pas toucher à la réserve.
 - **Partager :** partager une plongée par lien ou QR code
 - **Calculs :**
   - **DTR :** Durée Totale de Remontée
-  - **Pression décollage :** Pression au début de la remontée. Double-tapez sur cette case pour trouver automatiquement le temps de fond maximum avant d'entamer la réserve
+  - **Pression décollage :** Pression au début de la remontée.
   - **Pression finale** en bouteille
   - **Alerte MOD :** Un arc orange apparaît en cas de dépassement de la ppO<sub>2</sub> max.
 
