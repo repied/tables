@@ -1687,7 +1687,7 @@ function showTimeBreakdown(timeBreakdown) {
     };
 
     drawTimeLabel(0, '0', 'start');
-    drawTimeLabel(maxT, formatTime(maxT), 'end');
+    drawTimeLabel(maxT, formatTime(Math.ceil(maxT)), 'end');
 
     chartContainer.appendChild(svg);
   }
