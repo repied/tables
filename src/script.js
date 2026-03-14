@@ -1366,7 +1366,7 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
       </div>
       <div>
         <span class="result-label">${reserveLabel}</span>
-        <span class="result-value">${remainingPressure} bar</span>
+        <span class="result-value-remaining">${remainingPressure} bar</span>
       </div>
     </div>
   `;
@@ -1408,7 +1408,7 @@ async function optimizeTimeForReserve(isDive2) {
 
   try {
     const depth = isDive2 ? state.dive2Depth : state.dive1Depth;
-    let low = Math.ceil(depth / 20); // 20m/min descent rate
+    let low = Math.ceil(depth / window.Planning.DESCENT_RATE);
     let high = MAX_TIME;
     let best = low;
 
@@ -1421,7 +1421,9 @@ async function optimizeTimeForReserve(isDive2) {
       await new Promise((r) => setTimeout(r, 100)); // allow UI to paint
 
       const container = isDive2 ? el['dive-details-2'] : el['dive-details'];
-      const reserveBox = container ? container.querySelector('.reserve-box .result-value') : null;
+      const reserveBox = container
+        ? container.querySelector('.reserve-box .result-value-remaining')
+        : null;
 
       if (!reserveBox) {
         // Out of table or error, time is too long

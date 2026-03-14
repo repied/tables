@@ -455,6 +455,11 @@ body.gf-mode .majoration-display {
   font-weight: bold;
   white-space: nowrap;
 }
+.result-box .result-value-remaining {
+  font-size: 1.1rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
 
 .gps-badge {
   background: var(--accent-color);
