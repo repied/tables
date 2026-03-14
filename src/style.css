@@ -413,6 +413,21 @@ body.gf-mode .majoration-display {
   border-color: rgba(33, 150, 243, 0.4);
 }
 
+.result-box.group {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex: 2;
+  gap: 10px;
+}
+
+.result-box.group > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
 .result-box.clickable {
   cursor: pointer;
   transition: background 0.2s;

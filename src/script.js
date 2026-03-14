@@ -1349,11 +1349,21 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
   const optimizeBtnLabel = trans[state.currentLang].optimizeBtn;
 
   const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${dtrLabel}</span><span class="result-value">${dtrFormatted}</span></div>`;
-  const takeoffHtml = `<div class="result-box important takeoff-box" style="user-select: none; touch-action: manipulation;"><span class="result-label">${takeoffLabel}</span><span class="result-value">${takeoffPressure} bar</span></div>`;
-  const reserveHtml = `<div class="result-box important clickable reserve-box"><span class="result-label">${reserveLabel}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+  const combinedGasHtml = `
+    <div class="result-box important clickable reserve-box group" style="user-select: none; touch-action: manipulation;">
+      <div>
+        <span class="result-label">${takeoffLabel}</span>
+        <span class="result-value">${takeoffPressure} bar</span>
+      </div>
+      <div>
+        <span class="result-label">${reserveLabel}</span>
+        <span class="result-value">${remainingPressure} bar</span>
+      </div>
+    </div>
+  `;
   const btnHtml = `<button class="action-btn optimize-btn" style="width: 100%; margin-bottom: 10px;">${optimizeBtnLabel}</button>`;
 
-  container.innerHTML = `${btnHtml}<div class="results-row">${dtrHtml}${takeoffHtml}${reserveHtml}</div>`;
+  container.innerHTML = `${btnHtml}<div class="results-row">${dtrHtml}${combinedGasHtml}</div>`;
 
   const optimizeBtn = container.querySelector('.optimize-btn');
   if (optimizeBtn) {
