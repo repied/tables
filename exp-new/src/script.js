@@ -550,14 +550,14 @@ function updateSaturationTable(
   // Explanatory sentence above the single table
   const sentence = document.createElement('p');
   sentence.className = 'saturation-table-sentence';
-  sentence.textContent = trans.saturationTableSentence;
+  sentence.innerHTML = trans.saturationTableSentence;
   container.appendChild(sentence);
 
   const penalisationExplanation = document.createElement('p');
   penalisationExplanation.className = 'penalisation-explanation';
-  penalisationExplanation.textContent = trans.penalisationExplanation;
+  penalisationExplanation.innerHTML = trans.penalisationExplanation;
   penalisationExplanation.style.fontSize = '0.9em';
-  penalisationExplanation.style.fontStyle = 'italic';
+  // penalisationExplanation.style.fontStyle = 'italic';
   penalisationExplanation.style.marginTop = '10px';
   penalisationExplanation.style.marginBottom = '20px';
   container.appendChild(penalisationExplanation);
