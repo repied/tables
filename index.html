@@ -588,23 +588,57 @@
 
       <div class="footer-links">
         <div class="lang-selector">
-          <img src="./assets/fr-flag-800.png" alt="FR" class="flag-icon" />
+          <img
+            src="./assets/fr-flag-800.png"
+            alt="FR"
+            class="flag-icon"
+            onclick="
+              document.getElementById('lang-toggle').checked = false;
+              document.getElementById('lang-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+          />
           <label class="switch">
             <input type="checkbox" id="lang-toggle" />
             <span class="slider round"></span>
           </label>
-          <img src="./assets/uk-flag-800.png" alt="UK" class="flag-icon" />
+          <img
+            src="./assets/uk-flag-800.png"
+            alt="UK"
+            class="flag-icon"
+            onclick="
+              document.getElementById('lang-toggle').checked = true;
+              document.getElementById('lang-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+          />
         </div>
         <a href="#" id="share-link" title="Share"></a>
         <a href="#" id="help-link" data-i18n="help"></a>
 
         <div class="theme-selector">
-          <span class="theme-icon">☀️</span>
+          <span
+            class="theme-icon"
+            onclick="
+              document.getElementById('theme-toggle').checked = false;
+              document.getElementById('theme-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+            >☀️</span
+          >
           <label class="switch">
             <input type="checkbox" id="theme-toggle" />
             <span class="slider round"></span>
           </label>
-          <span class="theme-icon">🌙</span>
+          <span
+            class="theme-icon"
+            onclick="
+              document.getElementById('theme-toggle').checked = true;
+              document.getElementById('theme-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+            >🌙</span
+          >
         </div>
       </div>
 
