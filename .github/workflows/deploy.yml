@@ -91,3 +91,15 @@ jobs:
           publish_dir: ./
           destination_dir: ${{ steps.deploy_path.outputs.DEST_DIR }}
           keep_files: true
+
+      - name: Deploy exp.html to Root
+        if: github.ref != 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          destination_dir: .
+          keep_files: true
+          exclude_assets: |
+            !exp.html
+            *
