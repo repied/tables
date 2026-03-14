@@ -729,7 +729,7 @@ function setupGaugeInteraction(
 
     const pressDuration = new Date().getTime() - lastTapTime;
     isDragging = false;
-    gaugeElement.style.cursor = 'default';
+    gaugeElement.style.cursor = '';
     gaugeElement.releasePointerCapture(e.pointerId);
 
     if (!hasMoved && pressDuration < 300) {
@@ -744,7 +744,7 @@ function setupGaugeInteraction(
   gaugeElement.addEventListener('pointercancel', (e) => {
     isDragging = false;
     hasMoved = false;
-    gaugeElement.style.cursor = 'default';
+    gaugeElement.style.cursor = '';
     if (singleTapTimer) clearTimeout(singleTapTimer);
   });
 
