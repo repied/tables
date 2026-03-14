@@ -972,6 +972,11 @@ input:checked + .slider:before {
   box-sizing: border-box;
 }
 
+.affected-compartment {
+  font-weight: bold;
+  color: #ffeb3b !important; /* Bright yellow for visibility */
+}
+
 .saturation-table-sentence {
   text-align: center;
   font-style: italic;
