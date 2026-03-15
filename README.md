@@ -6,7 +6,7 @@
 
 - Visit [https://repied.github.io/tables](https://repied.github.io/tables).
 - Toggle between MN90 and GF modes.
-- Set depth, time, surface interval and gases parameters to plan 2 successive dives.
+- Set parameters to plan 2 successive dives.
 - The app computes plans and checks gaz usage.
 - Plans can be shared with QR code and link.
 
