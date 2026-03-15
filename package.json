@@ -1,0 +1,27 @@
+{
+  "name": "tables",
+  "version": "3.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "live-server --port=5500",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node tests/unit_planning.js",
+    "genGFplans": "node ./src/generate_gf_plans.js",
+    "test:e2e": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,css,html,md}": "prettier --write"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "live-server": "^1.2.0",
+    "prettier": "^3.8.1"
+  }
+}
