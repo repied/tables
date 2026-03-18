@@ -404,13 +404,29 @@ body.gf-mode .majoration-display {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
+  flex: 2;
   min-width: 0;
 }
 
 .result-box.important {
   background: rgba(33, 150, 243, 0.2);
   border-color: rgba(33, 150, 243, 0.4);
+}
+
+.result-box.group {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex: 3;
+  gap: 10px;
+  padding: 6px 12px;
+}
+
+.result-box.group > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
 }
 
 .result-box.clickable {
@@ -436,6 +452,11 @@ body.gf-mode .majoration-display {
 }
 
 .result-box .result-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.result-box .result-value-remaining {
   font-size: 1.1rem;
   font-weight: bold;
   white-space: nowrap;
@@ -546,6 +567,9 @@ body.gf-mode .majoration-display {
   font-size: 0.7rem;
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  min-width: 18px;
+  min-height: 18px;
 }
 
 .glass-input {
@@ -952,6 +976,11 @@ input:checked + .slider:before {
   border: 2px solid #e53935 !important;
   position: relative;
   box-sizing: border-box;
+}
+
+.affected-compartment {
+  font-weight: bold;
+  color: #ffeb3b !important; /* Bright yellow for visibility */
 }
 
 .saturation-table-sentence {
