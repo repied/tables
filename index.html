@@ -261,7 +261,7 @@
                 </svg>
                 <div class="gauge-content">
                   <div class="gauge-value" id="time-display">0:00</div>
-                  <div class="gauge-unit">h:mm</div>
+                  <div class="gauge-unit">hh:mm</div>
                 </div>
               </div>
             </div>
@@ -338,7 +338,7 @@
             </svg>
             <div class="gauge-content">
               <div class="gauge-value small-text" id="interval-display">60</div>
-              <div class="gauge-unit">h:mm</div>
+              <div class="gauge-unit">hh:mm</div>
             </div>
           </div>
         </div>
@@ -456,7 +456,17 @@
                 justify-content: center;
               "
             >
-              <div class="ppo2-label" data-i18n="surpenalisation" style="margin-top: 0">
+              <div
+                class="ppo2-label"
+                data-i18n="surpenalisation"
+                style="
+                  margin-top: 0;
+                  background: transparent;
+                  box-shadow: none;
+                  backdrop-filter: none;
+                  -webkit-backdrop-filter: none;
+                "
+              >
                 Surpénalisation
               </div>
               <div
@@ -518,7 +528,7 @@
                 </svg>
                 <div class="gauge-content">
                   <div class="gauge-value" id="time-display-2">0:00</div>
-                  <div class="gauge-unit">h:mm</div>
+                  <div class="gauge-unit">hh:mm</div>
                 </div>
               </div>
             </div>
@@ -578,23 +588,57 @@
 
       <div class="footer-links">
         <div class="lang-selector">
-          <img src="./assets/fr-flag-800.png" alt="FR" class="flag-icon" />
+          <img
+            src="./assets/fr-flag-800.png"
+            alt="FR"
+            class="flag-icon"
+            onclick="
+              document.getElementById('lang-toggle').checked = false;
+              document.getElementById('lang-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+          />
           <label class="switch">
             <input type="checkbox" id="lang-toggle" />
             <span class="slider round"></span>
           </label>
-          <img src="./assets/uk-flag-800.png" alt="UK" class="flag-icon" />
+          <img
+            src="./assets/uk-flag-800.png"
+            alt="UK"
+            class="flag-icon"
+            onclick="
+              document.getElementById('lang-toggle').checked = true;
+              document.getElementById('lang-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+          />
         </div>
         <a href="#" id="share-link" title="Share"></a>
         <a href="#" id="help-link" data-i18n="help"></a>
 
         <div class="theme-selector">
-          <span class="theme-icon">☀️</span>
+          <span
+            class="theme-icon"
+            onclick="
+              document.getElementById('theme-toggle').checked = false;
+              document.getElementById('theme-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+            >☀️</span
+          >
           <label class="switch">
             <input type="checkbox" id="theme-toggle" />
             <span class="slider round"></span>
           </label>
-          <span class="theme-icon">🌙</span>
+          <span
+            class="theme-icon"
+            onclick="
+              document.getElementById('theme-toggle').checked = true;
+              document.getElementById('theme-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+            >🌙</span
+          >
         </div>
       </div>
 
@@ -621,29 +665,6 @@
             tabindex="-1"
           ></h1>
           <div id="saturation-table-container"></div>
-          <p id="saturation-explanation-content" data-i18n="saturationExplanation"></p>
-        </div>
-      </div>
-
-      <!-- Takeoff Pressure Modal -->
-      <div
-        id="takeoff-modal"
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="takeoff-explanation-title"
-        aria-hidden="true"
-      >
-        <div class="modal-content">
-          <button
-            class="modal-close"
-            aria-label="Close"
-            onclick="window.__closeModal(document.getElementById('takeoff-modal'))"
-          >
-            &times;
-          </button>
-          <h1 id="takeoff-explanation-title" data-i18n="takeoffPressure" tabindex="-1"></h1>
-          <p id="takeoff-explanation-content" data-i18n="takeoffExplanation"></p>
         </div>
       </div>
 
@@ -666,6 +687,11 @@
           </button>
           <h1 id="gas-breakdown-title" data-i18n="gasBreakdownTitle" tabindex="-1"></h1>
           <h2 id="gas-breakdown-total"></h2>
+          <div
+            id="gas-breakdown-tank"
+            style="text-align: center; margin-top: 15px; font-size: 0.9rem; opacity: 0.8"
+          ></div>
+          <div id="gas-breakdown-pie-container"></div>
           <ul
             id="gas-breakdown-list"
             style="text-align: left; display: inline-block; margin-top: 20px"
@@ -694,6 +720,10 @@
           </button>
           <h1 id="time-breakdown-title" data-i18n="timeBreakdownTitle" tabindex="-1"></h1>
           <h2 id="time-breakdown-total"></h2>
+          <div
+            id="time-breakdown-chart-container"
+            style="width: 100%; margin-top: 15px; margin-bottom: 15px"
+          ></div>
           <ul
             id="time-breakdown-list"
             style="text-align: left; display: inline-block; margin-top: 20px"

@@ -413,11 +413,23 @@
     const t_descent = depth / DESCENT_RATE;
     const t_at_depth = Math.max(0, bottomTime - t_descent);
 
+    let currentT = 0;
+    const profilePoints = [{ t: currentT, d: 0, phase: 'start' }];
+    currentT += t_descent;
+    profilePoints.push({ t: currentT, d: depth, phase: 'descent' });
+    currentT += t_at_depth;
+    profilePoints.push({ t: currentT, d: depth, phase: 'bottom' });
+
     let t_ascent = 0;
     const firstTargetDepth = stopDepths.length > 0 ? stopDepths[0] : 0;
 
-    if (depth > firstTargetDepth) {
-      t_ascent += (depth - firstTargetDepth) / ascentRate;
+    let currentDepth = depth;
+    if (currentDepth > firstTargetDepth) {
+      const travelT = (currentDepth - firstTargetDepth) / ascentRate;
+      t_ascent += travelT;
+      currentT += travelT;
+      currentDepth = firstTargetDepth;
+      profilePoints.push({ t: currentT, d: currentDepth, phase: 'travel' });
     }
 
     const stopBreakdown = {};
@@ -425,20 +437,30 @@
       const stopDuration = stops[d];
       stopBreakdown[d] = stopDuration;
 
+      currentT += stopDuration;
+      profilePoints.push({ t: currentT, d: d, phase: 'stop' });
+
       const nextTarget = i + 1 < stopDepths.length ? stopDepths[i + 1] : SURFACE_DEPTH;
-      t_ascent += (d - nextTarget) / ASCENT_RATE_FROM_FIRST_STOP;
+      const travelT = (d - nextTarget) / ASCENT_RATE_FROM_FIRST_STOP;
+      t_ascent += travelT;
+      currentT += travelT;
+      currentDepth = nextTarget;
+      profilePoints.push({ t: currentT, d: currentDepth, phase: 'travel' });
     });
 
     const totalStopTime = Object.values(stops).reduce((a, b) => a + b, 0);
     const dtr = Math.ceil(t_ascent + totalStopTime);
 
     return {
+      maxDepth: depth,
+      bottomTimeTotal: bottomTime,
       descent: t_descent,
       bottom: t_at_depth,
       ascent: t_ascent,
       stops: stopBreakdown,
       dtr: dtr,
       totalDuration: Math.ceil(t_descent + t_at_depth + t_ascent + totalStopTime),
+      profilePoints: profilePoints,
     };
   }
 

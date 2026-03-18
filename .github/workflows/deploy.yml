@@ -3,9 +3,9 @@ name: Deploy App
 on:
   push:
     branches:
-      - main # Deploys to production
-      - 'exp-*' # Deploys to experiment folders
-      - 'feature-*'
+      - main # Deploys to production after testing
+      - 'feature-*' # Deployed to a subdirectory named after the branch for testing
+      - 'exp-*' # Deployed to a subdirectory named after the branch for testing
 
 concurrency:
   group: gh-pages
@@ -67,11 +67,6 @@ jobs:
       - name: Run Tests
         if: github.ref == 'refs/heads/main'
         run: npm run test
-
-      - name: Generate Experiments Index
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/update-experiments-index.sh
 
       - name: Determine Deployment Path
         id: deploy_path

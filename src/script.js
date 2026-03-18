@@ -198,11 +198,11 @@ function cacheElements() {
     'gas-modal',
     'gas-breakdown-list',
     'gas-breakdown-total',
+    'gas-breakdown-tank',
     'saturation-modal',
     'time-modal',
     'time-breakdown-list',
     'time-breakdown-total',
-    'takeoff-modal',
     'saturation-table-container',
     'depth-warning',
     'depth-warning-2',
@@ -507,7 +507,8 @@ function updateSaturationTable(
   beforeTensions,
   afterTensionsBuhlmann,
   afterTensionsC60,
-  afterTensionsC120
+  afterTensionsC120,
+  halfLives
 ) {
   const container = el['saturation-table-container'];
   if (!container || !beforeTensions || !afterTensionsBuhlmann) return;
@@ -549,14 +550,14 @@ function updateSaturationTable(
   // Explanatory sentence above the single table
   const sentence = document.createElement('p');
   sentence.className = 'saturation-table-sentence';
-  sentence.textContent = trans.saturationTableSentence;
+  sentence.innerHTML = trans.saturationTableSentence;
   container.appendChild(sentence);
 
   const penalisationExplanation = document.createElement('p');
   penalisationExplanation.className = 'penalisation-explanation';
-  penalisationExplanation.textContent = trans.penalisationExplanation;
+  penalisationExplanation.innerHTML = trans.penalisationExplanation;
   penalisationExplanation.style.fontSize = '0.9em';
-  penalisationExplanation.style.fontStyle = 'italic';
+  // penalisationExplanation.style.fontStyle = 'italic';
   penalisationExplanation.style.marginTop = '10px';
   penalisationExplanation.style.marginBottom = '20px';
   container.appendChild(penalisationExplanation);
@@ -567,10 +568,11 @@ function updateSaturationTable(
   thead.innerHTML = `
         <tr>
             <th>${trans.compartment}</th>
+            <th>T1/2</th>
             <th>${trans.tensionBefore}</th>
-            <th>${trans.tensionAfter} (Raw)</th>
-            <th>${trans.tensionAfter} (C60)</th>
-            <th>${trans.tensionAfter} (C120)</th>
+            <th>OFF</th>
+            <th>C60</th>
+            <th>C120</th>
         </tr>
     `;
   table.appendChild(thead);
@@ -582,6 +584,10 @@ function updateSaturationTable(
     const cellComp = document.createElement('td');
     cellComp.textContent = i + 1;
     row.appendChild(cellComp);
+
+    const cellHalfLife = document.createElement('td');
+    cellHalfLife.textContent = Math.round(halfLives[i]);
+    row.appendChild(cellHalfLife);
 
     const cellBefore = document.createElement('td');
     cellBefore.textContent = beforeTensions[i].toFixed(2);
@@ -600,6 +606,10 @@ function updateSaturationTable(
       cellAfterC60.textContent = afterTensionsC60[i].toFixed(2);
       cellAfterC60.style.backgroundColor = getColor(afterTensionsC60[i]);
       if (i === maxAfterIdxC60) cellAfterC60.className = 'leading-compartment';
+      if (halfLives[i] < 60) {
+        cellAfterC60.classList.add('affected-compartment');
+        cellAfterC60.style.fontStyle = 'italic';
+      }
     } else {
       cellAfterC60.textContent = '-';
     }
@@ -610,6 +620,10 @@ function updateSaturationTable(
       cellAfterC120.textContent = afterTensionsC120[i].toFixed(2);
       cellAfterC120.style.backgroundColor = getColor(afterTensionsC120[i]);
       if (i === maxAfterIdxC120) cellAfterC120.className = 'leading-compartment';
+      if (halfLives[i] < 120) {
+        cellAfterC120.classList.add('affected-compartment');
+        cellAfterC120.style.fontStyle = 'italic';
+      }
     } else {
       cellAfterC120.textContent = '-';
     }
@@ -723,7 +737,7 @@ function setupGaugeInteraction(
 
     const pressDuration = new Date().getTime() - lastTapTime;
     isDragging = false;
-    gaugeElement.style.cursor = 'default';
+    gaugeElement.style.cursor = '';
     gaugeElement.releasePointerCapture(e.pointerId);
 
     if (!hasMoved && pressDuration < 300) {
@@ -738,7 +752,7 @@ function setupGaugeInteraction(
   gaugeElement.addEventListener('pointercancel', (e) => {
     isDragging = false;
     hasMoved = false;
-    gaugeElement.style.cursor = 'default';
+    gaugeElement.style.cursor = '';
     if (singleTapTimer) clearTimeout(singleTapTimer);
   });
 
@@ -900,7 +914,7 @@ function showGaugeValueDropdown(gaugeElement, currentValue, setValue, min, max) 
 function formatTime(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return `${h}:${m.toString().padStart(2, '0')}`;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
 function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
@@ -1158,7 +1172,8 @@ function _updateUI_impl() {
       beforeTensions,
       afterTensionsBuhlmann,
       afterTensionsC60,
-      afterTensionsC120
+      afterTensionsC120,
+      window.Planning.HALF_LIVES
     );
 
     if (el['majoration-display']) {
@@ -1254,12 +1269,8 @@ function renderStops(result, containerElement) {
   containerElement.innerHTML = '';
   const trans = window.translations;
 
-  if (result.is_out_of_table || result.is_surface_dive) {
+  if (result.is_out_of_table || result.is_surface_dive || result.second_dive_not_authorized) {
     containerElement.innerHTML = `<div class="placeholder-text">${trans[state.currentLang].outOfTable}</div>`;
-    return;
-  }
-  if (result.second_dive_not_authorized) {
-    containerElement.innerHTML = '';
     return;
   }
 
@@ -1344,47 +1355,43 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
   const dtrLabel = trans[state.currentLang].dtr.replace(/ /g, '<br>');
   const takeoffLabel = trans[state.currentLang].takeoffPressure.replace(/ /g, '<br>');
   const reserveLabel = trans[state.currentLang].reserve.replace(/ /g, '<br>');
+  const optimizeBtnLabel = trans[state.currentLang].optimizeBtn;
 
   const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${dtrLabel}</span><span class="result-value">${dtrFormatted}</span></div>`;
-  const takeoffHtml = `<div class="result-box important clickable takeoff-box" style="user-select: none; touch-action: manipulation;"><span class="result-label">${takeoffLabel}</span><span class="result-value">${takeoffPressure} bar</span></div>`;
-  const reserveHtml = `<div class="result-box important clickable reserve-box"><span class="result-label">${reserveLabel}</span><span class="result-value">${remainingPressure} bar</span></div>`;
+  const combinedGasHtml = `
+    <div class="result-box important clickable reserve-box group" style="user-select: none; touch-action: manipulation;">
+      <div>
+        <span class="result-label">${takeoffLabel}</span>
+        <span class="result-value">${takeoffPressure} bar</span>
+      </div>
+      <div>
+        <span class="result-label">${reserveLabel}</span>
+        <span class="result-value-remaining">${remainingPressure} bar</span>
+      </div>
+    </div>
+  `;
+  const btnHtml = `<button class="action-btn optimize-btn" style="width: 100%; margin-bottom: 10px;">${optimizeBtnLabel}</button>`;
 
-  container.innerHTML = `<div class="results-row">${dtrHtml}${takeoffHtml}${reserveHtml}</div>`;
+  container.innerHTML = `${btnHtml}<div class="results-row">${dtrHtml}${combinedGasHtml}</div>`;
+
+  const optimizeBtn = container.querySelector('.optimize-btn');
+  if (optimizeBtn) {
+    optimizeBtn.onclick = () => {
+      const isDive2 = container.id === 'dive-details-2';
+      optimizeTimeForReserve(isDive2);
+    };
+  }
 
   const dtrBox = container.querySelector('.dtr-box');
   if (dtrBox) {
     dtrBox.onclick = () => showTimeBreakdown(timeBreakdown);
   }
 
-  const takeoffBox = container.querySelector('.takeoff-box');
-  if (takeoffBox) {
-    let lastTap = 0;
-    let tapTimeout;
-    takeoffBox.addEventListener('pointerup', (e) => {
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTap;
-      if (tapLength < 300 && tapLength > 0) {
-        clearTimeout(tapTimeout);
-        const isDive2 = container.id === 'dive-details-2';
-        optimizeTimeForReserve(isDive2);
-        e.preventDefault();
-        lastTap = 0;
-        return;
-      } else {
-        if (tapTimeout) clearTimeout(tapTimeout);
-        tapTimeout = setTimeout(() => {
-          if (window.__openModal) window.__openModal(el['takeoff-modal']);
-        }, 300);
-      }
-      lastTap = currentTime;
-    });
-  }
-
   const reserveBox = container.querySelector('.reserve-box');
   if (reserveBox) {
     if (remainingPressure < 0) {
       reserveBox.style.backgroundColor = '#e53935';
-    } else if (remainingPressure <= RESERVE_PRESSURE_THRESHOLD) {
+    } else if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
       reserveBox.style.backgroundColor = '#ff9800';
     }
     reserveBox.onclick = () => showGasBreakdown(consoLiters, remainingPressure);
@@ -1401,7 +1408,7 @@ async function optimizeTimeForReserve(isDive2) {
 
   try {
     const depth = isDive2 ? state.dive2Depth : state.dive1Depth;
-    let low = Math.ceil(depth / 20); // 20m/min descent rate
+    let low = Math.ceil(depth / window.Planning.DESCENT_RATE);
     let high = MAX_TIME;
     let best = low;
 
@@ -1414,7 +1421,9 @@ async function optimizeTimeForReserve(isDive2) {
       await new Promise((r) => setTimeout(r, 100)); // allow UI to paint
 
       const container = isDive2 ? el['dive-details-2'] : el['dive-details'];
-      const reserveBox = container ? container.querySelector('.reserve-box .result-value') : null;
+      const reserveBox = container
+        ? container.querySelector('.reserve-box .result-value-remaining')
+        : null;
 
       if (!reserveBox) {
         // Out of table or error, time is too long
@@ -1453,11 +1462,14 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   const trans = window.translations[state.currentLang];
   list.innerHTML = '';
 
-  const addLine = (label, liters, parent = list) => {
+  const addLine = (label, liters, color, parent = list) => {
     const bar = Math.ceil(liters / state.tankVolume);
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    li.innerHTML = `<strong>${label}:</strong> ${bar} bar 	&ndash; <small><i>${Math.round(liters)} L</i></small>`;
+    const dot = color
+      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
+      : '';
+    li.innerHTML = `${dot}<strong>${label}:</strong> ${bar} bar 	&ndash; <small><i>${Math.round(liters)} L</i></small>`;
     parent.appendChild(li);
     return li;
   };
@@ -1465,8 +1477,10 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   const bar_total = Math.ceil(consoLiters.total / state.tankVolume);
   total.innerHTML = `${trans.total}: ${bar_total} bar 	&ndash; <small><i>${Math.round(consoLiters.total)} L</i></small>`;
 
-  if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent);
-  if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom);
+  if (el['gas-breakdown-tank']) {
+    el['gas-breakdown-tank'].innerHTML =
+      `<strong>${trans.tank}:</strong> ${state.tankVolume}L @ ${state.initTankPressure} bar`;
+  }
 
   let stopsGas = 0;
   if (breakdown.stops) {
@@ -1474,8 +1488,117 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   }
   const dtrGas = breakdown.ascent + stopsGas;
 
+  const tankContainer = document.getElementById('gas-breakdown-pie-container');
+  if (tankContainer) {
+    tankContainer.innerHTML = '';
+    tankContainer.style.display = 'flex';
+    tankContainer.style.justifyContent = 'center';
+    tankContainer.style.gap = '15px';
+    tankContainer.style.flexWrap = 'wrap';
+    tankContainer.style.marginTop = '20px';
+    tankContainer.style.marginBottom = '20px';
+
+    const barTotal = consoLiters.total / state.tankVolume;
+    const numTanks = Math.max(1, Math.ceil(barTotal / state.initTankPressure));
+
+    const layers = [
+      { bar: breakdown.descent / state.tankVolume, color: '#2196f3' },
+      { bar: breakdown.bottom / state.tankVolume, color: '#4caf50' },
+      { bar: breakdown.ascent / state.tankVolume, color: '#ff9800' },
+      { bar: stopsGas / state.tankVolume, color: '#e53935' },
+    ].filter((l) => l.bar > 0);
+
+    let currentLayerIdx = 0;
+    let currentLayerRemaining = layers[0] ? layers[0].bar : 0;
+
+    for (let t = 0; t < numTanks; t++) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '60');
+      svg.setAttribute('height', '120');
+      svg.setAttribute('viewBox', '0 0 60 120');
+
+      // Tank outline and valve
+      const valve = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      valve.setAttribute('x', '25');
+      valve.setAttribute('y', '5');
+      valve.setAttribute('width', '10');
+      valve.setAttribute('height', '10');
+      valve.setAttribute('fill', '#999');
+      svg.appendChild(valve);
+
+      const body = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      body.setAttribute('x', '10');
+      body.setAttribute('y', '15');
+      body.setAttribute('width', '40');
+      body.setAttribute('height', '100');
+      body.setAttribute('rx', '8');
+      body.setAttribute('fill', '#333');
+      svg.appendChild(body);
+
+      const clipId = `tank-clip-${t}-${Math.random().toString(36).substr(2, 9)}`;
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+      clipPath.setAttribute('id', clipId);
+      const clipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      clipRect.setAttribute('x', '10');
+      clipRect.setAttribute('y', '15');
+      clipRect.setAttribute('width', '40');
+      clipRect.setAttribute('height', '100');
+      clipRect.setAttribute('rx', '8');
+      clipPath.appendChild(clipRect);
+      defs.appendChild(clipPath);
+      svg.appendChild(defs);
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('clip-path', `url(#${clipId})`);
+      svg.appendChild(g);
+
+      let tankPressureRemaining = state.initTankPressure;
+      let currentY = 115; // Bottom of tank body (15 + 100)
+
+      while (tankPressureRemaining > 0 && currentLayerIdx < layers.length) {
+        const use = Math.min(tankPressureRemaining, currentLayerRemaining);
+        const h = (use / state.initTankPressure) * 100;
+
+        const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        r.setAttribute('x', '10');
+        r.setAttribute('y', currentY - h);
+        r.setAttribute('width', '40');
+        r.setAttribute('height', h + 0.5); // Small overlap to avoid gaps
+        r.setAttribute('fill', layers[currentLayerIdx].color);
+        g.appendChild(r);
+
+        currentY -= h;
+        tankPressureRemaining -= use;
+        currentLayerRemaining -= use;
+
+        if (currentLayerRemaining < 0.001) {
+          currentLayerIdx++;
+          currentLayerRemaining = layers[currentLayerIdx] ? layers[currentLayerIdx].bar : 0;
+        }
+      }
+
+      // Remaining air (grey)
+      if (tankPressureRemaining > 0.001) {
+        const h = (tankPressureRemaining / state.initTankPressure) * 100;
+        const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        r.setAttribute('x', '10');
+        r.setAttribute('y', currentY - h);
+        r.setAttribute('width', '40');
+        r.setAttribute('height', h);
+        r.setAttribute('fill', '#666');
+        g.appendChild(r);
+      }
+
+      tankContainer.appendChild(svg);
+    }
+  }
+
+  if (breakdown.descent > 0) addLine(trans.descent, breakdown.descent, '#2196f3');
+  if (breakdown.bottom > 0) addLine(trans.bottom, breakdown.bottom, '#4caf50');
+
   if (dtrGas > 0) {
-    const dtrLi = addLine(trans.ascentTitle, dtrGas);
+    const dtrLi = addLine(trans.ascentTitle, dtrGas, null);
 
     const subList = document.createElement('ul');
     subList.style.marginTop = '5px';
@@ -1483,22 +1606,26 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     dtrLi.appendChild(subList);
 
     if (breakdown.ascent > 0) {
+      const color = '#ff9800';
+      const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
       const li = document.createElement('li');
       li.style.marginBottom = '5px';
-      li.innerHTML = `${trans.ascent}: ${Math.ceil(breakdown.ascent / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(breakdown.ascent)} L</i></small>`;
+      li.innerHTML = `${dot}${trans.ascent}: ${Math.ceil(breakdown.ascent / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(breakdown.ascent)} L</i></small>`;
       subList.appendChild(li);
     }
 
     if (breakdown.stops) {
+      const color = '#e53935';
       const stopDepths = Object.keys(breakdown.stops)
         .map(Number)
         .sort((a, b) => b - a);
       stopDepths.forEach((d) => {
         const gasAtStop = breakdown.stops[d];
         if (gasAtStop > 0) {
+          const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
           const li = document.createElement('li');
           li.style.marginBottom = '5px';
-          li.innerHTML = `${trans.stopAt} ${d}m: ${Math.ceil(gasAtStop / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(gasAtStop)} L</i></small>`;
+          li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${Math.ceil(gasAtStop / state.tankVolume)} bar 	&ndash; <small><i>${Math.round(gasAtStop)} L</i></small>`;
           subList.appendChild(li);
         }
       });
@@ -1513,7 +1640,7 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     msg.style.fontWeight = 'bold';
     msg.innerHTML = trans.notEnoughGas;
     list.appendChild(msg);
-  } else if (remainingPressure <= RESERVE_PRESSURE_THRESHOLD) {
+  } else if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
     const msg = document.createElement('div');
     msg.style.color = '#ff9800';
     total.style.color = '#ff9800';
@@ -1538,21 +1665,137 @@ function showTimeBreakdown(timeBreakdown) {
   const trans = window.translations[state.currentLang];
   list.innerHTML = '';
 
-  const addLine = (label, minutes, parent = list) => {
+  const chartContainer = document.getElementById('time-breakdown-chart-container');
+  if (chartContainer && timeBreakdown.profilePoints) {
+    chartContainer.innerHTML = '';
+    const points = timeBreakdown.profilePoints;
+    const maxT = points[points.length - 1].t;
+    const maxD = timeBreakdown.maxDepth;
+
+    // Create SVG
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.style.height = 'auto';
+    svg.setAttribute('viewBox', `0 0 400 160`);
+
+    // Build path
+    const W = 400;
+    const H = 130;
+    const Y_OFFSET = 20;
+
+    let dStr = points
+      .map((p) => {
+        const x = (p.t / maxT) * W;
+        const y = (p.d / (maxD * 1.1)) * H + Y_OFFSET; // y=Y_OFFSET is top, y=H+Y_OFFSET is bottom
+        return `${x},${y}`;
+      })
+      .join(' ');
+
+    // Add surface line to close the polygon for a nice fill
+    dStr += ` ${W},${Y_OFFSET} 0,${Y_OFFSET}`;
+
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', dStr);
+    polygon.setAttribute('fill', 'rgba(255, 255, 255, 0.1)');
+
+    svg.appendChild(polygon);
+
+    // Draw multi-color stroke lines based on phase
+    const getPhaseColor = (phase) => {
+      switch (phase) {
+        case 'descent':
+          return '#2196f3';
+        case 'bottom':
+          return '#4caf50';
+        case 'travel':
+          return '#ff9800';
+        case 'stop':
+          return '#e53935';
+        default:
+          return '#fff';
+      }
+    };
+
+    for (let i = 1; i < points.length; i++) {
+      const p1 = points[i - 1];
+      const p2 = points[i];
+      const x1 = (p1.t / maxT) * W;
+      const y1 = (p1.d / (maxD * 1.1)) * H + Y_OFFSET;
+      const x2 = (p2.t / maxT) * W;
+      const y2 = (p2.d / (maxD * 1.1)) * H + Y_OFFSET;
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(x1));
+      line.setAttribute('y1', String(y1));
+      line.setAttribute('x2', String(x2));
+      line.setAttribute('y2', String(y2));
+      line.setAttribute('stroke', getPhaseColor(p2.phase));
+      line.setAttribute('stroke-width', '2');
+      svg.appendChild(line);
+    }
+
+    // Draw depth labels at bottom and stops
+    const drawLabel = (t, d, text) => {
+      const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const x = (t / maxT) * W;
+      const y = (d / (maxD * 1.1)) * H + Y_OFFSET;
+      textEl.setAttribute('x', `${x}`);
+      textEl.setAttribute('y', `${y - 4}`);
+      textEl.setAttribute('fill', '#fff');
+      textEl.setAttribute('font-size', '10');
+      textEl.setAttribute('text-anchor', 'middle');
+      textEl.textContent = text;
+      svg.appendChild(textEl);
+    };
+
+    drawLabel(timeBreakdown.descent + timeBreakdown.bottom / 2, maxD, `${Math.round(maxD)}m`);
+
+    if (timeBreakdown.stops) {
+      for (const d of Object.keys(timeBreakdown.stops)) {
+        const point = points.find((p) => p.d === Number(d));
+        if (point) {
+          drawLabel(point.t + timeBreakdown.stops[d] / 2, point.d, `${d}m`);
+        }
+      }
+    }
+
+    // Draw time labels
+    const drawTimeLabel = (t, text, align = 'middle') => {
+      const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const x = (t / maxT) * W;
+      textEl.setAttribute('x', `${x}`);
+      textEl.setAttribute('y', `12`);
+      textEl.setAttribute('fill', '#aaa');
+      textEl.setAttribute('font-size', '10');
+      textEl.setAttribute('text-anchor', align);
+      textEl.textContent = text;
+      svg.appendChild(textEl);
+    };
+
+    drawTimeLabel(0, '0', 'start');
+    drawTimeLabel(maxT, formatTime(Math.ceil(maxT)), 'end');
+
+    chartContainer.appendChild(svg);
+  }
+
+  const addLine = (label, minutes, color, parent = list) => {
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    li.innerHTML = `<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
+    const dot = color
+      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
+      : '';
+    li.innerHTML = `${dot}<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
     parent.appendChild(li);
     return li;
   };
 
   total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)}`;
 
-  if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent);
-  if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom);
+  if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent, '#2196f3');
+  if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom, '#4caf50');
 
   if (timeBreakdown.dtr > 0) {
-    const dtrLi = addLine(trans.dtr.toUpperCase(), timeBreakdown.dtr);
+    const dtrLi = addLine(trans.dtr.toUpperCase(), timeBreakdown.dtr, null);
 
     const subList = document.createElement('ul');
     subList.style.marginTop = '5px';
@@ -1560,20 +1803,24 @@ function showTimeBreakdown(timeBreakdown) {
     dtrLi.appendChild(subList);
 
     if (timeBreakdown.ascent > 0) {
+      const color = '#ff9800';
+      const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
       const li = document.createElement('li');
       li.style.marginBottom = '5px';
-      li.innerHTML = `${trans.ascent}: ${formatTime(Math.ceil(timeBreakdown.ascent))}`;
+      li.innerHTML = `${dot}${trans.ascent}: ${formatTime(Math.ceil(timeBreakdown.ascent))}`;
       subList.appendChild(li);
     }
 
     if (timeBreakdown.stops) {
+      const color = '#e53935';
       const stopDepths = Object.keys(timeBreakdown.stops)
         .map(Number)
         .sort((a, b) => b - a);
       stopDepths.forEach((d) => {
+        const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
         const li = document.createElement('li');
         li.style.marginBottom = '5px';
-        li.innerHTML = `${trans.stopAt} ${d}m: ${formatTime(Math.ceil(timeBreakdown.stops[d]))}`;
+        li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${formatTime(Math.ceil(timeBreakdown.stops[d]))}`;
         subList.appendChild(li);
       });
     }
@@ -1743,16 +1990,22 @@ function setupModal() {
       modal.__onClose = null;
     }
 
+    // Move focus out BEFORE hiding/aria-hidden to avoid accessibility warnings
+    try {
+      const prev = returnFocus || modal.__previouslyFocused;
+      if (prev && typeof prev.focus === 'function') {
+        prev.focus();
+      } else {
+        document.body.focus();
+      }
+    } catch (e) {
+      // ignore
+    }
+
     modal.style.display = 'none';
     modal.setAttribute('aria-hidden', 'true');
     if (modal.__onKeyDown) document.removeEventListener('keydown', modal.__onKeyDown);
     if (modal.__onClick) modal.removeEventListener('click', modal.__onClick);
-    try {
-      const prev = returnFocus || modal.__previouslyFocused;
-      if (prev && typeof prev.focus === 'function') prev.focus();
-    } catch (e) {
-      // ignore
-    }
   }
 
   if (helpBtn && helpModal) {

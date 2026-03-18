@@ -6,5 +6,6 @@ Icone
 linspace
 succ
 surpenalisation
+surpénalisation
 Surpénalisation
 worktree
