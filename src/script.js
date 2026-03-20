@@ -197,6 +197,7 @@ function cacheElements() {
     'gas-modal',
     'gas-breakdown-list',
     'gas-breakdown-total',
+    'gas-breakdown-warning',
     'gas-breakdown-tank',
     'saturation-modal',
     'time-modal',
@@ -916,6 +917,20 @@ function formatTime(minutes) {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
+function formatDurationHuman(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  const trans = window.translations[state.currentLang];
+  if (h === 0) {
+    return `${m} ${m > 1 ? trans.minutes : trans.minute}`;
+  }
+  const hStr = h === 1 ? trans.hour : trans.hours;
+  if (m === 0) {
+    return `${h} ${hStr}`;
+  }
+  return `${h} ${hStr} ${m} ${m > 1 ? trans.minutes : trans.minute}`;
+}
+
 function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
   const progressEl = el[`${type}-progress${suffix}`];
   if (progressEl) {
@@ -1460,11 +1475,14 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   const modal = el['gas-modal'];
   const list = el['gas-breakdown-list'];
   const total = el['gas-breakdown-total'];
+  const warning = el['gas-breakdown-warning'];
 
   if (!modal || !list || !total) return;
 
   const trans = window.translations[state.currentLang];
   list.innerHTML = '';
+  if (warning) warning.innerHTML = '';
+  total.style.color = '';
 
   const addLine = (label, liters, color, parent = list) => {
     const bar = Math.ceil(liters / state.tankVolume);
@@ -1636,21 +1654,15 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   }
 
   if (remainingPressure < 0) {
-    const msg = document.createElement('div');
-    msg.style.color = '#e53935';
-    total.style.color = '#e53935';
-    msg.style.marginTop = '20px';
-    msg.style.fontWeight = 'bold';
-    msg.innerHTML = trans.notEnoughGas;
-    list.appendChild(msg);
+    if (warning) {
+      warning.style.color = '#e53935';
+      warning.innerHTML = `💀 ${trans.notEnoughGas.toUpperCase()} ! 💀`;
+    }
   } else if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
-    const msg = document.createElement('div');
-    msg.style.color = '#ff9800';
-    total.style.color = '#ff9800';
-    msg.style.marginTop = '20px';
-    msg.style.fontWeight = 'bold';
-    msg.innerHTML = trans.notEnoughReserve;
-    list.appendChild(msg);
+    if (warning) {
+      warning.style.color = '#ff9800';
+      warning.innerHTML = `⚠️ ${trans.notEnoughReserve} ⚠️`;
+    }
   }
 
   if (window.__openModal) window.__openModal(modal);
@@ -1776,7 +1788,7 @@ function showTimeBreakdown(timeBreakdown) {
     };
 
     drawTimeLabel(0, '0', 'start');
-    drawTimeLabel(maxT, formatTime(Math.ceil(maxT)), 'end');
+    drawTimeLabel(maxT, formatDurationHuman(Math.ceil(maxT)), 'end');
 
     chartContainer.appendChild(svg);
   }
@@ -1786,12 +1798,12 @@ function showTimeBreakdown(timeBreakdown) {
     li.style.marginBottom = '10px';
     const dotColor = color || 'transparent';
     const dot = `<span style="display:inline-block;width:10px;height:10px;background:${dotColor};border-radius:50%;margin-right:8px;"></span>`;
-    li.innerHTML = `${dot}<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
+    li.innerHTML = `${dot}<strong>${label}:</strong> ${formatDurationHuman(Math.ceil(minutes))}`;
     parent.appendChild(li);
     return li;
   };
 
-  total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)}`;
+  total.innerHTML = `${trans.total}: ${formatDurationHuman(Math.ceil(timeBreakdown.totalDuration))}`;
 
   if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent, '#2196f3');
   if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom, '#4caf50');
@@ -1809,7 +1821,7 @@ function showTimeBreakdown(timeBreakdown) {
       const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
       const li = document.createElement('li');
       li.style.marginBottom = '5px';
-      li.innerHTML = `${dot}${trans.ascent}: ${formatTime(Math.ceil(timeBreakdown.ascent))}`;
+      li.innerHTML = `${dot}${trans.ascent}: ${formatDurationHuman(Math.ceil(timeBreakdown.ascent))}`;
       subList.appendChild(li);
     }
 
@@ -1822,7 +1834,7 @@ function showTimeBreakdown(timeBreakdown) {
         const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
         const li = document.createElement('li');
         li.style.marginBottom = '5px';
-        li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${formatTime(Math.ceil(timeBreakdown.stops[d]))}`;
+        li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${formatDurationHuman(Math.ceil(timeBreakdown.stops[d]))}`;
         subList.appendChild(li);
       });
     }
