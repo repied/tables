@@ -1,3 +1,5 @@
+const RESERVE_PRESSURE_THRESHOLD = 50;
+
 window.translations = {
   fr: {
     firstDive: 'Première plongée',
@@ -39,8 +41,8 @@ window.translations = {
     notEnoughReserve: 'Réserve entamée',
     dtr: 'dtr',
     gps: 'gps',
-    takeoffPressure: 'Pression décollage',
-    reserve: 'Pression fin',
+    takeoffPressure: 'Décollage',
+    reserve: 'Fin',
     majoration: 'Majoration',
     tensionEvolution: 'Saturation : ',
     sursaturationRate: 'Taux',
@@ -53,7 +55,7 @@ window.translations = {
     saturationTableSentence: "Tensions avant et après l'intervalle de surface (IS)",
     penalisationExplanation:
       'En mode C60 ou C120, le dégazage des compartiments rapides est limité à celui du compartiment 60 ou 120 minutes. Cela correspond à une surpénalisation forfaitaire de sécurité. Source: <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>. Le compartiment directeur est encadré en rouge.',
-    optimizeBtn: 'Optimiser la durée (viser 50 bar)',
+    optimizeBtn: `Durée max pour > ${RESERVE_PRESSURE_THRESHOLD}bar`,
     checklistTitle: 'Checklist',
     share: 'Partager',
     scan: 'Scanner',
@@ -108,8 +110,8 @@ window.translations = {
     notEnoughReserve: 'Reserve used',
     dtr: 'tts',
     gps: 'pg',
-    takeoffPressure: 'Takeoff Pressure',
-    reserve: 'End Pressure',
+    takeoffPressure: 'Takeoff',
+    reserve: 'End',
     majoration: 'Majoration',
     tensionEvolution: 'Saturation: ',
     saturationExplanationTitle: 'Penalty',
@@ -122,7 +124,7 @@ window.translations = {
     saturationTableSentence: 'Tensions before and after surface interval (SI).',
     penalisationExplanation:
       'In C60 or C120 mode, the off-gassing of fast compartments is limited to that of the 60 or 120-minute compartment. Source <a href="./data/Worldivers-Computers-Repetitive-FR.pdf" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">A. Foret</a>. Leading compartiment is in red.',
-    optimizeBtn: 'Optimize duration (target 50 bar)',
+    optimizeBtn: `Max duration for >${RESERVE_PRESSURE_THRESHOLD}bar`,
     checklistTitle: 'Checklist',
     share: 'Share',
     scan: 'Scan',

@@ -31,7 +31,6 @@ const state = {
 const el = {};
 
 // Constants
-const RESERVE_PRESSURE_THRESHOLD = 50;
 
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 1; // do not put 0, makes no sense
@@ -1209,8 +1208,9 @@ function _updateUI_impl() {
       if (succResult && !succResult.error) {
         majText = `+${currentMajoration} min`;
         if (el['majoration-text']) {
-          el['majoration-text'].textContent =
-            `${window.translations[state.currentLang].majoration}: ${majText} `;
+          const trans = window.translations[state.currentLang];
+          const gpsLabel = prevGroup ? ` ${trans.gps.toLowerCase()} ${prevGroup}` : '';
+          el['majoration-text'].textContent = `${trans.majoration}${gpsLabel}: ${majText}`;
           el['majoration-text'].style.display = 'inline';
         }
         if (el['surpenalisation-container']) el['surpenalisation-container'].style.display = 'none';
