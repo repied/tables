@@ -1470,9 +1470,8 @@ function showGasBreakdown(consoLiters, remainingPressure) {
     const bar = Math.ceil(liters / state.tankVolume);
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    const dot = color
-      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
-      : '';
+    const dotColor = color || 'transparent';
+    const dot = `<span style="display:inline-block;width:10px;height:10px;background:${dotColor};border-radius:50%;margin-right:8px;"></span>`;
     li.innerHTML = `${dot}<strong>${label}:</strong> ${bar} bar 	&ndash; <small><i>${Math.round(liters)} L</i></small>`;
     parent.appendChild(li);
     return li;
@@ -1483,7 +1482,7 @@ function showGasBreakdown(consoLiters, remainingPressure) {
 
   if (el['gas-breakdown-tank']) {
     el['gas-breakdown-tank'].innerHTML =
-      `<strong>${trans.tank}:</strong> ${state.tankVolume}L @ ${state.initTankPressure} bar`;
+      `<strong>${trans.tank}:</strong> ${state.tankVolume}L @ ${state.initTankPressure} bar 	&ndash; <small><i>${state.tankVolume * state.initTankPressure} L</i></small>`;
   }
 
   let stopsGas = 0;
@@ -1785,9 +1784,8 @@ function showTimeBreakdown(timeBreakdown) {
   const addLine = (label, minutes, color, parent = list) => {
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    const dot = color
-      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
-      : '';
+    const dotColor = color || 'transparent';
+    const dot = `<span style="display:inline-block;width:10px;height:10px;background:${dotColor};border-radius:50%;margin-right:8px;"></span>`;
     li.innerHTML = `${dot}<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
     parent.appendChild(li);
     return li;

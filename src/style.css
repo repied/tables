@@ -1125,6 +1125,7 @@ input:checked + .slider:before {
   color: var(--text-color);
   font-size: 1.5rem;
   margin-bottom: 15px;
+  text-align: center;
 }
 
 .modal h3 {
@@ -1146,6 +1147,15 @@ input:checked + .slider:before {
   margin-bottom: 8px;
   font-size: 0.95rem;
   color: #ddd;
+}
+
+/* Specific for Gas and Time breakdown lists */
+#gas-breakdown-list,
+#time-breakdown-list,
+#gas-breakdown-list ul,
+#time-breakdown-list ul {
+  list-style-type: none;
+  padding-left: 20px;
 }
 
 .modal-content a {
