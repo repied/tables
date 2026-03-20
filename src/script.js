@@ -1353,20 +1353,24 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
   const takeoffPressure = Math.floor(tankP - descentAndBottomLiters / state.tankVolume);
 
   const dtrLabel = trans[state.currentLang].dtr.replace(/ /g, '<br>');
-  const takeoffLabel = trans[state.currentLang].takeoffPressure.replace(/ /g, '<br>');
-  const reserveLabel = trans[state.currentLang].reserve.replace(/ /g, '<br>');
+  const pressureLabel = trans[state.currentLang].pressure;
+  const takeoffLabel = trans[state.currentLang].takeoffPressure;
+  const reserveLabel = trans[state.currentLang].reserve;
   const optimizeBtnLabel = trans[state.currentLang].optimizeBtn;
 
   const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${dtrLabel}</span><span class="result-value">${dtrFormatted}</span></div>`;
   const combinedGasHtml = `
     <div class="result-box important clickable reserve-box group" style="user-select: none; touch-action: manipulation;">
-      <div>
-        <span class="result-label">${takeoffLabel}</span>
-        <span class="result-value">${takeoffPressure} bar</span>
-      </div>
-      <div>
-        <span class="result-label">${reserveLabel}</span>
-        <span class="result-value-remaining">${remainingPressure} bar</span>
+      <div class="result-label-header">${pressureLabel}</div>
+      <div class="group-columns">
+        <div>
+          <span class="result-label">${takeoffLabel}</span>
+          <span class="result-value">${takeoffPressure} bar</span>
+        </div>
+        <div>
+          <span class="result-label">${reserveLabel}</span>
+          <span class="result-value-remaining">${remainingPressure} bar</span>
+        </div>
       </div>
     </div>
   `;
