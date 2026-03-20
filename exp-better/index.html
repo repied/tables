@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Tables Dive Planner</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <link rel="stylesheet" href="./src/dropdown.css" />
+    <link rel="stylesheet" href="./src/lock.css" />
+    <link rel="icon" type="image/png" href="./assets/favicon.png" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#1e2130" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+  </head>
+
+  <script>
+    window.APP_VERSION = '7d45745';
+    window.APP_VERSION_DATE = '2026-03-20 05:28:34';
+  </script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W2YD6XQDM5"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+
+    gtag('config', 'G-W2YD6XQDM5');
+  </script>
+
+  <body>
+    <div class="app-container">
+      <!-- Top Row: Gas Settings -->
+      <div class="gauges-row" id="gas-settings-row">
+        <!-- Volume Gauge -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="volume-gauge-container">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="volume-progress"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="volume-display">15</div>
+              <div class="gauge-unit">L</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pressure Gauge -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="pressure-gauge-container">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="pressure-progress"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="pressure-display">200</div>
+              <div class="gauge-unit">bar</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAC Gauge -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="sac-gauge-container">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="sac-progress"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="sac-display">20</div>
+              <div class="gauge-unit">L/min</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PPO2 Toggle -->
+        <div class="gauge-wrapper small">
+          <div class="toggle-wrapper ppo2-toggle">
+            <input type="radio" name="ppo2-toggle" id="ppo2-14" value="1.4" />
+            <label for="ppo2-14" class="toggle-option">1.4</label>
+
+            <input type="radio" name="ppo2-toggle" id="ppo2-16" value="1.6" checked />
+            <label for="ppo2-16" class="toggle-option">1.6</label>
+
+            <div class="toggle-slider"></div>
+          </div>
+          <div class="ppo2-label">PPO<sub>2</sub> max</div>
+        </div>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div class="actions-container toggle-container">
+        <div class="toggle-wrapper">
+          <input type="radio" name="mode-toggle" id="mode-mn90" value="mn90" checked />
+          <label for="mode-mn90" class="toggle-option" id="mode-mn90-label">MN90</label>
+
+          <input type="radio" name="mode-toggle" id="mode-gf" value="gf" />
+          <label for="mode-gf" class="toggle-option" id="mode-gf-label">GF</label>
+
+          <div class="toggle-slider"></div>
+        </div>
+      </div>
+
+      <!-- First dive Area  -->
+      <div class="gauges-row" id="first-dive-params-row">
+        <!-- O2 Gauge -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="o2-gauge-container">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="o2-progress"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="o2-display">21</div>
+              <div class="gauge-unit">% O<sub>2</sub></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GF Low Gauge -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="gf-low-gauge-container">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="gf-low-progress"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="gf-low-display">30</div>
+              <div class="gauge-unit" id="gf-low-unit" data-i18n="low"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GF High Gauge -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="gf-high-gauge-container">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="gf-high-progress"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="gf-high-display">80</div>
+              <div class="gauge-unit" id="gf-high-unit" data-i18n="high"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="results-container">
+        <div class="successive-header" style="justify-content: center">
+          <span id="first-dive-header-text" data-i18n="firstDive"></span>
+        </div>
+
+        <div class="dive-controls">
+          <div class="gauges-row main-gauges">
+            <!-- Duration Gauge 1 -->
+            <div class="gauge-wrapper medium">
+              <div class="gauge-container" id="time-gauge-container">
+                <svg class="gauge-ring" viewBox="0 0 120 120">
+                  <path
+                    class="ring-bg"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="ring-progress"
+                    id="time-progress"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <div class="gauge-content">
+                  <div class="gauge-value" id="time-display">0:00</div>
+                  <div class="gauge-unit">hh:mm</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="gps-display-1" class="gps-center" style="font-family: monospace"></div>
+
+            <!-- Depth Gauge 1 -->
+            <div class="gauge-wrapper medium">
+              <div class="gauge-container" id="depth-gauge-container">
+                <svg id="depth-gauge" class="gauge-ring" viewBox="0 0 120 120">
+                  <path
+                    class="ring-bg"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="ring-progress"
+                    id="depth-progress"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="ring-warning"
+                    id="depth-warning"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke="#ffa500"
+                    visibility="hidden"
+                  />
+                </svg>
+                <div class="gauge-content">
+                  <div class="gauge-value" id="depth-display">0</div>
+                  <div class="gauge-unit">m</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="stops-display" id="stops-display">
+            <!-- Stops will be inserted here -->
+          </div>
+          <div class="dive-details" id="dive-details">
+            <!-- DTR, Group , reserve for dive 1-->
+          </div>
+        </div>
+      </div>
+
+      <!-- Second dive Area  -->
+      <div class="gauges-row" id="second-dive-params-row">
+        <!-- Interval Gauge -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="interval-gauge-container">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="interval-progress"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="interval-display">60</div>
+              <div class="gauge-unit">hh:mm</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- O2 Gauge 2 (per-dive gas selection) -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="o2-gauge-container-2">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="o2-progress-2"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="o2-display-2">21</div>
+              <div class="gauge-unit">% O<sub>2</sub></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GF Low Gauge 2 -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="gf-low-gauge-container-2">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="gf-low-progress-2"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="gf-low-display-2">30</div>
+              <div class="gauge-unit" id="gf-low-unit-2" data-i18n="low"></div>
+            </div>
+            <div class="lock-icon-container" id="gf-low-lock-2"></div>
+          </div>
+        </div>
+
+        <!-- GF High Gauge 2 -->
+        <div class="gauge-wrapper small">
+          <div class="gauge-container" id="gf-high-gauge-container-2">
+            <svg class="gauge-ring" viewBox="0 0 120 120">
+              <path
+                class="ring-bg"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-progress fixed-color-gauge-ring"
+                id="gf-high-progress-2"
+                d="M 30 100 A 50 50 0 1 1 90 100"
+                fill="none"
+                stroke-width="6"
+                stroke-linecap="round"
+              />
+            </svg>
+            <div class="gauge-content">
+              <div class="gauge-value small-text" id="gf-high-display-2">80</div>
+              <div class="gauge-unit" id="gf-high-unit-2" data-i18n="high"></div>
+            </div>
+            <div class="lock-icon-container" id="gf-high-lock-2"></div>
+          </div>
+        </div>
+      </div>
+      <div class="results-container successive-container">
+        <div
+          class="successive-header"
+          style="justify-content: center; align-items: center; flex-direction: column"
+        >
+          <span
+            id="successive-header-text"
+            data-i18n="secondDive"
+            style="margin-bottom: 10px"
+          ></span>
+        </div>
+
+        <div class="dive-controls" id="successive-controls">
+          <div
+            class="majoration-display"
+            id="majoration-display"
+            style="display: none; margin-bottom: 20px"
+          >
+            <span id="majoration-text" style="display: none"></span>
+            <div
+              id="surpenalisation-container"
+              style="
+                display: none;
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                justify-content: center;
+              "
+            >
+              <div
+                class="ppo2-label"
+                data-i18n="surpenalisation"
+                style="
+                  margin-top: 0;
+                  background: transparent;
+                  box-shadow: none;
+                  backdrop-filter: none;
+                  -webkit-backdrop-filter: none;
+                "
+              >
+                Surpénalisation
+              </div>
+              <div
+                class="toggle-wrapper surpenalisation-toggle"
+                style="margin-left: 0; margin-bottom: 0"
+              >
+                <input
+                  type="radio"
+                  name="surpenalisation-toggle"
+                  id="surpenalisation-off"
+                  value="OFF"
+                  checked
+                />
+                <label for="surpenalisation-off" class="toggle-option">OFF</label>
+
+                <input
+                  type="radio"
+                  name="surpenalisation-toggle"
+                  id="surpenalisation-c60"
+                  value="C60"
+                />
+                <label for="surpenalisation-c60" class="toggle-option">C60</label>
+
+                <input
+                  type="radio"
+                  name="surpenalisation-toggle"
+                  id="surpenalisation-c120"
+                  value="C120"
+                />
+                <label for="surpenalisation-c120" class="toggle-option">C120</label>
+
+                <div class="toggle-slider"></div>
+              </div>
+              <span class="help-icon-inline" id="majoration-help-icon" style="cursor: pointer"
+                >?</span
+              >
+            </div>
+          </div>
+          <div class="gauges-row main-gauges">
+            <!-- Duration Gauge 2 -->
+            <div class="gauge-wrapper medium">
+              <div class="gauge-container" id="time-gauge-container-2">
+                <svg class="gauge-ring" viewBox="0 0 120 120">
+                  <path
+                    class="ring-bg"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="ring-progress"
+                    id="time-progress-2"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <div class="gauge-content">
+                  <div class="gauge-value" id="time-display-2">0:00</div>
+                  <div class="gauge-unit">hh:mm</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gps-center" style="font-family: monospace; visibility: hidden"></div>
+
+            <!-- Depth Gauge 2 -->
+            <div class="gauge-wrapper medium">
+              <div class="gauge-container" id="depth-gauge-container-2">
+                <svg id="depth-gauge-2" class="gauge-ring" viewBox="0 0 120 120">
+                  <path
+                    class="ring-bg"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="ring-progress"
+                    id="depth-progress-2"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    class="ring-warning"
+                    id="depth-warning-2"
+                    d="M 30 100 A 50 50 0 1 1 90 100"
+                    fill="none"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke="#ffa500"
+                    visibility="hidden"
+                  />
+                </svg>
+                <div class="gauge-content">
+                  <div class="gauge-value" id="depth-display-2">0</div>
+                  <div class="gauge-unit">m</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stops-display" id="stops-display-2">
+            <!-- Stops will be inserted here -->
+          </div>
+          <div class="dive-details" id="dive-details-2">
+            <!-- DTR, Reserve for Dive 2 -->
+          </div>
+        </div>
+      </div>
+
+      <div class="install-app-container" id="install-app-container">
+        <button class="action-btn" id="install-app-btn" data-i18n="installApp"></button>
+      </div>
+
+      <div class="footer-links">
+        <div class="lang-selector">
+          <img
+            src="./assets/fr-flag-800.png"
+            alt="FR"
+            class="flag-icon"
+            onclick="
+              document.getElementById('lang-toggle').checked = false;
+              document.getElementById('lang-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+          />
+          <label class="switch">
+            <input type="checkbox" id="lang-toggle" />
+            <span class="slider round"></span>
+          </label>
+          <img
+            src="./assets/uk-flag-800.png"
+            alt="UK"
+            class="flag-icon"
+            onclick="
+              document.getElementById('lang-toggle').checked = true;
+              document.getElementById('lang-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+          />
+        </div>
+        <a href="#" id="share-link" title="Share"></a>
+        <a href="#" id="help-link" data-i18n="help"></a>
+
+        <div class="theme-selector">
+          <span
+            class="theme-icon"
+            onclick="
+              document.getElementById('theme-toggle').checked = false;
+              document.getElementById('theme-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+            >☀️</span
+          >
+          <label class="switch">
+            <input type="checkbox" id="theme-toggle" />
+            <span class="slider round"></span>
+          </label>
+          <span
+            class="theme-icon"
+            onclick="
+              document.getElementById('theme-toggle').checked = true;
+              document.getElementById('theme-toggle').dispatchEvent(new Event('change'));
+            "
+            style="cursor: pointer"
+            >🌙</span
+          >
+        </div>
+      </div>
+
+      <!-- Saturation Evolution Modal -->
+      <div
+        id="saturation-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="saturation-explanation-title"
+        aria-hidden="true"
+      >
+        <div class="modal-content" style="max-width: 500px">
+          <button
+            class="modal-close"
+            aria-label="Close"
+            onclick="window.__closeModal(document.getElementById('saturation-modal'))"
+          >
+            &times;
+          </button>
+          <h1
+            id="saturation-explanation-title"
+            data-i18n="saturationExplanationTitle"
+            tabindex="-1"
+          ></h1>
+          <div id="saturation-table-container"></div>
+        </div>
+      </div>
+
+      <!-- Gas Breakdown Modal -->
+      <div
+        id="gas-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gas-breakdown-title"
+        aria-hidden="true"
+      >
+        <div class="modal-content">
+          <button
+            class="modal-close"
+            aria-label="Close"
+            onclick="window.__closeModal(document.getElementById('gas-modal'))"
+          >
+            &times;
+          </button>
+          <h1 id="gas-breakdown-title" data-i18n="gasBreakdownTitle" tabindex="-1"></h1>
+          <h2 id="gas-breakdown-total"></h2>
+          <div
+            id="gas-breakdown-tank"
+            style="text-align: center; margin-top: 15px; font-size: 0.9rem; opacity: 0.8"
+          ></div>
+          <div id="gas-breakdown-pie-container"></div>
+          <ul
+            id="gas-breakdown-list"
+            style="text-align: left; display: inline-block; margin-top: 20px"
+          >
+            <!-- Breakdown will be inserted here -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Time Breakdown Modal -->
+      <div
+        id="time-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="time-breakdown-title"
+        aria-hidden="true"
+      >
+        <div class="modal-content">
+          <button
+            class="modal-close"
+            aria-label="Close"
+            onclick="window.__closeModal(document.getElementById('time-modal'))"
+          >
+            &times;
+          </button>
+          <h1 id="time-breakdown-title" data-i18n="timeBreakdownTitle" tabindex="-1"></h1>
+          <h2 id="time-breakdown-total"></h2>
+          <div
+            id="time-breakdown-chart-container"
+            style="width: 100%; margin-top: 15px; margin-bottom: 15px"
+          ></div>
+          <ul
+            id="time-breakdown-list"
+            style="text-align: left; display: inline-block; margin-top: 20px"
+          >
+            <!-- Breakdown will be inserted here -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Share Modal -->
+      <div
+        id="share-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-modal-title"
+        aria-hidden="true"
+      >
+        <div class="modal-content" style="max-width: 350px">
+          <button
+            class="modal-close"
+            aria-label="Close"
+            onclick="window.__closeModal(document.getElementById('share-modal'))"
+          >
+            &times;
+          </button>
+          <h1 id="share-modal-title" data-i18n="shareModalTitle"></h1>
+          <div style="text-align: center">
+            <div id="qrcode-container"></div>
+          </div>
+          <div class="share-link-container">
+            <p data-i18n="shareLinkText" style="margin-bottom: 0; opacity: 0.7"></p>
+            <input type="text" id="share-link-input" readonly />
+            <button class="action-btn" id="copy-link-btn" data-i18n="copyLink"></button>
+          </div>
+          <div
+            style="
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 1px solid rgba(255, 255, 255, 0.1);
+              text-align: center;
+            "
+          >
+            <p
+              data-i18n="scanActionText"
+              style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px"
+            ></p>
+            <button
+              class="action-btn"
+              id="modal-scan-btn"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+              "
+            >
+              <span id="scan-icon-container"></span>
+              <span data-i18n="scan"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scan Modal -->
+      <div
+        id="scan-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scan-modal-title"
+        aria-hidden="true"
+      >
+        <div class="modal-content" style="max-width: 350px">
+          <button class="modal-close" aria-label="Close" onclick="window.closeScanModal()">
+            &times;
+          </button>
+          <h1 id="scan-modal-title" data-i18n="scanModalTitle"></h1>
+          <div id="camera-container">
+            <video id="scan-video" playsinline></video>
+            <canvas id="scan-canvas" style="display: none"></canvas>
+            <div class="scan-overlay"></div>
+          </div>
+          <p id="scan-status" data-i18n="scanStatusWaiting"></p>
+        </div>
+      </div>
+
+      <!-- Help Modal -->
+      <div
+        id="help-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="help-modal-title"
+        aria-hidden="true"
+      >
+        <div class="modal-content">
+          <button
+            class="modal-close"
+            aria-label="Close"
+            onclick="window.__closeModal(document.getElementById('help-modal'))"
+          >
+            &times;
+          </button>
+          <h1 id="help-modal-title" tabindex="-1">Tables</h1>
+
+          <div id="help-markdown-content"></div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              margin-top: 30px;
+              padding-bottom: 5px;
+              opacity: 0.8;
+            "
+          >
+            <script
+              type="text/javascript"
+              src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+              data-name="bmc-button"
+              data-slug="repied"
+              data-color="#ffffff"
+              data-emoji=""
+              data-font="Arial"
+              data-text="Donation"
+              data-outline-color="#000000"
+              data-font-color="#000000"
+              data-coffee-color="#000000"
+            ></script>
+          </div>
+          <div
+            id="app-version"
+            style="display: flex; justify-content: center; margin-top: 30px; opacity: 0.8"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Checklist Modal -->
+      <div
+        id="checklist-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checklist-modal-title"
+        aria-hidden="true"
+      >
+        <div class="modal-content">
+          <button
+            class="modal-close"
+            aria-label="Close"
+            onclick="window.__closeModal(document.getElementById('checklist-modal'))"
+          >
+            &times;
+          </button>
+          <h1 id="checklist-modal-title" data-i18n="checklistTitle" tabindex="-1"></h1>
+          <div id="checklist-markdown-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./src/qrcode.min.js"></script>
+    <script src="./src/jsQR.min.js"></script>
+    <script src="./src/dataManager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="./src/translations.js"></script>
+    <script src="./src/planning.js"></script>
+    <script src="./src/script.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        // Only reload if the page was already controlled by a service worker
+        const wasControlled = !!navigator.serviceWorker.controller;
+        let refreshing = false;
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          if (wasControlled) {
+            window.location.reload();
+            refreshing = true;
+          }
+        });
+
+        navigator.serviceWorker
+          .register('./sw.js')
+          .then((reg) => {
+            console.log('SW registered', reg);
+          })
+          .catch((err) => console.log('SW failed', err));
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+node_modules
+playwright-report
+test-results
+package-lock.json
+*.min.js
+data/*.csv
+.github
+.devcontainer
+.vscode
