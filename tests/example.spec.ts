@@ -24,7 +24,7 @@ test('app loads and shows main elements', async ({ page }) => {
   // Check footer contains expected text structure (gps, dtr, Pression fin)
   await expect(page.locator('#gps-display-1')).toContainText('gps');
   await expect(page.locator('#dive-details')).toContainText('dtr');
-  await expect(page.locator('#dive-details')).toContainText(/Pression.*fin/si);
+  await expect(page.locator('#dive-details')).toContainText(/Pression.*fin/is);
 });
 
 test('mode switching between MN90 and GF', async ({ page }) => {
