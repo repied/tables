@@ -31,7 +31,6 @@ const state = {
 const el = {};
 
 // Constants
-const RESERVE_PRESSURE_THRESHOLD = 50;
 
 const MAX_DEPTH = 65;
 const MIN_DEPTH = 1; // do not put 0, makes no sense
@@ -198,6 +197,7 @@ function cacheElements() {
     'gas-modal',
     'gas-breakdown-list',
     'gas-breakdown-total',
+    'gas-breakdown-warning',
     'gas-breakdown-tank',
     'saturation-modal',
     'time-modal',
@@ -547,12 +547,6 @@ function updateSaturationTable(
     return `hsla(${hue}, 70%, 45%, 0.8)`;
   };
 
-  // Explanatory sentence above the single table
-  const sentence = document.createElement('p');
-  sentence.className = 'saturation-table-sentence';
-  sentence.innerHTML = trans.saturationTableSentence;
-  container.appendChild(sentence);
-
   const penalisationExplanation = document.createElement('p');
   penalisationExplanation.className = 'penalisation-explanation';
   penalisationExplanation.innerHTML = trans.penalisationExplanation;
@@ -567,9 +561,12 @@ function updateSaturationTable(
   const thead = document.createElement('thead');
   thead.innerHTML = `
         <tr>
-            <th>${trans.compartment}</th>
-            <th>T1/2</th>
-            <th>${trans.tensionBefore}</th>
+            <th rowspan="2">${trans.compartment}</th>
+            <th rowspan="2">T1/2</th>
+            <th rowspan="2">${trans.tensionBefore}</th>
+            <th colspan="3">${trans.tensionAfter}</th>
+        </tr>
+        <tr>
             <th>OFF</th>
             <th>C60</th>
             <th>C120</th>
@@ -633,6 +630,12 @@ function updateSaturationTable(
   }
   table.appendChild(tbody);
   container.appendChild(table);
+
+  // Explanatory sentence below the table
+  const sentence = document.createElement('p');
+  sentence.className = 'saturation-table-sentence';
+  sentence.innerHTML = trans.saturationTableSentence;
+  container.appendChild(sentence);
 }
 
 function setupGaugeInteraction(
@@ -917,6 +920,20 @@ function formatTime(minutes) {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
+function formatDurationHuman(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  const trans = window.translations[state.currentLang];
+  if (h === 0) {
+    return `${m} ${m > 1 ? trans.minutes : trans.minute}`;
+  }
+  const hStr = h === 1 ? trans.hour : trans.hours;
+  if (m === 0) {
+    return `${h} ${hStr}`;
+  }
+  return `${h} ${hStr} ${m} ${m > 1 ? trans.minutes : trans.minute}`;
+}
+
 function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
   const progressEl = el[`${type}-progress${suffix}`];
   if (progressEl) {
@@ -954,7 +971,7 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
   }
 }
 
-const LOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2z"/></svg>`;
+const LOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`;
 const UNLOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`;
 
 function updateLockState(container, lockIcon, isLocked) {
@@ -1209,8 +1226,9 @@ function _updateUI_impl() {
       if (succResult && !succResult.error) {
         majText = `+${currentMajoration} min`;
         if (el['majoration-text']) {
-          el['majoration-text'].textContent =
-            `${window.translations[state.currentLang].majoration}: ${majText} `;
+          const trans = window.translations[state.currentLang];
+          const gpsLabel = prevGroup ? ` ${trans.gps.toLowerCase()} ${prevGroup}` : '';
+          el['majoration-text'].textContent = `${trans.majoration}${gpsLabel}: ${majText}`;
           el['majoration-text'].style.display = 'inline';
         }
         if (el['surpenalisation-container']) el['surpenalisation-container'].style.display = 'none';
@@ -1353,20 +1371,24 @@ function renderDiveDetails(container, result, diveDepth, diveTime, tankP, ppo2) 
   const takeoffPressure = Math.floor(tankP - descentAndBottomLiters / state.tankVolume);
 
   const dtrLabel = trans[state.currentLang].dtr.replace(/ /g, '<br>');
-  const takeoffLabel = trans[state.currentLang].takeoffPressure.replace(/ /g, '<br>');
-  const reserveLabel = trans[state.currentLang].reserve.replace(/ /g, '<br>');
+  const pressureLabel = trans[state.currentLang].pressure;
+  const takeoffLabel = trans[state.currentLang].takeoffPressure;
+  const reserveLabel = trans[state.currentLang].reserve;
   const optimizeBtnLabel = trans[state.currentLang].optimizeBtn;
 
   const dtrHtml = `<div class="result-box important clickable dtr-box"><span class="result-label">${dtrLabel}</span><span class="result-value">${dtrFormatted}</span></div>`;
   const combinedGasHtml = `
     <div class="result-box important clickable reserve-box group" style="user-select: none; touch-action: manipulation;">
-      <div>
-        <span class="result-label">${takeoffLabel}</span>
-        <span class="result-value">${takeoffPressure} bar</span>
-      </div>
-      <div>
-        <span class="result-label">${reserveLabel}</span>
-        <span class="result-value-remaining">${remainingPressure} bar</span>
+      <div class="result-label-header">${pressureLabel}</div>
+      <div class="group-columns">
+        <div>
+          <span class="result-label">${takeoffLabel}</span>
+          <span class="result-value">${takeoffPressure} bar</span>
+        </div>
+        <div>
+          <span class="result-label">${reserveLabel}</span>
+          <span class="result-value-remaining">${remainingPressure} bar</span>
+        </div>
       </div>
     </div>
   `;
@@ -1456,19 +1478,21 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   const modal = el['gas-modal'];
   const list = el['gas-breakdown-list'];
   const total = el['gas-breakdown-total'];
+  const warning = el['gas-breakdown-warning'];
 
   if (!modal || !list || !total) return;
 
   const trans = window.translations[state.currentLang];
   list.innerHTML = '';
+  if (warning) warning.innerHTML = '';
+  total.style.color = '';
 
   const addLine = (label, liters, color, parent = list) => {
     const bar = Math.ceil(liters / state.tankVolume);
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    const dot = color
-      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
-      : '';
+    const dotColor = color || 'transparent';
+    const dot = `<span style="display:inline-block;width:10px;height:10px;background:${dotColor};border-radius:50%;margin-right:8px;"></span>`;
     li.innerHTML = `${dot}<strong>${label}:</strong> ${bar} bar 	&ndash; <small><i>${Math.round(liters)} L</i></small>`;
     parent.appendChild(li);
     return li;
@@ -1479,7 +1503,7 @@ function showGasBreakdown(consoLiters, remainingPressure) {
 
   if (el['gas-breakdown-tank']) {
     el['gas-breakdown-tank'].innerHTML =
-      `<strong>${trans.tank}:</strong> ${state.tankVolume}L @ ${state.initTankPressure} bar`;
+      `<strong>${trans.tank}:</strong> ${state.tankVolume}L @ ${state.initTankPressure} bar 	&ndash; <small><i>${state.tankVolume * state.initTankPressure} L</i></small>`;
   }
 
   let stopsGas = 0;
@@ -1633,21 +1657,15 @@ function showGasBreakdown(consoLiters, remainingPressure) {
   }
 
   if (remainingPressure < 0) {
-    const msg = document.createElement('div');
-    msg.style.color = '#e53935';
-    total.style.color = '#e53935';
-    msg.style.marginTop = '20px';
-    msg.style.fontWeight = 'bold';
-    msg.innerHTML = trans.notEnoughGas;
-    list.appendChild(msg);
+    if (warning) {
+      warning.style.color = '#e53935';
+      warning.innerHTML = `💀 ${trans.notEnoughGas.toUpperCase()} ! 💀`;
+    }
   } else if (remainingPressure < RESERVE_PRESSURE_THRESHOLD) {
-    const msg = document.createElement('div');
-    msg.style.color = '#ff9800';
-    total.style.color = '#ff9800';
-    msg.style.marginTop = '20px';
-    msg.style.fontWeight = 'bold';
-    msg.innerHTML = trans.notEnoughReserve;
-    list.appendChild(msg);
+    if (warning) {
+      warning.style.color = '#ff9800';
+      warning.innerHTML = `⚠️ ${trans.notEnoughReserve} ⚠️`;
+    }
   }
 
   if (window.__openModal) window.__openModal(modal);
@@ -1773,7 +1791,7 @@ function showTimeBreakdown(timeBreakdown) {
     };
 
     drawTimeLabel(0, '0', 'start');
-    drawTimeLabel(maxT, formatTime(Math.ceil(maxT)), 'end');
+    drawTimeLabel(maxT, formatDurationHuman(Math.ceil(maxT)), 'end');
 
     chartContainer.appendChild(svg);
   }
@@ -1781,15 +1799,14 @@ function showTimeBreakdown(timeBreakdown) {
   const addLine = (label, minutes, color, parent = list) => {
     const li = document.createElement('li');
     li.style.marginBottom = '10px';
-    const dot = color
-      ? `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`
-      : '';
-    li.innerHTML = `${dot}<strong>${label}:</strong> ${formatTime(Math.ceil(minutes))}`;
+    const dotColor = color || 'transparent';
+    const dot = `<span style="display:inline-block;width:10px;height:10px;background:${dotColor};border-radius:50%;margin-right:8px;"></span>`;
+    li.innerHTML = `${dot}<strong>${label}:</strong> ${formatDurationHuman(Math.ceil(minutes))}`;
     parent.appendChild(li);
     return li;
   };
 
-  total.innerHTML = `${trans.total}: ${formatTime(timeBreakdown.totalDuration)}`;
+  total.innerHTML = `${trans.total}: ${formatDurationHuman(Math.ceil(timeBreakdown.totalDuration))}`;
 
   if (timeBreakdown.descent > 0) addLine(trans.descent, timeBreakdown.descent, '#2196f3');
   if (timeBreakdown.bottom > 0) addLine(trans.bottom, timeBreakdown.bottom, '#4caf50');
@@ -1807,7 +1824,7 @@ function showTimeBreakdown(timeBreakdown) {
       const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
       const li = document.createElement('li');
       li.style.marginBottom = '5px';
-      li.innerHTML = `${dot}${trans.ascent}: ${formatTime(Math.ceil(timeBreakdown.ascent))}`;
+      li.innerHTML = `${dot}${trans.ascent}: ${formatDurationHuman(Math.ceil(timeBreakdown.ascent))}`;
       subList.appendChild(li);
     }
 
@@ -1820,7 +1837,7 @@ function showTimeBreakdown(timeBreakdown) {
         const dot = `<span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:50%;margin-right:8px;"></span>`;
         const li = document.createElement('li');
         li.style.marginBottom = '5px';
-        li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${formatTime(Math.ceil(timeBreakdown.stops[d]))}`;
+        li.innerHTML = `${dot}${trans.stopAt} ${d}m: ${formatDurationHuman(Math.ceil(timeBreakdown.stops[d]))}`;
         subList.appendChild(li);
       });
     }
