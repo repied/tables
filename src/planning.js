@@ -244,12 +244,20 @@
         const PN2_stop = depthToPalvN2(currentDepth, surfacePressure, gaz_fN2);
 
         while (!isSafe) {
-          stopTime += timeStep;
-          dtr_Buhlmann += timeStep;
-          t_dive_total += timeStep;
-          tensions = updateAllTensions(tensions, PN2_stop, timeStep);
+          // Simulate exactly one minute in small time steps for accurate tension calculation.
+          // Safety is only checked at each 1-minute boundary, so stop durations are
+          // always whole-number multiples of one minute.
+          let remaining = 1; // 1 minute (all times are in minutes)
+          while (remaining > 0) {
+            const step = Math.min(timeStep, remaining);
+            stopTime += step;
+            dtr_Buhlmann += step;
+            t_dive_total += step;
+            tensions = updateAllTensions(tensions, PN2_stop, step);
+            remaining -= step;
+          }
 
-          // Check if nextDepth is safe now
+          // Check if nextDepth is safe now (only at minute boundaries)
           tensions_next = updateAllTensions(tensions, PN2_ascend, t_ascend);
           ({ isSafe } = simulAtDepth(
             nextDepth,
