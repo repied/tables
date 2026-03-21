@@ -1227,7 +1227,7 @@ function _updateUI_impl() {
         majText = `+${currentMajoration} min`;
         if (el['majoration-text']) {
           const trans = window.translations[state.currentLang];
-          const gpsLabel = prevGroup ? ` ${trans.gps.toLowerCase()} ${prevGroup}` : '';
+          const gpsLabel = prevGroup ? ` ${trans.gps.toUpperCase()} ${prevGroup}` : '';
           el['majoration-text'].textContent = `${trans.majoration}${gpsLabel}: ${majText}`;
           el['majoration-text'].style.display = 'inline';
         }
