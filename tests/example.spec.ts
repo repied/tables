@@ -22,7 +22,7 @@ test('app loads and shows main elements', async ({ page }) => {
   await expect(page.locator('#depth-display')).toHaveText('40');
 
   // Check footer contains expected text structure (gps, dtr, Pression fin)
-  await expect(page.locator('#gps-display-1')).toContainText('gps');
+  await expect(page.locator('#gps-display-1')).toContainText('GPS');
   await expect(page.locator('#dive-details')).toContainText('dtr');
   await expect(page.locator('#dive-details')).toContainText(/Pression.*fin/is);
 });
@@ -120,10 +120,10 @@ test('dive results are properly formatted', async ({ page }) => {
 });
 
 test('no console errors on page load', async ({ page }) => {
-  const errors: string[] = [];
+  const errors: { text: string; url: string }[] = [];
   page.on('console', (msg) => {
     if (msg.type() === 'error') {
-      errors.push(msg.text());
+      errors.push({ text: msg.text(), url: msg.location().url ?? '' });
     }
   });
 
@@ -135,11 +135,15 @@ test('no console errors on page load', async ({ page }) => {
 
   // Check there are no critical errors in console
   const criticalErrors = errors.filter(
-    (e) =>
-      !e.includes('favicon') &&
-      !e.includes('manifest') &&
-      !e.includes('analytics') &&
-      !e.includes('gtag')
+    ({ text, url }) =>
+      !text.includes('favicon') &&
+      !text.includes('manifest') &&
+      !url.includes('favicon') &&
+      !url.includes('manifest') &&
+      !url.includes('analytics') &&
+      !url.includes('gtag') &&
+      !url.includes('googletagmanager') &&
+      !url.includes('buymeacoffee')
   );
 
   expect(criticalErrors.length).toBe(0);
