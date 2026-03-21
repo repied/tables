@@ -547,12 +547,6 @@ function updateSaturationTable(
     return `hsla(${hue}, 70%, 45%, 0.8)`;
   };
 
-  // Explanatory sentence above the single table
-  const sentence = document.createElement('p');
-  sentence.className = 'saturation-table-sentence';
-  sentence.innerHTML = trans.saturationTableSentence;
-  container.appendChild(sentence);
-
   const penalisationExplanation = document.createElement('p');
   penalisationExplanation.className = 'penalisation-explanation';
   penalisationExplanation.innerHTML = trans.penalisationExplanation;
@@ -567,9 +561,12 @@ function updateSaturationTable(
   const thead = document.createElement('thead');
   thead.innerHTML = `
         <tr>
-            <th>${trans.compartment}</th>
-            <th>T1/2</th>
-            <th>${trans.tensionBefore}</th>
+            <th rowspan="2">${trans.compartment}</th>
+            <th rowspan="2">T1/2</th>
+            <th rowspan="2">${trans.tensionBefore}</th>
+            <th colspan="3">${trans.tensionAfter}</th>
+        </tr>
+        <tr>
             <th>OFF</th>
             <th>C60</th>
             <th>C120</th>
@@ -633,6 +630,12 @@ function updateSaturationTable(
   }
   table.appendChild(tbody);
   container.appendChild(table);
+
+  // Explanatory sentence below the table
+  const sentence = document.createElement('p');
+  sentence.className = 'saturation-table-sentence';
+  sentence.innerHTML = trans.saturationTableSentence;
+  container.appendChild(sentence);
 }
 
 function setupGaugeInteraction(
@@ -968,7 +971,7 @@ function updateGaugeVisuals(type, value, max, isTime = false, suffix = '') {
   }
 }
 
-const LOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2z"/></svg>`;
+const LOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`;
 const UNLOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3 3.1-3 1.71 0 3.1 1.29 3.1 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`;
 
 function updateLockState(container, lockIcon, isLocked) {
