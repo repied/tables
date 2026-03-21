@@ -1,4 +1,4 @@
-Application gratuite et open source pour planifier des plongées, avec les tables MN90 ou les Facteurs de Gradient (Bühlmann ZHL-16C).
+Application gratuite et open source pour planifier 2 plongées, avec les tables MN90 ou les Facteurs de Gradient (Bühlmann ZHL-16C).
 
 <div class="disclaimer-box">
 
@@ -12,15 +12,15 @@ Outil pédagogique. Les résultats présentés peuvent être faux. Utilisez un o
 
 - **Glisser haut/bas** ou **Tap** pour ajuster
 - **Double tap** pour réinitialiser
-- **Cadenas :** pour déverrouiller GFs seconde plongée
+- **Cadenas** pour déverrouiller GFs
 - Basculer **ppO<sub>2</sub> max** entre 1.4 et 1.6 pour ajuster la profondeur maximale (MOD).
-- **Surpénalisation plongée successive** : Activez "C60" (loisir) ou "C120" (engagée) pour limiter le dégazage des compartiments rapides. Cliquez sur le **?** pour voir l'impact sur les tensions.
-- **Optimisez** la durée qui permet de ne pas toucher à la réserve.
-- **Partager :** partager une plongée par lien ou QR code
+- **Surpénalisation plongée successive** pour limiter le dégazage des compartiments rapides.
+- **Optimise** la durée qui permet de ne pas toucher à la réserve.
+- **Partager :** une plongée par lien ou QR code
 - **Calculs :**
   - **DTR :** Durée Totale de Remontée
   - **Pression décollage :** Pression au début de la remontée.
-  - **Pression finale** en bouteille
+  - **Pression finale** en bloc
   - **Alerte MOD :** Un arc orange apparaît en cas de dépassement de la ppO<sub>2</sub> max.
 
 ### Hypothèses
@@ -44,6 +44,7 @@ Installation directe depuis le navigateur (pas de PlayStore/AppStore) pour utili
 - Inspiration : [mn•90](https://oliviernemoz.wixsite.com/site/mn90)
 - Tables MN90 : [eppeplongee](https://eppeplongee.wordpress.com/2018/03/22/tables-mn-90/)
 - Paramètres ZH-L16C : [Subsurface](https://github.com/subsurface/subsurface/blob/dfd5e20d3d2b7105e89ded44222dc6f1631d2a39/core/deco.cpp#L86)
+- Surpénalisation : [A. Foret](./data/Worldivers-Computers-Repetitive-FR.pdf)
 - Code : [source](https://github.com/repied/tables)
 - Contact : [pierreD](mailto:pierre.dangauthier+tables@gmail.com?subject=Tables%20app%20feedback)
 - Extra : [Checklist](#checklist)
