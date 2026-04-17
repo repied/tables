@@ -1,15 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=https://repied.github.io/planif" />
-    <link rel="canonical" href="https://repied.github.io/planif" />
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="0;url=https://plongee.app/">
     <title>Redirecting...</title>
-  </head>
-  <body>
-    <p>
-      This application has been renamed to Planif. If you are not redirected automatically,
-      <a href="https://repied.github.io/planif">click here</a>.
-    </p>
-  </body>
+</head>
+<body>
+    <script>
+        navigator.serviceWorker.getRegistrations()
+            .then(regs => Promise.all(regs.map(r => r.unregister())))
+            .then(() => caches.keys())
+            .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+            .then(() => window.location.replace('https://plongee.app/'));
+    </script>
+</body>
 </html>
