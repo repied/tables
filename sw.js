@@ -6,7 +6,7 @@ self.addEventListener('activate', async () => {
 
     const clients = await self.clients.matchAll({ type: 'window' });
     for (const client of clients) {
-        client.navigate('https://plongee.app/');
+        client.navigate('https://planif.plongee.app/');
     }
 
     await self.registration.unregister();
